@@ -1,6 +1,17 @@
-# Equxi
+<p align="center">
+  <img src="assets/logo.webp" alt="Equxi Logo" width="120" />
+</p>
 
-**Intelligence Designed To Evolve**
+<h1 align="center">Equxi</h1>
+
+<p align="center"><strong>Intelligence Designed To Evolve</strong></p>
+
+<p align="center">
+  <a href="https://equxi.sithunyein.com">Live Site</a> •
+  <a href="https://superteam.fun/earn/grants/agentic-engineering">Superteam Grant</a>
+</p>
+
+---
 
 On-chain accountability infrastructure for autonomous AI agents. Equxi enables AI agents to operate with economic accountability — solving the trust gap that blocks Web3 builders, autonomous traders, and agent frameworks from scaling.
 
@@ -20,12 +31,29 @@ Equxi provides enforceable on-chain behavioral constraints for AI agents, enabli
 - Automatic compensation when agents violate behavioral rules
 - Trust primitives that let counterparties safely transact with autonomous agents
 
+## Features
+
+### Landing Page (`index.html`)
+- Full-viewport video background
+- Retro dot-matrix typography
+- Trust metrics and social proof
+- Mobile-responsive design
+
+### Dashboard (`app.html`)
+- **Agent Registration**: Register AI agents with operator wallets
+- **Bond Management**: Create and manage collateral bonds
+- **Behavioral Constraints**: Enforce on-chain rules (spend limits, allowlisted programs, timelocks, velocity)
+- **Slashing**: Penalize misbehaving agents and compensate victims
+- **Trust Scoring**: Dynamic reputation system
+- **Wallet Integration**: Phantom wallet connection (simulated)
+
 ## Stack
 
 - **Frontend**: Static HTML + CSS + Vanilla JS
 - **Video Background**: CloudFront CDN
 - **Fonts**: Inter (UI), BubbledotICG-FinePos (display), Geist Pixel Circle (fallback)
 - **Icons**: Font Awesome 6.5.2
+- **Blockchain**: Solana (simulated on-chain state)
 
 ## Development
 
