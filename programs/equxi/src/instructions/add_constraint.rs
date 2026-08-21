@@ -6,10 +6,16 @@ use crate::error::EquxiError;
 #[instruction(constraint_type: ConstraintType)]
 pub struct AddConstraint<'info> {
     #[account(
+        seeds = [b"config"],
+        bump = config.bumped,
+    )]
+    pub config: Account<'info, Config>,
+
+    #[account(
         init,
         payer = owner,
         space = 8 + Constraint::INIT_SPACE,
-        seeds = [b"constraint", agent.key().as_ref(), &constraint_type.clone() as &[u8]],
+        seeds = [b"constraint", agent.key().as_ref(), (config.total_bonds + 1).to_le_bytes().as_ref()],
         bump
     )]
     pub constraint: Account<'info, Constraint>,

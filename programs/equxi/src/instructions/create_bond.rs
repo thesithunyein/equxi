@@ -6,6 +6,12 @@ use crate::error::EquxiError;
 #[derive(Accounts)]
 pub struct CreateBond<'info> {
     #[account(
+        seeds = [b"config"],
+        bump = config.bumped,
+    )]
+    pub config: Account<'info, Config>,
+
+    #[account(
         init,
         payer = operator,
         space = 8 + Bond::INIT_SPACE,
@@ -25,20 +31,20 @@ pub struct CreateBond<'info> {
     pub operator: Signer<'info>,
 
     #[account(address = agent.owner)]
-    /// CHECK: Validated by has_one constraint
+    /// CHECK: Validated by has_one
     pub owner: AccountInfo<'info>,
 
     pub system_program: Program<'info, System>,
 }
 
 pub fn handler(ctx: Context<CreateBond>, amount: u64, lock_duration: i64) -> Result<()> {
-    // Minimum bond: 0.1 SOL
     require!(amount >= 100_000_000, EquxiError::BondTooSmall);
 
+    let config = &mut ctx.accounts.config;
     let clock = Clock::get()?;
     let bond = &mut ctx.accounts.bond;
 
-    // Transfer SOL from operator to bond PDA
+    // Transfer SOL to bond PDA
     system_program::transfer(
         CpiContext::new(
             ctx.accounts.system_program.to_account_info(),
@@ -59,9 +65,9 @@ pub fn handler(ctx: Context<CreateBond>, amount: u64, lock_duration: i64) -> Res
     bond.is_active = true;
     bond.bumped = ctx.bumps.bond;
 
-    // Update agent's bond address
     ctx.accounts.agent.bond_address = bond.key();
+    config.total_bonds += 1;
 
-    msg!("Bond created: {} SOL locked for agent", amount);
+    msg!("Bond created: {} SOL locked", amount);
     Ok(())
 }

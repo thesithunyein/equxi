@@ -5,8 +5,14 @@ use crate::error::EquxiError;
 #[derive(Accounts)]
 pub struct CompensateVictim<'info> {
     #[account(
+        seeds = [b"config"],
+        bump = config.bumped,
+    )]
+    pub config: Account<'info, Config>,
+
+    #[account(
         mut,
-        seeds = [b"slash", agent.key().as_ref(), slash_record.timestamp.to_le_bytes().as_ref()],
+        seeds = [b"slash", agent.key().as_ref(), slash_record.nonce.to_le_bytes().as_ref()],
         bump = slash_record.bumped,
         constraint = !slash_record.compensated @ EquxiError::BondInactive
     )]
@@ -22,12 +28,11 @@ pub struct CompensateVictim<'info> {
     #[account(mut)]
     pub agent: Account<'info, Agent>,
 
-    /// CHECK: Victim wallet to receive compensation
+    /// CHECK: Victim wallet
     #[account(mut)]
     pub victim: AccountInfo<'info>,
 
-    /// CHECK: Authority that can execute compensation
-    #[account(constraint = authority.key() == crate::ID @ EquxiError::SlashingAuthorityRequired)]
+    #[account(constraint = authority.key() == config.admin @ EquxiError::SlashingAuthorityRequired)]
     pub authority: Signer<'info>,
 
     pub system_program: Program<'info, System>,
@@ -37,17 +42,22 @@ pub fn handler(ctx: Context<CompensateVictim>, amount: u64) -> Result<()> {
     let bond = &mut ctx.accounts.bond;
     let slash_record = &mut ctx.accounts.slash_record;
 
-    require!(bond.amount >= amount, EquxiError::InsufficientBond);
+    // Check actual lamport balance, not just stored amount
+    let current_balance = ctx.accounts.bond.to_account_info().lamports();
+    require!(current_balance >= amount, EquxiError::InsufficientBond);
 
-    // Transfer compensation from bond to victim
-    **bond.to_account_info().try_borrow_mut_lamports()? -= amount;
+    // Transfer compensation from treasury to victim
+    // The slashed funds went to admin, so admin pays victim
+    **ctx.accounts.authority.to_account_info().try_borrow_mut_lamports()? -= amount;
     **ctx.accounts.victim.to_account_info().try_borrow_mut_lamports()? += amount;
 
-    // Mark as compensated
+    // Update stored amount
+    bond.amount = bond.amount.saturating_sub(amount);
+
     slash_record.compensated = true;
     slash_record.victim = Some(ctx.accounts.victim.key());
 
-    // Update agent trust score (reduce by 10)
+    // Reduce trust score
     let agent = &mut ctx.accounts.agent;
     agent.trust_score = agent.trust_score.saturating_sub(10);
 

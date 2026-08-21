@@ -7,13 +7,18 @@ pub mod error;
 use instructions::*;
 use state::*;
 
-declare_id!("EQUxi11111111111111111111111111111111111111111");
+declare_id!("Eqxi1111111111111111111111111111111111111111");
 
 #[program]
 pub mod equxi {
     use super::*;
 
-    /// Register a new AI agent with an operator wallet
+    /// Initialize the program with an admin authority
+    pub fn initialize(ctx: Context<Initialize>, admin: Pubkey) -> Result<()> {
+        instructions::initialize::handler(ctx, admin)
+    }
+
+    /// Register a new AI agent
     pub fn register_agent(
         ctx: Context<RegisterAgent>,
         name: String,
@@ -22,7 +27,7 @@ pub mod equxi {
         instructions::register_agent::handler(ctx, name, agent_type)
     }
 
-    /// Create a bond (lock SOL collateral) for an agent
+    /// Create a bond (lock SOL collateral)
     pub fn create_bond(
         ctx: Context<CreateBond>,
         amount: u64,
@@ -31,7 +36,12 @@ pub mod equxi {
         instructions::create_bond::handler(ctx, amount, lock_duration)
     }
 
-    /// Add a behavioral constraint to an agent
+    /// Withdraw bond after lock period expires
+    pub fn withdraw_bond(ctx: Context<WithdrawBond>) -> Result<()> {
+        instructions::withdraw_bond::handler(ctx)
+    }
+
+    /// Add a behavioral constraint
     pub fn add_constraint(
         ctx: Context<AddConstraint>,
         constraint_type: ConstraintType,
@@ -40,7 +50,7 @@ pub mod equxi {
         instructions::add_constraint::handler(ctx, constraint_type, params)
     }
 
-    /// Execute slashing against an agent's bond
+    /// Execute slashing (admin only)
     pub fn execute_slash(
         ctx: Context<ExecuteSlash>,
         reason: String,
@@ -49,7 +59,7 @@ pub mod equxi {
         instructions::execute_slash::handler(ctx, reason, slash_amount)
     }
 
-    /// Compensate a victim from a slashed bond
+    /// Compensate a victim from slashed funds
     pub fn compensate_victim(
         ctx: Context<CompensateVictim>,
         amount: u64,
@@ -57,7 +67,7 @@ pub mod equxi {
         instructions::compensate_victim::handler(ctx, amount)
     }
 
-    /// Update agent trust score (called by oracle)
+    /// Update trust score (admin only)
     pub fn update_trust_score(
         ctx: Context<UpdateTrustScore>,
         score: u8,

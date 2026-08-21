@@ -6,6 +6,12 @@ use crate::error::EquxiError;
 #[instruction(name: String, agent_type: AgentType)]
 pub struct RegisterAgent<'info> {
     #[account(
+        seeds = [b"config"],
+        bump = config.bumped,
+    )]
+    pub config: Account<'info, Config>,
+
+    #[account(
         init,
         payer = operator,
         space = 8 + Agent::INIT_SPACE,
@@ -23,6 +29,7 @@ pub struct RegisterAgent<'info> {
 pub fn handler(ctx: Context<RegisterAgent>, name: String, agent_type: AgentType) -> Result<()> {
     require!(name.len() <= 32, EquxiError::NameTooLong);
 
+    let config = &mut ctx.accounts.config;
     let agent = &mut ctx.accounts.agent;
     let name_bytes = name.as_bytes();
     let mut name_fixed = [0u8; 32];
@@ -31,11 +38,13 @@ pub fn handler(ctx: Context<RegisterAgent>, name: String, agent_type: AgentType)
     agent.owner = ctx.accounts.operator.key();
     agent.name = name_fixed;
     agent.agent_type = agent_type;
-    agent.trust_score = 50; // Default starting trust score
+    agent.trust_score = 50;
     agent.status = AgentStatus::Active;
-    agent.bond_address = Pubkey::default(); // Will be set when bond is created
+    agent.bond_address = Pubkey::default();
     agent.created_at = Clock::get()?.unix_timestamp;
     agent.bumped = ctx.bumps.agent;
+
+    config.total_agents += 1;
 
     msg!("Agent registered: {}", name);
     Ok(())
