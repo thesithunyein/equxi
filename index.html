@@ -7,10 +7,10 @@
   <link rel="icon" type="image/webp" href="assets/logo.webp" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://db.onlinewebfonts.com/c/8cb707a9b8a73f8a7403336b861c3074?family=BubbledotICG-FinePos" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=2" />
 </head>
 <body>
   <div class="bg">
@@ -20,7 +20,7 @@
   </div>
 
   <div class="page">
-    <header class="header anim" style="--d:0s">
+    <header class="header" style="opacity:0;transform:translateY(-18px)">
       <a href="index.html" class="logo-btn" aria-label="Home">
         <img src="assets/logo.webp" alt="Equxi" width="52" height="52" />
       </a>
@@ -39,7 +39,7 @@
     </header>
 
     <section class="hero">
-      <div class="trust anim" style="--d:0.15s">
+      <div class="trust" style="opacity:0;transform:translateY(16px)">
         <div class="trust-avatars">
           <div class="avatar a1"><i class="fa-brands fa-solana" style="color:#9945FF;"></i></div>
           <div class="avatar a2"><i class="fa-solid fa-robot" style="color:#22c55e;"></i></div>
@@ -48,16 +48,16 @@
         <span class="trust-pill">On-chain Trust for AI Agents</span>
       </div>
 
-      <h1 class="headline anim" style="--d:0.22s">
-        <span class="hl-line">Trust Layer</span>
-        <span class="hl-line">For Agents</span>
+      <h1 class="headline">
+        <span class="hl-line" style="clip-path:inset(0 0 100% 0);opacity:0">Trust Layer</span>
+        <span class="hl-line" style="clip-path:inset(0 0 100% 0);opacity:0">For Agents</span>
       </h1>
 
-      <p class="subhead anim" style="--d:0.45s">
+      <p class="subhead" style="opacity:0;transform:translateY(16px)">
         Bonds agents' operators, enforces behavior on-chain, and slashes collateral to compensate victims — because nobody should trust an agent with real money without accountability.
       </p>
 
-      <div class="cta-row anim" style="--d:0.6s">
+      <div class="cta-row" style="opacity:0;transform:translateY(16px) scale(0.97)">
         <a href="app.html" class="cta">Launch App</a>
         <a href="https://github.com/thesithunyein/equxi" class="cta-secondary" target="_blank">
           <i class="fa-brands fa-github"></i> View Code
@@ -65,7 +65,7 @@
       </div>
     </section>
 
-    <footer class="stats anim" style="--d:0.75s">
+    <footer class="stats" style="opacity:0;transform:translateY(16px)">
       <div class="stat" data-target="48500" data-suffix="" data-decimals="0">
         <span class="stat-icon"><i class="fa-solid fa-coins"></i></span>
         <span class="stat-value">0</span>
@@ -99,6 +99,6 @@
     </div>
   </div>
 
-  <script src="main.js"></script>
+  <script src="main.js?v=2"></script>
 </body>
 </html>

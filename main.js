@@ -1,85 +1,102 @@
 (function () {
   "use strict";
 
-  function initReveal() {
-    const animEls = document.querySelectorAll(".anim");
-    if (!animEls.length) return;
-
-    // Headline: reveal child .hl-line elements
-    const headline = document.querySelector(".headline.anim");
-    if (headline) {
-      const hlIO = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              const lines = entry.target.querySelectorAll(".hl-line");
-              lines.forEach((line) => line.classList.add("revealed"));
-              hlIO.unobserve(entry.target);
+  /* --------------------------------------------------------
+     Entrance Animations — JS-driven, no CSS class dependencies
+     -------------------------------------------------------- */
+  function animate(el, props, duration, delay, easing) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const start = performance.now();
+        const from = {};
+        const to = {};
+        for (const [k, v] of Object.entries(props)) {
+          from[k] = parseFloat(getComputedStyle(el)[k]) || 0;
+          to[k] = v;
+        }
+        function tick(now) {
+          const t = Math.min((now - start) / duration, 1);
+          const e = easing(t);
+          for (const [k] of Object.entries(props)) {
+            if (k === "opacity") el.style.opacity = from[k] + (to[k] - from[k]) * e;
+            else if (k === "clip-path") {
+              const v = from[k] + (to[k] - from[k]) * e;
+              el.style.clipPath = `inset(0 0 ${(1 - v) * 100}% 0)`;
             }
-          });
-        },
-        { threshold: 0.1 }
-      );
-      hlIO.observe(headline);
-    }
-
-    // All other .anim elements
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("revealed");
-            io.unobserve(entry.target);
+            else el.style[k] = `${from[k] + (to[k] - from[k]) * e}px`;
           }
-        });
-      },
-      { threshold: 0.1 }
-    );
-
-    animEls.forEach((el) => {
-      if (!el.classList.contains("headline")) io.observe(el);
+          if (t < 1) requestAnimationFrame(tick);
+          else resolve();
+        }
+        requestAnimationFrame(tick);
+      }, delay);
     });
   }
 
-  function easeOutCubic(t) {
-    return 1 - Math.pow(1 - t, 3);
+  function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+  function easeOutQuart(t) { return 1 - Math.pow(1 - t, 4); }
+
+  async function runEntrance() {
+    const header = document.querySelector(".header");
+    const trust = document.querySelector(".trust");
+    const lines = document.querySelectorAll(".hl-line");
+    const subhead = document.querySelector(".subhead");
+    const ctaRow = document.querySelector(".cta-row");
+    const stats = document.querySelector(".stats");
+
+    // Header slide down
+    animate(header, { opacity: 1, translateY: 0 }, 700, 100, easeOutCubic);
+
+    // Trust row
+    animate(trust, { opacity: 1, translateY: 0 }, 700, 250, easeOutCubic);
+
+    // Headline lines — clip reveal
+    for (let i = 0; i < lines.length; i++) {
+      animate(lines[i], { opacity: 1, clipPath: 1 }, 900, 400 + i * 180, easeOutQuart);
+    }
+
+    // Subhead
+    animate(subhead, { opacity: 0.85, translateY: 0 }, 700, 800, easeOutCubic);
+
+    // CTAs
+    animate(ctaRow, { opacity: 1, translateY: 0, scale: 1 }, 700, 950, easeOutCubic);
+
+    // Stats
+    animate(stats, { opacity: 1, translateY: 0 }, 700, 1100, easeOutCubic);
+
+    // Count-up stats after they appear
+    setTimeout(() => startCountUp(), 1200);
   }
 
-  function animateCountUp(statEl, index) {
-    const target = parseFloat(statEl.dataset.target);
-    const suffix = statEl.dataset.suffix || "";
-    const decimals = parseInt(statEl.dataset.decimals, 10) || 0;
-    const valueEl = statEl.querySelector(".stat-value");
-    const duration = 1500 + index * 80;
-    const startOffset = 550 + index * 90;
-    let started = false;
+  /* --------------------------------------------------------
+     Count-up
+     -------------------------------------------------------- */
+  function startCountUp() {
+    const stats = document.querySelectorAll(".stat");
+    stats.forEach((stat, i) => {
+      const target = parseFloat(stat.dataset.target);
+      const suffix = stat.dataset.suffix || "";
+      const decimals = parseInt(stat.dataset.decimals, 10) || 0;
+      const valueEl = stat.querySelector(".stat-value");
+      const duration = 1500 + i * 80;
+      const startTime = performance.now() + i * 90;
 
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && !started) {
-            started = true;
-            io.unobserve(entry.target);
-            setTimeout(() => {
-              const startTime = performance.now();
-              function tick(now) {
-                const elapsed = now - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-                const eased = easeOutCubic(progress);
-                const current = eased * target;
-                valueEl.textContent = current.toFixed(decimals) + suffix;
-                if (progress < 1) requestAnimationFrame(tick);
-              }
-              requestAnimationFrame(tick);
-            }, startOffset);
-          }
-        });
-      },
-      { threshold: 0.25 }
-    );
-    io.observe(statEl);
+      function tick(now) {
+        const elapsed = now - startTime;
+        if (elapsed < 0) { requestAnimationFrame(tick); return; }
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = easeOutCubic(progress);
+        const current = eased * target;
+        valueEl.textContent = current.toFixed(decimals) + suffix;
+        if (progress < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    });
   }
 
+  /* --------------------------------------------------------
+     Mobile Menu
+     -------------------------------------------------------- */
   function initMobileMenu() {
     const burger = document.querySelector(".burger");
     const overlay = document.getElementById("mobile-menu");
@@ -109,8 +126,7 @@
   }
 
   document.addEventListener("DOMContentLoaded", () => {
-    initReveal();
     initMobileMenu();
-    document.querySelectorAll(".stat").forEach((stat, i) => animateCountUp(stat, i));
+    runEntrance();
   });
 })();
