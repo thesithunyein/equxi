@@ -367,10 +367,18 @@
     });
   }
 
-  function showToast(msg) {
+  function showToast(msg, duration) {
     const t = document.getElementById("toast");
     document.getElementById("toastMessage").textContent = msg;
-    t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 3000);
+    t.classList.add("show"); setTimeout(() => t.classList.remove("show"), duration || 3000);
+  }
+
+  async function refreshBalance() {
+    if (!connection || !walletAddress) return;
+    try {
+      const bal = await connection.getBalance(new solanaWeb3.PublicKey(walletAddress));
+      document.getElementById("walletBalance").textContent = `${lamportsToSol(bal)} SOL`;
+    } catch {}
   }
 
   /* TX Handlers */
@@ -401,7 +409,7 @@
       const sig = await connection.sendRawTransaction(signed.serialize());
       await confirmTx(sig);
       showTxSuccess(`Agent "${name}" registered`, sig);
-      await refreshData();
+      await Promise.all([refreshData(), refreshBalance()]);
     } catch (err) {
       showTxError(err.message?.includes("User rejected") ? "Cancelled" : (err.message || "Failed"));
     }
@@ -430,7 +438,7 @@
       const sig = await connection.sendRawTransaction(signed.serialize());
       await confirmTx(sig);
       showTxSuccess(`Locked ${amountSol} SOL`, sig);
-      await refreshData();
+      await Promise.all([refreshData(), refreshBalance()]);
     } catch (err) {
       showTxError(err.message?.includes("User rejected") ? "Cancelled" : (err.message || "Failed"));
     }
@@ -468,7 +476,7 @@
       const sig = await connection.sendRawTransaction(signed.serialize());
       await confirmTx(sig);
       showTxSuccess("Rule added", sig);
-      await refreshData();
+      await Promise.all([refreshData(), refreshBalance()]);
     } catch (err) {
       showTxError(err.message?.includes("User rejected") ? "Cancelled" : (err.message || "Failed"));
     }
@@ -495,7 +503,7 @@
       const sig = await connection.sendRawTransaction(signed.serialize());
       await confirmTx(sig);
       showTxSuccess("Bond withdrawn", sig);
-      await refreshData();
+      await Promise.all([refreshData(), refreshBalance()]);
     } catch (err) {
       showTxError(err.message?.includes("User rejected") ? "Cancelled" : (err.message || "Failed"));
     }

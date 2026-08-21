@@ -27,18 +27,6 @@
     });
   }
 
-  // Count-up animation
-  function countUp(el, target, suffix, decimals, duration) {
-    const start = performance.now();
-    function tick(now) {
-      const t = Math.min((now - start) / duration, 1);
-      const e = 1 - Math.pow(1 - t, 3);
-      el.textContent = (e * target).toFixed(decimals) + suffix;
-      if (t < 1) requestAnimationFrame(tick);
-    }
-    requestAnimationFrame(tick);
-  }
-
   document.addEventListener("DOMContentLoaded", () => {
     // Animate elements in
     const header = document.querySelector(".header");
@@ -53,17 +41,6 @@
     if (headline) animate(headline, { opacity: 1, translateY: 0 }, 700, 350);
     if (subhead) animate(subhead, { opacity: 1, translateY: 0 }, 600, 500);
     if (ctaRow) animate(ctaRow, { opacity: 1, translateY: 0 }, 600, 600);
-    if (stats) {
-      animate(stats, { opacity: 1, translateY: 0 }, 600, 750);
-      // Count-up stats
-      setTimeout(() => {
-        document.querySelectorAll(".stat-value").forEach((el, i) => {
-          const target = parseFloat(el.dataset.target);
-          const suffix = el.dataset.suffix || "";
-          const decimals = parseInt(el.dataset.decimals) || 0;
-          countUp(el, target, suffix, decimals, 1500 + i * 100);
-        });
-      }, 900);
-    }
+    if (stats) animate(stats, { opacity: 1, translateY: 0 }, 600, 750);
   });
 })();
