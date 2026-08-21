@@ -5,6 +5,7 @@
     const animEls = document.querySelectorAll(".anim");
     if (!animEls.length) return;
 
+    // Headline: reveal child .hl-line elements
     const headline = document.querySelector(".headline.anim");
     if (headline) {
       const hlIO = new IntersectionObserver(
@@ -17,11 +18,12 @@
             }
           });
         },
-        { threshold: 0.15 }
+        { threshold: 0.1 }
       );
       hlIO.observe(headline);
     }
 
+    // All other .anim elements
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -31,7 +33,7 @@
           }
         });
       },
-      { threshold: 0.15 }
+      { threshold: 0.1 }
     );
 
     animEls.forEach((el) => {
@@ -49,7 +51,7 @@
     const decimals = parseInt(statEl.dataset.decimals, 10) || 0;
     const valueEl = statEl.querySelector(".stat-value");
     const duration = 1500 + index * 80;
-    const startOffset = 480 + index * 90;
+    const startOffset = 550 + index * 90;
     let started = false;
 
     const io = new IntersectionObserver(
