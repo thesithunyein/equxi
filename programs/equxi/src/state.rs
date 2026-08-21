@@ -63,7 +63,7 @@ pub struct SlashRecord {
     pub bumped: u8,
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, PartialEq, Eq, InitSpace)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, PartialEq, Eq, InitSpace, Debug)]
 pub enum AgentType {
     Trader,
     Oracle,
@@ -75,7 +75,7 @@ pub enum AgentType {
     Custom,
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, PartialEq, Eq, InitSpace)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, PartialEq, Eq, InitSpace, Debug)]
 pub enum AgentStatus {
     Active,
     Pending,
@@ -83,7 +83,7 @@ pub enum AgentStatus {
     Deactivated,
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, PartialEq, Eq, InitSpace)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, PartialEq, Eq, InitSpace, Debug)]
 pub enum ConstraintType {
     SpendLimit,
     ProgramAllowlist,
@@ -92,7 +92,7 @@ pub enum ConstraintType {
     Custom,
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, PartialEq, Eq, InitSpace)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, PartialEq, Eq, InitSpace, Debug)]
 pub struct ConstraintParams {
     pub max_amount: u64,
     pub max_per_period: u64,

@@ -39,21 +39,19 @@ pub struct CompensateVictim<'info> {
 }
 
 pub fn handler(ctx: Context<CompensateVictim>, amount: u64) -> Result<()> {
-    let bond = &mut ctx.accounts.bond;
-    let slash_record = &mut ctx.accounts.slash_record;
-
-    // Check actual lamport balance, not just stored amount
+    // Read lamport balance BEFORE mutable borrows
     let current_balance = ctx.accounts.bond.to_account_info().lamports();
     require!(current_balance >= amount, EquxiError::InsufficientBond);
 
-    // Transfer compensation from treasury to victim
-    // The slashed funds went to admin, so admin pays victim
+    // Transfer compensation: admin pays victim directly
     **ctx.accounts.authority.to_account_info().try_borrow_mut_lamports()? -= amount;
     **ctx.accounts.victim.to_account_info().try_borrow_mut_lamports()? += amount;
 
-    // Update stored amount
+    // Update stored state
+    let bond = &mut ctx.accounts.bond;
     bond.amount = bond.amount.saturating_sub(amount);
 
+    let slash_record = &mut ctx.accounts.slash_record;
     slash_record.compensated = true;
     slash_record.victim = Some(ctx.accounts.victim.key());
 
