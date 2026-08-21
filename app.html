@@ -8,11 +8,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://db.onlinewebfonts.com/c/8cb707a9b8a73f8a7403336b861c3074?family=BubbledotICG-FinePos" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
   <link rel="stylesheet" href="app.css" />
 </head>
 <body>
-  <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <img src="assets/logo.webp" alt="Equxi" class="sidebar-logo" />
@@ -20,55 +20,43 @@
     </div>
     <nav class="sidebar-nav">
       <a href="#dashboard" class="sidebar-link active" data-section="dashboard">
-        <i class="fa-solid fa-grid-2"></i>
-        <span>Dashboard</span>
+        <i class="fa-solid fa-grid-2"></i><span>Dashboard</span>
       </a>
       <a href="#agents" class="sidebar-link" data-section="agents">
-        <i class="fa-solid fa-robot"></i>
-        <span>My Agents</span>
+        <i class="fa-solid fa-robot"></i><span>My Agents</span>
       </a>
       <a href="#bonds" class="sidebar-link" data-section="bonds">
-        <i class="fa-solid fa-shield-halved"></i>
-        <span>Bonds</span>
+        <i class="fa-solid fa-shield-halved"></i><span>Bonds</span>
       </a>
       <a href="#constraints" class="sidebar-link" data-section="constraints">
-        <i class="fa-solid fa-lock"></i>
-        <span>Constraints</span>
+        <i class="fa-solid fa-lock"></i><span>Constraints</span>
       </a>
       <a href="#activity" class="sidebar-link" data-section="activity">
-        <i class="fa-solid fa-clock-rotate-left"></i>
-        <span>Activity</span>
+        <i class="fa-solid fa-clock-rotate-left"></i><span>Activity</span>
       </a>
     </nav>
     <div class="sidebar-footer">
       <a href="index.html" class="sidebar-link">
-        <i class="fa-solid fa-arrow-left"></i>
-        <span>Back to Home</span>
+        <i class="fa-solid fa-arrow-left"></i><span>Back to Home</span>
       </a>
     </div>
   </aside>
 
-  <!-- Main Content -->
   <main class="main-content">
-    <!-- Top Bar -->
     <header class="topbar">
       <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
         <i class="fa-solid fa-bars"></i>
       </button>
-      <div class="topbar-title">
-        <h1 id="pageTitle">Dashboard</h1>
-      </div>
+      <div class="topbar-title"><h1 id="pageTitle">Dashboard</h1></div>
       <div class="topbar-actions">
         <button class="wallet-btn" id="connectWallet">
-          <i class="fa-solid fa-wallet"></i>
-          <span>Connect Wallet</span>
+          <i class="fa-solid fa-wallet"></i><span>Connect Wallet</span>
         </button>
       </div>
     </header>
 
-    <!-- Dashboard Section -->
+    <!-- Dashboard -->
     <section class="content-section active" id="section-dashboard">
-      <!-- Stats Overview -->
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-icon green"><i class="fa-solid fa-shield-halved"></i></div>
@@ -79,7 +67,7 @@
           <span class="stat-change positive">+2 this week</span>
         </div>
         <div class="stat-card">
-          <div class="stat-icon blue"><i class="fa-solid fa-robot"></i></div>
+          <div class="stat-icon solana"><i class="fa-solid fa-robot"></i></div>
           <div class="stat-info">
             <span class="stat-value" id="totalAgents">8</span>
             <span class="stat-label">Registered Agents</span>
@@ -90,7 +78,7 @@
           <div class="stat-icon yellow"><i class="fa-solid fa-coins"></i></div>
           <div class="stat-info">
             <span class="stat-value" id="totalStaked">48,500</span>
-            <span class="stat-label">SOL Staked</span>
+            <span class="stat-label">SOL Bonded</span>
           </div>
           <span class="stat-change neutral">~$4.8M</span>
         </div>
@@ -104,79 +92,50 @@
         </div>
       </div>
 
-      <!-- Recent Activity -->
       <div class="card">
-        <div class="card-header">
-          <h2>Recent Activity</h2>
-          <button class="btn btn-ghost">View All</button>
-        </div>
-        <div class="activity-list" id="activityList">
-          <!-- Populated by JS -->
-        </div>
+        <div class="card-header"><h2>Recent Activity</h2><button class="btn btn-ghost">View All</button></div>
+        <div class="activity-list" id="activityList"></div>
       </div>
 
-      <!-- Top Agents -->
       <div class="card">
-        <div class="card-header">
-          <h2>Top Agents by Trust Score</h2>
-        </div>
+        <div class="card-header"><h2>Top Agents by Trust Score</h2></div>
         <div class="agents-table">
           <div class="table-header">
-            <span>Agent</span>
-            <span>Trust Score</span>
-            <span>Bond (SOL)</span>
-            <span>Status</span>
+            <span>Agent</span><span>Trust Score</span><span>Bond (SOL)</span><span>Status</span>
           </div>
-          <div class="table-body" id="agentsTable">
-            <!-- Populated by JS -->
-          </div>
+          <div class="table-body" id="agentsTable"></div>
         </div>
       </div>
     </section>
 
-    <!-- Agents Section -->
+    <!-- Agents -->
     <section class="content-section" id="section-agents">
       <div class="section-header">
         <h2>My Agents</h2>
-        <button class="btn btn-primary" id="registerAgent">
-          <i class="fa-solid fa-plus"></i>
-          Register Agent
-        </button>
+        <button class="btn btn-primary" id="registerAgent"><i class="fa-solid fa-plus"></i> Register Agent</button>
       </div>
-      <div class="agents-grid" id="agentsGrid">
-        <!-- Populated by JS -->
-      </div>
+      <div class="agents-grid" id="agentsGrid"></div>
     </section>
 
-    <!-- Bonds Section -->
+    <!-- Bonds -->
     <section class="content-section" id="section-bonds">
       <div class="section-header">
         <h2>Agent Bonds</h2>
-        <button class="btn btn-primary" id="createBond">
-          <i class="fa-solid fa-plus"></i>
-          Create Bond
-        </button>
+        <button class="btn btn-primary" id="createBond"><i class="fa-solid fa-plus"></i> Create Bond</button>
       </div>
-      <div class="bonds-list" id="bondsList">
-        <!-- Populated by JS -->
-      </div>
+      <div class="bonds-list" id="bondsList"></div>
     </section>
 
-    <!-- Constraints Section -->
+    <!-- Constraints -->
     <section class="content-section" id="section-constraints">
       <div class="section-header">
         <h2>Behavioral Constraints</h2>
-        <button class="btn btn-primary" id="addConstraint">
-          <i class="fa-solid fa-plus"></i>
-          Add Constraint
-        </button>
+        <button class="btn btn-primary" id="addConstraint"><i class="fa-solid fa-plus"></i> Add Constraint</button>
       </div>
-      <div class="constraints-grid" id="constraintsGrid">
-        <!-- Populated by JS -->
-      </div>
+      <div class="constraints-grid" id="constraintsGrid"></div>
     </section>
 
-    <!-- Activity Section -->
+    <!-- Activity -->
     <section class="content-section" id="section-activity">
       <div class="section-header">
         <h2>Transaction History</h2>
@@ -189,30 +148,18 @@
           </select>
         </div>
       </div>
-      <div class="activity-full-list" id="activityFullList">
-        <!-- Populated by JS -->
-      </div>
+      <div class="activity-full-list" id="activityFullList"></div>
     </section>
   </main>
 
-  <!-- Modals -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal" id="modal">
-      <div class="modal-header">
-        <h3 id="modalTitle">Modal</h3>
-        <button class="modal-close" id="modalClose">&times;</button>
-      </div>
-      <div class="modal-body" id="modalBody">
-        <!-- Dynamic content -->
-      </div>
+      <div class="modal-header"><h3 id="modalTitle">Modal</h3><button class="modal-close" id="modalClose">&times;</button></div>
+      <div class="modal-body" id="modalBody"></div>
     </div>
   </div>
 
-  <!-- Wallet Connected Toast -->
-  <div class="toast" id="toast">
-    <i class="fa-solid fa-check-circle"></i>
-    <span id="toastMessage">Wallet connected!</span>
-  </div>
+  <div class="toast" id="toast"><i class="fa-solid fa-check-circle"></i><span id="toastMessage">Done!</span></div>
 
   <script src="app.js"></script>
 </body>
