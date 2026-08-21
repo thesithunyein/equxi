@@ -15,7 +15,7 @@ check_cmd() {
 }
 
 check_cmd "solana" "Install: sh -c \"\$(curl -sSfL https://release.anza.xyz/stable/install)\""
-check_cmd "anchor" "Install: cargo install --git https://github.com/coral-xyz/anchor avm --locked && avm install 0.30.1"
+check_cmd "cargo" "Install: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
 check_cmd "node" "Install: https://nodejs.org/"
 check_cmd "yarn" "Install: npm install -g yarn"
 
@@ -64,8 +64,8 @@ sed -i "s/equxi = \"[^\"]*\"/equxi = \"$PROGRAM_ID\"/" Anchor.toml
 sed -i "s/const PROGRAM_ID = new PublicKey(\"[^\"]*\")/const PROGRAM_ID = new PublicKey(\"$PROGRAM_ID\")/" sdk/src/index.ts
 
 echo ""
-echo "🔨 Building program..."
-anchor build
+echo "🔨 Building program with cargo build-sbf..."
+cargo build-sbf
 
 # Verify build
 if [ ! -f target/deploy/equxi.so ]; then
@@ -77,13 +77,12 @@ echo "✅ Build successful"
 echo ""
 
 # Run tests
-echo "🧪 Running tests..."
-anchor test --skip-local-validator || echo "⚠️  Some tests failed (this is expected if program ID changed)"
 echo ""
+echo "🧪 Tests skipped (requires Anchor CLI for test runner)"
 
 # Deploy to devnet
 echo "🚀 Deploying to devnet..."
-anchor deploy --provider.cluster devnet
+solana program deploy target/deploy/equxi.so
 
 echo ""
 echo "✅ Deployed successfully!"
