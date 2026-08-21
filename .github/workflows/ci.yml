@@ -51,11 +51,13 @@ jobs:
         run: |
           echo "Checking Rust program..."
           head -5 programs/equxi/src/lib.rs | grep -q "anchor_lang" || exit 1
-          grep -q "pub fn register_agent" programs/equxi/src/instructions/register_agent.rs || exit 1
-          grep -q "pub fn create_bond" programs/equxi/src/instructions/create_bond.rs || exit 1
-          grep -q "pub fn execute_slash" programs/equxi/src/instructions/execute_slash.rs || exit 1
-          grep -q "pub fn withdraw_bond" programs/equxi/src/instructions/withdraw_bond.rs || exit 1
-          grep -q "pub fn compensate_victim" programs/equxi/src/instructions/compensate_victim.rs || exit 1
+          grep -q "pub fn handler" programs/equxi/src/instructions/register_agent.rs || exit 1
+          grep -q "pub fn handler" programs/equxi/src/instructions/create_bond.rs || exit 1
+          grep -q "pub fn handler" programs/equxi/src/instructions/execute_slash.rs || exit 1
+          grep -q "pub fn handler" programs/equxi/src/instructions/withdraw_bond.rs || exit 1
+          grep -q "pub fn handler" programs/equxi/src/instructions/compensate_victim.rs || exit 1
+          grep -q "pub fn handler" programs/equxi/src/instructions/add_constraint.rs || exit 1
+          grep -q "pub fn handler" programs/equxi/src/instructions/initialize.rs || exit 1
           echo "✅ All program instructions present"
 
       - name: Verify SDK
