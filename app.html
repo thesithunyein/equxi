@@ -3,16 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Equxi — Agent Trust Dashboard</title>
+  <title>Equxi — Dashboard</title>
   <link rel="icon" type="image/webp" href="assets/logo.webp" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://db.onlinewebfonts.com/c/8cb707a9b8a73f8a7403336b861c3074?family=BubbledotICG-FinePos" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-  <link rel="stylesheet" href="app.css" />
+  <link rel="stylesheet" href="app.css?v=2" />
 </head>
 <body>
+  <!-- Onboarding Banner -->
+  <div class="onboard-banner" id="onboardBanner">
+    <div class="onboard-content">
+      <div class="onboard-icon"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+      <div class="onboard-text">
+        <strong>Welcome to Equxi</strong>
+        <span>Connect your wallet to start managing AI agents. Your funds stay in your wallet until you choose to lock them as a safety deposit.</span>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="document.getElementById('onboardBanner').style.display='none'">Got it</button>
+    </div>
+  </div>
+
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <img src="assets/logo.webp" alt="Equxi" class="sidebar-logo" />
@@ -20,16 +32,16 @@
     </div>
     <nav class="sidebar-nav">
       <a href="#dashboard" class="sidebar-link active" data-section="dashboard">
-        <i class="fa-solid fa-grid-2"></i><span>Dashboard</span>
+        <i class="fa-solid fa-grid-2"></i><span>Overview</span>
       </a>
       <a href="#agents" class="sidebar-link" data-section="agents">
         <i class="fa-solid fa-robot"></i><span>My Agents</span>
       </a>
       <a href="#bonds" class="sidebar-link" data-section="bonds">
-        <i class="fa-solid fa-shield-halved"></i><span>Bonds</span>
+        <i class="fa-solid fa-shield-halved"></i><span>Safety Deposits</span>
       </a>
       <a href="#constraints" class="sidebar-link" data-section="constraints">
-        <i class="fa-solid fa-lock"></i><span>Constraints</span>
+        <i class="fa-solid fa-list-check"></i><span>Rules</span>
       </a>
       <a href="#activity" class="sidebar-link" data-section="activity">
         <i class="fa-solid fa-clock-rotate-left"></i><span>Activity</span>
@@ -47,7 +59,7 @@
       <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
         <i class="fa-solid fa-bars"></i>
       </button>
-      <div class="topbar-title"><h1 id="pageTitle">Dashboard</h1></div>
+      <div class="topbar-title"><h1 id="pageTitle">Overview</h1></div>
       <div class="topbar-actions">
         <button class="wallet-btn" id="connectWallet">
           <i class="fa-solid fa-wallet"></i><span>Connect Wallet</span>
@@ -55,14 +67,14 @@
       </div>
     </header>
 
-    <!-- Dashboard -->
+    <!-- Overview -->
     <section class="content-section active" id="section-dashboard">
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-icon green"><i class="fa-solid fa-shield-halved"></i></div>
           <div class="stat-info">
             <span class="stat-value" id="totalBonds">12</span>
-            <span class="stat-label">Active Bonds</span>
+            <span class="stat-label">Safety Deposits</span>
           </div>
           <span class="stat-change positive">+2 this week</span>
         </div>
@@ -78,7 +90,7 @@
           <div class="stat-icon yellow"><i class="fa-solid fa-coins"></i></div>
           <div class="stat-info">
             <span class="stat-value" id="totalStaked">48,500</span>
-            <span class="stat-label">SOL Bonded</span>
+            <span class="stat-label">Protected (SOL)</span>
           </div>
           <span class="stat-change neutral">~$4.8M</span>
         </div>
@@ -86,65 +98,88 @@
           <div class="stat-icon red"><i class="fa-solid fa-bolt"></i></div>
           <div class="stat-info">
             <span class="stat-value" id="totalSlashes">3</span>
-            <span class="stat-label">Slashing Events</span>
+            <span class="stat-label">Rule Violations</span>
           </div>
-          <span class="stat-change negative">12.4 SOL slashed</span>
+          <span class="stat-change negative">12.4 SOL returned</span>
+        </div>
+      </div>
+
+      <!-- How It Works -->
+      <div class="card how-it-works">
+        <div class="card-header"><h2>How Equxi Protects You</h2></div>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <h3>Agent Registers</h3>
+              <p>An AI agent's operator registers on Equxi and locks funds as a safety deposit (called a "bond").</p>
+            </div>
+          </div>
+          <div class="step-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <h3>Rules Are Set</h3>
+              <p>The operator defines what the agent can and cannot do — like spending limits or allowed programs.</p>
+            </div>
+          </div>
+          <div class="step-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <h3>Rules Are Enforced</h3>
+              <p>Equxi automatically checks every action. If the agent breaks a rule, funds are seized and returned to the victim.</p>
+            </div>
+          </div>
         </div>
       </div>
 
       <div class="card">
-        <div class="card-header"><h2>Recent Activity</h2><button class="btn btn-ghost">View All</button></div>
+        <div class="card-header"><h2>Recent Activity</h2><button class="btn btn-ghost" onclick="navigateTo('activity')">View All</button></div>
         <div class="activity-list" id="activityList"></div>
-      </div>
-
-      <div class="card">
-        <div class="card-header"><h2>Top Agents by Trust Score</h2></div>
-        <div class="agents-table">
-          <div class="table-header">
-            <span>Agent</span><span>Trust Score</span><span>Bond (SOL)</span><span>Status</span>
-          </div>
-          <div class="table-body" id="agentsTable"></div>
-        </div>
       </div>
     </section>
 
-    <!-- Agents -->
+    <!-- My Agents -->
     <section class="content-section" id="section-agents">
       <div class="section-header">
         <h2>My Agents</h2>
         <button class="btn btn-primary" id="registerAgent"><i class="fa-solid fa-plus"></i> Register Agent</button>
       </div>
+      <p class="section-desc">Agents are AI programs that can act on your behalf. Register an agent to start protecting your funds.</p>
       <div class="agents-grid" id="agentsGrid"></div>
     </section>
 
-    <!-- Bonds -->
+    <!-- Safety Deposits -->
     <section class="content-section" id="section-bonds">
       <div class="section-header">
-        <h2>Agent Bonds</h2>
-        <button class="btn btn-primary" id="createBond"><i class="fa-solid fa-plus"></i> Create Bond</button>
+        <h2>Safety Deposits</h2>
+        <button class="btn btn-primary" id="createBond"><i class="fa-solid fa-plus"></i> Lock Funds</button>
       </div>
+      <p class="section-desc">Lock funds as a safety deposit. If your agent breaks the rules, these funds compensate the affected party.</p>
       <div class="bonds-list" id="bondsList"></div>
     </section>
 
-    <!-- Constraints -->
+    <!-- Rules -->
     <section class="content-section" id="section-constraints">
       <div class="section-header">
-        <h2>Behavioral Constraints</h2>
-        <button class="btn btn-primary" id="addConstraint"><i class="fa-solid fa-plus"></i> Add Constraint</button>
+        <h2>Agent Rules</h2>
+        <button class="btn btn-primary" id="addConstraint"><i class="fa-solid fa-plus"></i> Add Rule</button>
       </div>
+      <p class="section-desc">Rules control what your agent can do. If it breaks a rule, the safety deposit is used to compensate the affected party.</p>
       <div class="constraints-grid" id="constraintsGrid"></div>
     </section>
 
     <!-- Activity -->
     <section class="content-section" id="section-activity">
       <div class="section-header">
-        <h2>Transaction History</h2>
+        <h2>Activity History</h2>
         <div class="filters">
           <select class="filter-select" id="activityFilter">
             <option value="all">All Events</option>
-            <option value="bond">Bond Created</option>
-            <option value="slash">Slashing</option>
-            <option value="claim">Claims</option>
+            <option value="bond">Deposits</option>
+            <option value="slash">Rule Violations</option>
+            <option value="claim">Compensations</option>
           </select>
         </div>
       </div>
@@ -162,6 +197,6 @@
   <div class="toast" id="toast"><i class="fa-solid fa-check-circle"></i><span id="toastMessage">Done!</span></div>
 
   <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
-  <script src="app.js"></script>
+  <script src="app.js?v=2"></script>
 </body>
 </html>

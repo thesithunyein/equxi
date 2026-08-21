@@ -3,14 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Equxi — Trust Layer for AI Agents</title>
+  <title>Equxi — Make AI Agents Trustworthy</title>
+  <meta name="description" content="Equxi makes AI agents financially accountable. Bond their operators, enforce rules, and protect everyone." />
   <link rel="icon" type="image/webp" href="assets/logo.webp" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://db.onlinewebfonts.com/c/8cb707a9b8a73f8a7403336b861c3074?family=BubbledotICG-FinePos" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <link rel="stylesheet" href="styles.css?v=2" />
+  <link rel="stylesheet" href="styles.css?v=3" />
 </head>
 <body>
   <div class="bg">
@@ -26,11 +27,11 @@
       </a>
       <nav class="nav-pill" aria-label="Main navigation">
         <a href="index.html" class="nav-link active">Home</a>
-        <a href="app.html" class="nav-link">Product</a>
+        <a href="app.html" class="nav-link">How It Works</a>
         <a href="app.html" class="nav-link">Dashboard</a>
         <a href="https://superteam.fun/earn/grants/agentic-engineering" class="nav-link" target="_blank">Grant</a>
       </nav>
-      <a href="app.html" class="sign-in-btn">Launch App</a>
+      <a href="app.html" class="sign-in-btn">Open Dashboard</a>
       <button class="burger" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
         <span class="burger-bar"></span>
         <span class="burger-bar"></span>
@@ -41,26 +42,26 @@
     <section class="hero">
       <div class="trust" style="opacity:0;transform:translateY(16px)">
         <div class="trust-avatars">
-          <div class="avatar a1"><i class="fa-brands fa-solana" style="color:#9945FF;"></i></div>
-          <div class="avatar a2"><i class="fa-solid fa-robot" style="color:#22c55e;"></i></div>
-          <div class="avatar a3"><i class="fa-solid fa-shield-halved" style="color:#3b82f6;"></i></div>
+          <div class="avatar a1"><i class="fa-solid fa-link" style="color:#9945FF;"></i></div>
+          <div class="avatar a2"><i class="fa-solid fa-shield-halved" style="color:#22c55e;"></i></div>
+          <div class="avatar a3"><i class="fa-solid fa-bolt" style="color:#3b82f6;"></i></div>
         </div>
-        <span class="trust-pill">On-chain Trust for AI Agents</span>
+        <span class="trust-pill">Built on Solana</span>
       </div>
 
       <h1 class="headline">
-        <span class="hl-line" style="clip-path:inset(0 0 100% 0);opacity:0">Trust Layer</span>
-        <span class="hl-line" style="clip-path:inset(0 0 100% 0);opacity:0">For Agents</span>
+        <span class="hl-line" style="clip-path:inset(0 0 100% 0);opacity:0">Make AI Agents</span>
+        <span class="hl-line" style="clip-path:inset(0 0 100% 0);opacity:0">Trustworthy</span>
       </h1>
 
       <p class="subhead" style="opacity:0;transform:translateY(16px)">
-        Bonds agents' operators, enforces behavior on-chain, and slashes collateral to compensate victims — because nobody should trust an agent with real money without accountability.
+        When an AI agent handles your money, you need guarantees. Equxi locks the operator's funds as a safety deposit, enforces rules automatically, and pays you back if anything goes wrong.
       </p>
 
       <div class="cta-row" style="opacity:0;transform:translateY(16px) scale(0.97)">
-        <a href="app.html" class="cta">Launch App</a>
+        <a href="app.html" class="cta">Open Dashboard</a>
         <a href="https://github.com/thesithunyein/equxi" class="cta-secondary" target="_blank">
-          <i class="fa-brands fa-github"></i> View Code
+          <i class="fa-brands fa-github"></i> See Code
         </a>
       </div>
     </section>
@@ -69,22 +70,22 @@
       <div class="stat" data-target="48500" data-suffix="" data-decimals="0">
         <span class="stat-icon"><i class="fa-solid fa-coins"></i></span>
         <span class="stat-value">0</span>
-        <span class="stat-label">SOL Bonded</span>
+        <span class="stat-label">Protected Funds</span>
       </div>
       <div class="stat" data-target="2847" data-suffix="" data-decimals="0">
         <span class="stat-icon"><i class="fa-solid fa-robot"></i></span>
         <span class="stat-value">0</span>
-        <span class="stat-label">Agents Registered</span>
+        <span class="stat-label">Trusted Agents</span>
       </div>
       <div class="stat" data-target="100" data-suffix="%" data-decimals="0">
-        <span class="stat-icon"><i class="fa-solid fa-bolt"></i></span>
+        <span class="stat-icon"><i class="fa-solid fa-check-double"></i></span>
         <span class="stat-value">0%</span>
-        <span class="stat-label">Slash Execution</span>
+        <span class="stat-label">Auto-Enforced</span>
       </div>
-      <div class="stat" data-target="12.4" data-suffix=" SOL" data-decimals="1">
-        <span class="stat-icon"><i class="fa-solid fa-scale-balanced"></i></span>
-        <span class="stat-value">0 SOL</span>
-        <span class="stat-label">Compensated</span>
+      <div class="stat" data-target="12.4" data-suffix="" data-decimals="1">
+        <span class="stat-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span>
+        <span class="stat-value">0</span>
+        <span class="stat-label">Paid Back (SOL)</span>
       </div>
     </footer>
   </div>
@@ -92,13 +93,13 @@
   <div class="overlay" id="mobile-menu" aria-hidden="true">
     <div class="sheet">
       <a href="index.html" class="sheet-link active">Home</a>
-      <a href="app.html" class="sheet-link">Product</a>
+      <a href="app.html" class="sheet-link">How It Works</a>
       <a href="app.html" class="sheet-link">Dashboard</a>
       <a href="https://superteam.fun/earn/grants/agentic-engineering" class="sheet-link" target="_blank">Grant</a>
-      <a href="app.html" class="sheet-signin">Launch App</a>
+      <a href="app.html" class="sheet-signin">Open Dashboard</a>
     </div>
   </div>
 
-  <script src="main.js?v=2"></script>
+  <script src="main.js?v=3"></script>
 </body>
 </html>
