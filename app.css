@@ -255,6 +255,17 @@ button { border: none; background: none; cursor: pointer; font: inherit; color: 
   .onboard-banner .btn { width: 100%; }
 }
 
+/* TX Status */
+.tx-status { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 500; z-index: 300; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4); max-width: 90vw; }
+.tx-status.pending { background: var(--yellow-bg); color: var(--yellow); border: 1px solid rgba(234, 179, 8, 0.3); }
+.tx-status.success { background: var(--green-bg); color: var(--green); border: 1px solid rgba(34, 197, 94, 0.3); }
+.tx-status.error { background: var(--red-bg); color: var(--red); border: 1px solid rgba(239, 68, 68, 0.3); }
+.tx-status a { color: inherit; text-decoration: underline; }
+
+/* Empty State */
+.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 24px; text-align: center; color: var(--text-secondary); }
+.empty-state p { font-size: 14px; line-height: 1.6; }
+
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 3px; }
