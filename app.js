@@ -16,25 +16,64 @@
   let cachedConstraints = [];
   let cachedActivity = [];
 
+  /* ── Browser-safe Uint8Array helpers (no Node.js Buffer needed) ──────── */
+  const enc = new TextEncoder();
+  const dec = new TextDecoder();
+  function bytes(str) { return enc.encode(str); }
+  function concat(...arrays) {
+    const total = arrays.reduce((s, a) => s + a.length, 0);
+    const out = new Uint8Array(total);
+    let off = 0;
+    for (const a of arrays) { out.set(a instanceof Uint8Array ? a : new Uint8Array(a), off); off += a.length; }
+    return out;
+  }
+  function u64le(n) {
+    const buf = new Uint8Array(8);
+    const big = BigInt(n);
+    const low = Number(big & 0xffffffffn);
+    const high = Number((big >> 32n) & 0xffffffffn);
+    buf[0] = low & 0xff; buf[1] = (low >> 8) & 0xff;
+    buf[2] = (low >> 16) & 0xff; buf[3] = (low >> 24) & 0xff;
+    buf[4] = high & 0xff; buf[5] = (high >> 8) & 0xff;
+    buf[6] = (high >> 16) & 0xff; buf[7] = (high >> 24) & 0xff;
+    return buf;
+  }
+  function i64le(n) {
+    if (n >= 0) return u64le(n);
+    const pos = u64le(-n);
+    let carry = 1;
+    for (let i = 0; i < 8; i++) {
+      pos[i] = (~pos[i] + carry) & 0xff;
+      carry = pos[i] === 0 ? 1 : 0;
+    }
+    return pos;
+  }
+  function u32le(n) {
+    const buf = new Uint8Array(4);
+    buf[0] = n & 0xff; buf[1] = (n >> 8) & 0xff;
+    buf[2] = (n >> 16) & 0xff; buf[3] = (n >> 24) & 0xff;
+    return buf;
+  }
+  function strWithLen(str) {
+    const b = bytes(str);
+    return concat(u32le(b.length), b);
+  }
+
   /* ── Anchor Discriminator ───────────────────────────────────────────── */
-  // Anchor uses SHA256("global:<name>")[0..8] as instruction discriminator
   async function sha256(data) {
     const buf = await crypto.subtle.digest("SHA-256", data);
     return new Uint8Array(buf);
   }
   async function instrDiscriminator(name) {
-    const pre = new TextEncoder().encode(`global:${name}`);
+    const pre = bytes(`global:${name}`);
     const hash = await sha256(pre);
     return hash.slice(0, 8);
   }
 
-  // Account type discriminators: SHA256("account:<StructName>")[0..8]
   const accountDiscriminators = {};
   async function getAccountDiscriminators() {
-    const types = ["Config", "Agent", "Bond", "Constraint", "SlashRecord"];
-    for (const t of types) {
-      const pre = new TextEncoder().encode(`account:${t}`);
-      const hash = await sha256(pre);
+    for (const t of ["Config", "Agent", "Bond", "Constraint", "SlashRecord"]) {
+      const hash = await sha256(bytes(`account:${t}`));
       accountDiscriminators[t] = Array.from(hash.slice(0, 8));
     }
   }
@@ -45,47 +84,47 @@
     if (window.solana?.isPhantom) return window.solana;
     return null;
   }
-  function short(addr) { return addr ? addr.slice(0, 4) + "..." + addr.slice(-4) : "—"; }
+  function short(addr) { return addr ? addr.slice(0, 4) + "..." + addr.slice(-4) : "\u2014"; }
   function lamportsToSol(l) { return (Number(l) / 1e9).toLocaleString(undefined, { maximumFractionDigits: 4 }); }
   function explorerTx(sig) { return `${EXPLORER}/tx/${sig}?cluster=devnet`; }
   function explorerAddr(addr) { return `${EXPLORER}/address/${addr}?cluster=devnet`; }
-  function decodeName(bytes) {
-    let end = bytes.indexOf(0);
-    return new TextDecoder().decode(bytes.slice(0, end === -1 ? bytes.length : end));
+  function decodeName(d, offset, len) {
+    let end = offset + len;
+    for (let i = offset; i < offset + len; i++) { if (d[i] === 0) { end = i; break; } }
+    return dec.decode(d.slice(offset, end));
   }
   function matchesDisc(data, disc) {
     if (data.length < 8) return false;
     return disc.every((v, i) => data[i] === v);
   }
 
-  /* ── On-chain Fetchers (use discriminator matching, not dataSize) ──── */
+  /* ── On-chain Fetchers (discriminator-based, not dataSize) ─────────── */
   async function fetchAllProgramAccounts() {
     if (!connection) return { agents: [], bonds: [], constraints: [] };
     try {
       const accounts = await connection.getProgramAccounts(PROGRAM_ID);
       const agents = [], bonds = [], constraints = [];
-
       for (const acc of accounts) {
         const d = acc.account.data;
         if (matchesDisc(d, accountDiscriminators.Agent)) {
           agents.push({
             pubkey: acc.pubkey.toString(),
             owner: new solanaWeb3.PublicKey(d.slice(8, 40)).toString(),
-            name: decodeName(d.slice(40, 72)),
-            trustScore: d[74],
-            status: d[75] === 0 ? "active" : d[75] === 2 ? "slashed" : d[75] === 3 ? "deactivated" : "pending",
-            bondAddress: new solanaWeb3.PublicKey(d.slice(76, 108)).toString(),
-            createdAt: Number(d.readBigInt64LE(108)),
+            name: decodeName(d, 40, 32),
+            trustScore: d[73],
+            status: d[74] === 0 ? "active" : d[74] === 2 ? "slashed" : d[74] === 3 ? "deactivated" : "pending",
+            bondAddress: new solanaWeb3.PublicKey(d.slice(75, 107)).toString(),
+            createdAt: Number(new DataView(d.buffer, d.byteOffset + 107).getBigInt64(0, true)),
           });
         } else if (matchesDisc(d, accountDiscriminators.Bond)) {
           bonds.push({
             pubkey: acc.pubkey.toString(),
             agent: new solanaWeb3.PublicKey(d.slice(8, 40)).toString(),
             operator: new solanaWeb3.PublicKey(d.slice(40, 72)).toString(),
-            amount: d.readBigUInt64LE(72).toString(),
-            lockDuration: Number(d.readBigInt64LE(80)),
-            lockedAt: Number(d.readBigInt64LE(88)),
-            expiresAt: Number(d.readBigInt64LE(96)),
+            amount: new DataView(d.buffer, d.byteOffset + 72).getBigUint64(0, true).toString(),
+            lockDuration: Number(new DataView(d.buffer, d.byteOffset + 80).getBigInt64(0, true)),
+            lockedAt: Number(new DataView(d.buffer, d.byteOffset + 88).getBigInt64(0, true)),
+            expiresAt: Number(new DataView(d.buffer, d.byteOffset + 96).getBigInt64(0, true)),
             isActive: d[104] === 1,
           });
         } else if (matchesDisc(d, accountDiscriminators.Constraint)) {
@@ -97,7 +136,7 @@
             agent: new solanaWeb3.PublicKey(d.slice(8, 40)).toString(),
             type: typeMap[type] || "spend",
             title: labels[type] || "Rule",
-            enforced: d[331] === 1,
+            enforced: d[329] === 1,
           });
         }
       }
@@ -109,63 +148,49 @@
     if (!walletConnected) return;
     showStatus("Loading on-chain data...");
     const { agents, bonds, constraints } = await fetchAllProgramAccounts();
-
-    // Filter to current wallet's accounts
     cachedAgents = agents.filter(a => a.owner === walletAddress);
     cachedBonds = bonds.filter(b => b.operator === walletAddress);
-    cachedConstraints = constraints.filter(c =>
-      cachedAgents.some(a => a.pubkey === c.agent)
-    );
+    cachedConstraints = constraints.filter(c => cachedAgents.some(a => a.pubkey === c.agent));
 
-    // Build activity from on-chain data
     cachedActivity = [];
     for (const b of cachedBonds) {
       cachedActivity.push({
-        type: "bond",
-        title: "Bond Created",
-        desc: `${short(b.agent)} — ${lamportsToSol(b.amount)} SOL ${b.isActive ? "locked" : "withdrawn"}`,
-        amount: b.isActive ? `+${lamportsToSol(b.amount)} SOL` : null,
-        amountType: "positive",
+        type: "bond", title: "Bond Created",
+        desc: `${short(b.agent)} \u2014 ${lamportsToSol(b.amount)} SOL ${b.isActive ? "locked" : "withdrawn"}`,
+        amount: b.isActive ? `+${lamportsToSol(b.amount)} SOL` : null, amountType: "positive",
         time: b.lockedAt ? new Date(b.lockedAt * 1000).toLocaleDateString() : "",
       });
     }
     for (const a of cachedAgents) {
+      cachedActivity.push({
+        type: "constraint", title: "Agent Registered",
+        desc: `${a.name} \u2014 trust ${a.trustScore}/100`,
+        time: a.createdAt ? new Date(a.createdAt * 1000).toLocaleDateString() : "",
+      });
       if (a.status === "slashed") {
         cachedActivity.push({
           type: "slash", title: "Violation",
-          desc: `${a.name} — bond slashed`,
-          amountType: "negative",
+          desc: `${a.name} \u2014 bond slashed`, amountType: "negative",
           time: a.createdAt ? new Date(a.createdAt * 1000).toLocaleDateString() : "",
         });
       }
-      cachedActivity.push({
-        type: "constraint", title: "Agent Registered",
-        desc: `${a.name} — trust ${a.trustScore}/100`,
-        time: a.createdAt ? new Date(a.createdAt * 1000).toLocaleDateString() : "",
-      });
     }
-    // Sort by most recent
     cachedActivity.sort((a, b) => (b.time || "").localeCompare(a.time || ""));
 
-    // Also try to fetch recent tx signatures for real transaction history
     try {
       const sigs = await connection.getConfirmedSignaturesForAddress2(
-        new solanaWeb3.PublicKey(walletAddress),
-        { limit: 20 }
+        new solanaWeb3.PublicKey(walletAddress), { limit: 20 }
       );
-      // Merge real tx history
       for (const sig of sigs) {
         if (!sig.err && sig.signature) {
           cachedActivity.push({
-            type: "tx",
-            title: "Transaction",
+            type: "tx", title: "Transaction",
             desc: sig.signature.slice(0, 20) + "...",
             time: sig.blockTime ? new Date(sig.blockTime * 1000).toLocaleDateString() : "",
             explorerUrl: explorerTx(sig.signature),
           });
         }
       }
-      // Re-sort
       cachedActivity.sort((a, b) => (b.time || "").localeCompare(a.time || ""));
     } catch {}
 
@@ -178,7 +203,6 @@
     const btn = document.getElementById("connectWallet");
     phantom = getPhantom();
     if (!phantom) { showToast("Install Phantom wallet"); window.open("https://phantom.app/", "_blank"); return; }
-
     if (walletConnected) {
       try { await phantom.disconnect(); } catch {}
       walletConnected = false; walletAddress = null;
@@ -186,7 +210,6 @@
       setWalletUI(false); renderAll(); showToast("Disconnected");
       return;
     }
-
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Connecting...</span>';
     btn.disabled = true;
     try {
@@ -210,10 +233,10 @@
   function setWalletUI(connected, addr) {
     const btn = document.getElementById("connectWallet");
     if (connected) {
-      btn.innerHTML = `<i class=\"fa-solid fa-check\"></i><span>${short(addr)}</span>`;
+      btn.innerHTML = `<i class="fa-solid fa-check"></i><span>${short(addr)}</span>`;
       btn.classList.add("connected");
     } else {
-      btn.innerHTML = '<i class=\"fa-solid fa-wallet\"></i><span>Connect Wallet</span>';
+      btn.innerHTML = '<i class="fa-solid fa-wallet"></i><span>Connect Wallet</span>';
       btn.classList.remove("connected");
       document.getElementById("walletBalance").style.display = "none";
     }
@@ -222,12 +245,12 @@
   /* ── TX helpers ─────────────────────────────────────────────────────── */
   function showTxPending(msg) {
     const el = document.getElementById("txStatus");
-    el.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ${msg} — confirm in wallet`;
+    el.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ${msg} \u2014 confirm in wallet`;
     el.className = "tx-status pending"; el.style.display = "flex";
   }
   function showTxSuccess(msg, sig) {
     const el = document.getElementById("txStatus");
-    el.innerHTML = `<i class="fa-solid fa-check-circle"></i> ${msg} ${sig ? `<a href="${explorerTx(sig)}" target="_blank" style="color:var(--green);text-decoration:underline;margin-left:4px;">View ↗</a>` : ""}`;
+    el.innerHTML = `<i class="fa-solid fa-check-circle"></i> ${msg} ${sig ? `<a href="${explorerTx(sig)}" target="_blank" style="color:var(--green);text-decoration:underline;margin-left:4px;">View \u2197</a>` : ""}`;
     el.className = "tx-status success";
     setTimeout(() => el.style.display = "none", 8000);
   }
@@ -299,19 +322,14 @@
       { type: "bond", title: "No activity yet", desc: "Connect wallet and register an agent to get started" },
     ];
     const iconMap = { bond: "fa-shield-halved", slash: "fa-bolt", constraint: "fa-list-check", tx: "fa-arrow-right-arrow-left" };
-
     target.innerHTML = items.slice(0, 8).map(a => `
       <div class="activity-item">
         <div class="activity-icon ${a.type}"><i class="fa-solid ${iconMap[a.type] || "fa-circle"}"></i></div>
-        <div class="activity-info">
-          <div class="activity-title">${a.title}</div>
-          <div class="activity-desc">${a.desc}</div>
-        </div>
+        <div class="activity-info"><div class="activity-title">${a.title}</div><div class="activity-desc">${a.desc}</div></div>
         ${a.amount ? `<span class="activity-amount ${a.amountType}">${a.amount}</span>` : ""}
         ${a.time ? `<span class="activity-time">${a.time}</span>` : ""}
       </div>
     `).join("");
-
     if (fullTarget) {
       fullTarget.innerHTML = items.map(a => `
         <div class="activity-item">
@@ -340,7 +358,7 @@
         </div>
         <div class="agent-card-stats">
           <div class="agent-stat"><div class="value">${a.trustScore}</div><div class="label">Trust</div></div>
-          <div class="agent-stat"><div class="value"><a href="${explorerAddr(a.pubkey)}" target="_blank" style="color:var(--purple);">View ↗</a></div><div class="label">On-chain</div></div>
+          <div class="agent-stat"><div class="value"><a href="${explorerAddr(a.pubkey)}" target="_blank" style="color:var(--purple);">View \u2197</a></div><div class="label">On-chain</div></div>
         </div>
       </div>
     `).join("");
@@ -355,17 +373,10 @@
       return `
         <div class="bond-card">
           <div class="bond-icon"><i class="fa-solid fa-shield-halved"></i></div>
-          <div class="bond-info">
-            <h3>${lamportsToSol(b.amount)} SOL</h3>
-            <p>${b.isActive ? (expired ? "Expired — withdrawable" : "Locked") : "Withdrawn"}</p>
-          </div>
-          <div class="bond-amount">
-            <div class="value">${b.isActive ? "Active" : "Closed"}</div>
-            <div class="label">${b.expiresAt ? new Date(b.expiresAt * 1000).toLocaleDateString() : ""}</div>
-          </div>
+          <div class="bond-info"><h3>${lamportsToSol(b.amount)} SOL</h3><p>${b.isActive ? (expired ? "Expired \u2014 withdrawable" : "Locked") : "Withdrawn"}</p></div>
+          <div class="bond-amount"><div class="value">${b.isActive ? "Active" : "Closed"}</div><div class="label">${b.expiresAt ? new Date(b.expiresAt * 1000).toLocaleDateString() : ""}</div></div>
           ${b.isActive ? `<button class="btn-outline" onclick="window._withdrawBond('${b.pubkey}')">Withdraw</button>` : ""}
-        </div>
-      `;
+        </div>`;
     }).join("");
   }
 
@@ -405,7 +416,7 @@
     document.getElementById("registerAgent").addEventListener("click", () => {
       if (!walletConnected) { showToast("Connect wallet first"); return; }
       openModal("Register Agent", `
-        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">Register an AI agent on Solana. It becomes accountable — if it breaks rules, its operator's bond compensates victims.</p>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">Register an AI agent on Solana. It becomes accountable \u2014 if it breaks rules, its operator's bond compensates victims.</p>
         <div class="form-group"><label>Agent Name</label><input type="text" id="regName" placeholder="e.g. Trading Bot" maxlength="32" /></div>
         <div class="form-group"><label>Type</label><select id="regType"><option value="0">Trader</option><option value="1">Oracle</option><option value="3">Payment</option><option value="7">Custom</option></select></div>
         <div class="form-actions"><button class="btn-ghost" onclick="closeModal()">Cancel</button><button class="btn-primary" id="regSubmit">Register</button></div>
@@ -447,7 +458,7 @@
     t.classList.add("show"); setTimeout(() => t.classList.remove("show"), duration || 3000);
   }
 
-  /* ── TX Handlers (with Anchor discriminators) ───────────────────────── */
+  /* ── TX Handlers (browser-safe, no Buffer) ──────────────────────────── */
   async function handleRegister() {
     const name = document.getElementById("regName")?.value?.trim();
     const typeIdx = parseInt(document.getElementById("regType")?.value || "0");
@@ -455,17 +466,12 @@
     closeModal(); showTxPending(`Registering "${name}"`);
     try {
       const operator = new solanaWeb3.PublicKey(walletAddress);
-      const [configPDA] = solanaWeb3.PublicKey.findProgramAddressSync([Buffer.from("config")], PROGRAM_ID);
+      const [configPDA] = solanaWeb3.PublicKey.findProgramAddressSync([bytes("config")], PROGRAM_ID);
       const [agentPDA] = solanaWeb3.PublicKey.findProgramAddressSync(
-        [Buffer.from("agent"), operator.toBuffer(), Buffer.from(name)], PROGRAM_ID
+        [bytes("agent"), operator.toBuffer(), bytes(name)], PROGRAM_ID
       );
-
-      // Build instruction data: 8-byte discriminator + borsh-encoded args
       const disc = await instrDiscriminator("register_agent");
-      const nameBytes = new TextEncoder().encode(name);
-      const nameLen = Buffer.alloc(4);
-      nameLen.writeUInt32LE(nameBytes.length);
-      const data = Buffer.concat([Buffer.from(disc), nameLen, Buffer.from(nameBytes), Buffer.from([typeIdx])]);
+      const data = concat(disc, strWithLen(name), new Uint8Array([typeIdx]));
 
       const ix = new solanaWeb3.TransactionInstruction({
         keys: [
@@ -474,8 +480,7 @@
           { pubkey: operator, isSigner: true, isWritable: true },
           { pubkey: solanaWeb3.SystemProgram.programId, isSigner: false, isWritable: false },
         ],
-        programId: PROGRAM_ID,
-        data,
+        programId: PROGRAM_ID, data,
       });
       const tx = new solanaWeb3.Transaction().add(ix);
       const { blockhash } = await connection.getLatestBlockhash();
@@ -499,18 +504,12 @@
     try {
       const operator = new solanaWeb3.PublicKey(walletAddress);
       const [bondPDA] = solanaWeb3.PublicKey.findProgramAddressSync(
-        [Buffer.from("bond"), new solanaWeb3.PublicKey(agentPubkey).toBuffer()], PROGRAM_ID
+        [bytes("bond"), new solanaWeb3.PublicKey(agentPubkey).toBuffer()], PROGRAM_ID
       );
-
-      // Build instruction data: discriminator + amount (u64 LE) + lockDuration (i64 LE)
       const disc = await instrDiscriminator("create_bond");
-      const amountBuf = Buffer.alloc(8);
-      amountBuf.writeBigUInt64LE(BigInt(Math.floor(amountSol * 1e9)));
-      const durationBuf = Buffer.alloc(8);
-      durationBuf.writeBigInt64LE(BigInt(lockDuration));
-      const data = Buffer.concat([Buffer.from(disc), amountBuf, durationBuf]);
+      const data = concat(disc, u64le(Math.floor(amountSol * 1e9)), i64le(lockDuration));
 
-      const space = 106; // Bond account size
+      const space = 106;
       const rent = await connection.getMinimumBalanceForRentExemption(space);
       const ix = solanaWeb3.SystemProgram.createAccount({
         fromPubkey: operator, newAccountPubkey: bondPDA, space,
@@ -538,29 +537,18 @@
     closeModal(); showTxPending("Adding rule...");
     try {
       const operator = new solanaWeb3.PublicKey(walletAddress);
-      const [configPDA] = solanaWeb3.PublicKey.findProgramAddressSync([Buffer.from("config")], PROGRAM_ID);
+      const [configPDA] = solanaWeb3.PublicKey.findProgramAddressSync([bytes("config")], PROGRAM_ID);
       const nonce = cachedConstraints.length + 1;
-      const nonceBuf = Buffer.alloc(8); nonceBuf.writeBigUInt64LE(BigInt(nonce));
       const [constraintPDA] = solanaWeb3.PublicKey.findProgramAddressSync(
-        [Buffer.from("constraint"), new solanaWeb3.PublicKey(agentPubkey).toBuffer(), nonceBuf], PROGRAM_ID
+        [bytes("constraint"), new solanaWeb3.PublicKey(agentPubkey).toBuffer(), u64le(nonce)], PROGRAM_ID
       );
-
-      // Build instruction data: discriminator + constraintType (u8) + ConstraintParams
       const disc = await instrDiscriminator("add_constraint");
-      const maxAmountBuf = Buffer.alloc(8);
-      maxAmountBuf.writeBigUInt64LE(BigInt(Math.floor(maxAmountSol * 1e9)));
-      const maxPerPeriodBuf = Buffer.alloc(8);
-      maxPerPeriodBuf.writeBigUInt64LE(BigInt(Math.floor(maxAmountSol * 1e9 * 5))); // 5x max amount per period
-      const periodBuf = Buffer.alloc(8);
-      periodBuf.writeBigInt64LE(BigInt(periodSecs));
-      const timelockBuf = Buffer.alloc(8); // 0 = no timelock
-      const allowedPrograms = Buffer.alloc(32 * 8); // 8 empty Pubkeys
-
-      const data = Buffer.concat([
-        Buffer.from(disc),
-        Buffer.from([typeIdx]),
-        maxAmountBuf, maxPerPeriodBuf, periodBuf, timelockBuf, allowedPrograms,
-      ]);
+      const maxAmt = u64le(Math.floor(maxAmountSol * 1e9));
+      const maxPerPeriod = u64le(Math.floor(maxAmountSol * 1e9 * 5));
+      const period = i64le(periodSecs);
+      const timelock = i64le(0);
+      const allowedPrograms = new Uint8Array(32 * 8);
+      const data = concat(disc, new Uint8Array([typeIdx]), maxAmt, maxPerPeriod, period, timelock, allowedPrograms);
 
       const ix = new solanaWeb3.TransactionInstruction({
         keys: [
@@ -570,8 +558,7 @@
           { pubkey: operator, isSigner: true, isWritable: true },
           { pubkey: solanaWeb3.SystemProgram.programId, isSigner: false, isWritable: false },
         ],
-        programId: PROGRAM_ID,
-        data,
+        programId: PROGRAM_ID, data,
       });
       const tx = new solanaWeb3.Transaction().add(ix);
       const { blockhash } = await connection.getLatestBlockhash();
@@ -591,7 +578,6 @@
     try {
       const operator = new solanaWeb3.PublicKey(walletAddress);
       const disc = await instrDiscriminator("withdraw_bond");
-
       const ix = new solanaWeb3.TransactionInstruction({
         keys: [
           { pubkey: new solanaWeb3.PublicKey(bondPubkey), isSigner: false, isWritable: true },
@@ -599,8 +585,7 @@
           { pubkey: operator, isSigner: true, isWritable: true },
           { pubkey: solanaWeb3.SystemProgram.programId, isSigner: false, isWritable: false },
         ],
-        programId: PROGRAM_ID,
-        data: Buffer.from(disc),
+        programId: PROGRAM_ID, data: disc,
       });
       const tx = new solanaWeb3.Transaction().add(ix);
       const { blockhash } = await connection.getLatestBlockhash();
@@ -622,11 +607,8 @@
     function boot() {
       PROGRAM_ID = new solanaWeb3.PublicKey(PROGRAM_ID_STR);
       getAccountDiscriminators().then(() => {
-        initNav();
-        initModals();
-        renderAll();
+        initNav(); initModals(); renderAll();
         document.getElementById("connectWallet").addEventListener("click", connectWallet);
-
         phantom = getPhantom();
         if (phantom) {
           phantom.on("connect", () => {
@@ -640,7 +622,6 @@
         }
       });
     }
-
     if (typeof solanaWeb3 !== "undefined") { boot(); }
     else {
       const check = setInterval(() => {
