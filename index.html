@@ -3,103 +3,80 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Equxi — Make AI Agents Trustworthy</title>
-  <meta name="description" content="Equxi makes AI agents financially accountable. Bond their operators, enforce rules, and protect everyone." />
+  <title>Equxi — Intelligence Designed To Evolve</title>
+  <meta name="description" content="On-chain accountability infrastructure for autonomous AI agents. Bond operators, enforce rules, protect everyone." />
   <link rel="icon" type="image/webp" href="assets/logo.webp" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link href="https://db.onlinewebfonts.com/c/8cb707a9b8a73f8a7403336b861c3074?family=BubbledotICG-FinePos" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <link rel="stylesheet" href="styles.css?v=3" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div class="bg">
     <video class="bg-video" autoplay muted loop playsinline>
       <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260506_031045_0e1165dd-ab48-46e3-ad3d-5fe77f217647.mp4" type="video/mp4" />
     </video>
+    <div class="bg-overlay"></div>
   </div>
 
   <div class="page">
-    <header class="header" style="opacity:0;transform:translateY(-18px)">
-      <a href="index.html" class="logo-btn" aria-label="Home">
-        <img src="assets/logo.webp" alt="Equxi" width="52" height="52" />
+    <header class="header">
+      <a href="index.html" class="logo">
+        <img src="assets/logo.webp" alt="Equxi" width="40" height="40" />
+        <span class="logo-text">Equxi</span>
       </a>
-      <nav class="nav-pill" aria-label="Main navigation">
-        <a href="index.html" class="nav-link active">Home</a>
-        <a href="app.html" class="nav-link">How It Works</a>
+      <nav class="nav">
         <a href="app.html" class="nav-link">Dashboard</a>
+        <a href="https://github.com/thesithunyein/equxi" class="nav-link" target="_blank">GitHub</a>
         <a href="https://superteam.fun/earn/grants/agentic-engineering" class="nav-link" target="_blank">Grant</a>
       </nav>
-      <a href="app.html" class="sign-in-btn">Open Dashboard</a>
-      <button class="burger" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
-        <span class="burger-bar"></span>
-        <span class="burger-bar"></span>
-        <span class="burger-bar"></span>
-      </button>
+      <a href="app.html" class="btn-primary">Open App</a>
     </header>
 
-    <section class="hero">
-      <div class="trust" style="opacity:0;transform:translateY(16px)">
-        <div class="trust-avatars">
-          <div class="avatar a1"><i class="fa-solid fa-link" style="color:#9945FF;"></i></div>
-          <div class="avatar a2"><i class="fa-solid fa-shield-halved" style="color:#22c55e;"></i></div>
-          <div class="avatar a3"><i class="fa-solid fa-bolt" style="color:#3b82f6;"></i></div>
-        </div>
-        <span class="trust-pill">Built on Solana</span>
+    <main class="hero">
+      <div class="badge">
+        <span class="badge-dot"></span>
+        Built on Solana
       </div>
 
       <h1 class="headline">
-        <span class="hl-line" style="clip-path:inset(0 0 100% 0);opacity:0">Make AI Agents</span>
-        <span class="hl-line" style="clip-path:inset(0 0 100% 0);opacity:0">Trustworthy</span>
+        Intelligence Designed<br />To Evolve
       </h1>
 
-      <p class="subhead" style="opacity:0;transform:translateY(16px)">
-        When an AI agent handles your money, you need guarantees. Equxi locks the operator's funds as a safety deposit, enforces rules automatically, and pays you back if anything goes wrong.
+      <p class="subhead">
+        On-chain accountability infrastructure for autonomous AI agents.<br />
+        Bond operators, enforce rules, protect everyone.
       </p>
 
-      <div class="cta-row" style="opacity:0;transform:translateY(16px) scale(0.97)">
-        <a href="app.html" class="cta">Open Dashboard</a>
-        <a href="https://github.com/thesithunyein/equxi" class="cta-secondary" target="_blank">
-          <i class="fa-brands fa-github"></i> See Code
+      <div class="cta-row">
+        <a href="app.html" class="btn-primary btn-lg">Open Dashboard</a>
+        <a href="https://github.com/thesithunyein/equxi" class="btn-outline" target="_blank">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+          View Source
         </a>
       </div>
-    </section>
+    </main>
 
-    <footer class="stats" style="opacity:0;transform:translateY(16px)">
-      <div class="stat" data-target="48500" data-suffix="" data-decimals="0">
-        <span class="stat-icon"><i class="fa-solid fa-coins"></i></span>
-        <span class="stat-value">0</span>
-        <span class="stat-label">Protected Funds</span>
+    <footer class="stats">
+      <div class="stat">
+        <div class="stat-value" data-target="48500">0</div>
+        <div class="stat-label">Protected Funds</div>
       </div>
-      <div class="stat" data-target="2847" data-suffix="" data-decimals="0">
-        <span class="stat-icon"><i class="fa-solid fa-robot"></i></span>
-        <span class="stat-value">0</span>
-        <span class="stat-label">Trusted Agents</span>
+      <div class="stat">
+        <div class="stat-value" data-target="2847">0</div>
+        <div class="stat-label">Trusted Agents</div>
       </div>
-      <div class="stat" data-target="100" data-suffix="%" data-decimals="0">
-        <span class="stat-icon"><i class="fa-solid fa-check-double"></i></span>
-        <span class="stat-value">0%</span>
-        <span class="stat-label">Auto-Enforced</span>
+      <div class="stat">
+        <div class="stat-value" data-target="100" data-suffix="%">0%</div>
+        <div class="stat-label">Auto-Enforced</div>
       </div>
-      <div class="stat" data-target="12.4" data-suffix="" data-decimals="1">
-        <span class="stat-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span>
-        <span class="stat-value">0</span>
-        <span class="stat-label">Paid Back (SOL)</span>
+      <div class="stat">
+        <div class="stat-value" data-target="12.4" data-decimals="1">0</div>
+        <div class="stat-label">SOL Returned</div>
       </div>
     </footer>
   </div>
 
-  <div class="overlay" id="mobile-menu" aria-hidden="true">
-    <div class="sheet">
-      <a href="index.html" class="sheet-link active">Home</a>
-      <a href="app.html" class="sheet-link">How It Works</a>
-      <a href="app.html" class="sheet-link">Dashboard</a>
-      <a href="https://superteam.fun/earn/grants/agentic-engineering" class="sheet-link" target="_blank">Grant</a>
-      <a href="app.html" class="sheet-signin">Open Dashboard</a>
-    </div>
-  </div>
-
-  <script src="main.js?v=3"></script>
+  <script src="main.js"></script>
 </body>
 </html>
