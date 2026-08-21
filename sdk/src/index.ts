@@ -134,10 +134,13 @@ const IDL: any = {
 export class EquxiClient {
   private program: Program;
   private connection: Connection;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private accounts: any;
 
   constructor(provider: AnchorProvider) {
     this.program = new Program(IDL, provider);
     this.connection = provider.connection;
+    this.accounts = this.program.account;
   }
 
   /** Derive config PDA */
@@ -185,7 +188,7 @@ export class EquxiClient {
     const operator = this.program.provider.publicKey!;
     const [configPDA] = this.findConfigPDA();
     const [bondPDA] = this.findBondPDA(agentPDA);
-    const agent = await this.program.account.agent.fetch(agentPDA);
+    const agent = await this.accounts.agent.fetch(agentPDA);
 
     const tx = await this.program.methods
       .createBond(amount, lockDuration)
@@ -224,7 +227,7 @@ export class EquxiClient {
   async addConstraint(agentPDA: PublicKey, constraintType: any, params: any) {
     const owner = this.program.provider.publicKey!;
     const [configPDA] = this.findConfigPDA();
-    const config = await this.program.account.config.fetch(configPDA);
+    const config = await this.accounts.config.fetch(configPDA);
     const [constraintPDA] = PublicKey.findProgramAddressSync(
       [Buffer.from("constraint"), agentPDA.toBuffer(), config.totalBonds.add(new BN(1)).toArrayLike(Buffer, "le", 8)],
       this.program.programId
@@ -248,13 +251,13 @@ export class EquxiClient {
   async executeSlash(agentPDA: PublicKey, reason: string, slashAmount: BN) {
     const authority = this.program.provider.publicKey!;
     const [configPDA] = this.findConfigPDA();
-    const config = await this.program.account.config.fetch(configPDA);
+    const config = await this.accounts.config.fetch(configPDA);
     const [bondPDA] = this.findBondPDA(agentPDA);
     const [slashPDA] = PublicKey.findProgramAddressSync(
       [Buffer.from("slash"), agentPDA.toBuffer(), config.totalSlashed.toArrayLike(Buffer, "le", 8)],
       this.program.programId
     );
-    const agent = await this.program.account.agent.fetch(agentPDA);
+    const agent = await this.accounts.agent.fetch(agentPDA);
 
     const tx = await this.program.methods
       .executeSlash(reason, slashAmount)
@@ -300,17 +303,17 @@ export class EquxiClient {
 
   /** Fetch agent */
   async getAgent(agentPDA: PublicKey) {
-    return this.program.account.agent.fetch(agentPDA);
+    return this.accounts.agent.fetch(agentPDA);
   }
 
   /** Fetch bond */
   async getBond(bondPDA: PublicKey) {
-    return this.program.account.bond.fetch(bondPDA);
+    return this.accounts.bond.fetch(bondPDA);
   }
 
   /** Fetch config */
   async getConfig() {
     const [configPDA] = this.findConfigPDA();
-    return this.program.account.config.fetch(configPDA);
+    return this.accounts.config.fetch(configPDA);
   }
 }
