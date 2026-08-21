@@ -20,13 +20,16 @@
      Helpers (delayed init — wait for solanaWeb3 CDN)
      ============================================================ */
   function getPhantomProvider() {
-    if ("solana" in window && window.solana.isPhantom) return window.solana;
+    // Modern Phantom injects as window.phantom.solana
+    if (window.phantom?.solana?.isPhantom) return window.phantom.solana;
+    // Legacy injects as window.solana
+    if (window.solana?.isPhantom) return window.solana;
     return null;
   }
 
   function initProgramId() {
     // Will be updated after anchor build with real program ID
-    PROGRAM_ID = new solanaWeb3.PublicKey("Eqxi1111111111111111111111111111111111111111");
+    PROGRAM_ID = new solanaWeb3.PublicKey("9p47LiT9ondNZwhC1dqC6ChMTNr7mRLc3RGvi39JVemQ");
   }
 
   function shortenAddress(addr) {
@@ -733,7 +736,7 @@
           renderAll();
           document.getElementById("connectWallet").addEventListener("click", connectWallet);
           phantom = getPhantomProvider();
-          if (phantom && phantom.isConnected) {
+          if (phantom) {
             phantom.on("connect", () => {
               walletConnected = true;
               walletAddress = phantom.publicKey.toString();
@@ -741,6 +744,10 @@
               setWalletUI(true, walletAddress);
               refreshOnChainData();
             });
+            // Auto-reconnect if previously connected
+            if (phantom.isConnected) {
+              phantom.connect({ onlyIfTrusted: true }).catch(() => {});
+            }
           }
         }
       }, 100);

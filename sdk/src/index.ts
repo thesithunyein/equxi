@@ -1,7 +1,7 @@
 import { Program, AnchorProvider, BN } from "@coral-xyz/anchor";
 import { Connection, PublicKey, SystemProgram } from "@solana/web3.js";
 
-const PROGRAM_ID = new PublicKey("Eqxi1111111111111111111111111111111111111111");
+const PROGRAM_ID = new PublicKey("9p47LiT9ondNZwhC1dqC6ChMTNr7mRLc3RGvi39JVemQ");
 
 // IDL placeholder - replace with actual IDL after `anchor build`
 const IDL: any = {
