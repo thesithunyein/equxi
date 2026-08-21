@@ -39,7 +39,21 @@
     requestAnimationFrame(tick);
   }
 
+  // Docs toggle
+  function initDocs() {
+    const toggle = document.getElementById("docsToggle");
+    const docs = document.getElementById("docs");
+    if (!toggle || !docs) return;
+    toggle.addEventListener("click", e => {
+      e.preventDefault();
+      const isVisible = docs.style.display !== "none";
+      docs.style.display = isVisible ? "none" : "block";
+      if (!isVisible) docs.scrollIntoView({ behavior: "smooth" });
+    });
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
+    initDocs();
     // Animate elements in
     const header = document.querySelector(".header");
     const badge = document.querySelector(".badge");
