@@ -485,8 +485,14 @@
       const tx = new solanaWeb3.Transaction().add(ix);
       const { blockhash } = await connection.getLatestBlockhash();
       tx.recentBlockhash = blockhash; tx.feePayer = operator;
-      const signed = await phantom.signTransaction(tx);
-      const sig = await connection.sendRawTransaction(signed.serialize());
+      let sig;
+      if (phantom.signAndSendTransaction) {
+        const result = await phantom.signAndSendTransaction(tx);
+        sig = result.signature;
+      } else {
+        const signed = await phantom.signTransaction(tx);
+        sig = await connection.sendRawTransaction(signed.serialize());
+      }
       await confirmTx(sig);
       showTxSuccess(`Agent "${name}" registered`, sig);
       await Promise.all([refreshData(), refreshBalance()]);
@@ -518,8 +524,14 @@
       const tx = new solanaWeb3.Transaction().add(ix);
       const { blockhash } = await connection.getLatestBlockhash();
       tx.recentBlockhash = blockhash; tx.feePayer = operator;
-      const signed = await phantom.signTransaction(tx);
-      const sig = await connection.sendRawTransaction(signed.serialize());
+      let sig;
+      if (phantom.signAndSendTransaction) {
+        const result = await phantom.signAndSendTransaction(tx);
+        sig = result.signature;
+      } else {
+        const signed = await phantom.signTransaction(tx);
+        sig = await connection.sendRawTransaction(signed.serialize());
+      }
       await confirmTx(sig);
       showTxSuccess(`Locked ${amountSol} SOL`, sig);
       await Promise.all([refreshData(), refreshBalance()]);
@@ -563,8 +575,14 @@
       const tx = new solanaWeb3.Transaction().add(ix);
       const { blockhash } = await connection.getLatestBlockhash();
       tx.recentBlockhash = blockhash; tx.feePayer = operator;
-      const signed = await phantom.signTransaction(tx);
-      const sig = await connection.sendRawTransaction(signed.serialize());
+      let sig;
+      if (phantom.signAndSendTransaction) {
+        const result = await phantom.signAndSendTransaction(tx);
+        sig = result.signature;
+      } else {
+        const signed = await phantom.signTransaction(tx);
+        sig = await connection.sendRawTransaction(signed.serialize());
+      }
       await confirmTx(sig);
       showTxSuccess("Rule added", sig);
       await Promise.all([refreshData(), refreshBalance()]);
@@ -590,8 +608,14 @@
       const tx = new solanaWeb3.Transaction().add(ix);
       const { blockhash } = await connection.getLatestBlockhash();
       tx.recentBlockhash = blockhash; tx.feePayer = operator;
-      const signed = await phantom.signTransaction(tx);
-      const sig = await connection.sendRawTransaction(signed.serialize());
+      let sig;
+      if (phantom.signAndSendTransaction) {
+        const result = await phantom.signAndSendTransaction(tx);
+        sig = result.signature;
+      } else {
+        const signed = await phantom.signTransaction(tx);
+        sig = await connection.sendRawTransaction(signed.serialize());
+      }
       await confirmTx(sig);
       showTxSuccess("Bond withdrawn", sig);
       await Promise.all([refreshData(), refreshBalance()]);
