@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.webp" alt="Equxi Logo" width="120" />
+  <img src="assets/logo.webp" alt="Equxi Logo" width="100" />
 </p>
 
 <h1 align="center">Equxi</h1>
@@ -7,57 +7,31 @@
 <p align="center"><strong>Solana-Native Trust Layer for AI Agents</strong></p>
 
 <p align="center">
-  <a href="https://equxi.sithunyein.com">Live Site</a> •
-  <a href="https://superteam.fun/earn/grants/agentic-engineering">Superteam Grant</a> •
-  <a href="#quickstart">Quick Start</a> •
-  <a href="#api">SDK Docs</a>
+  <a href="https://equxi.sithunyein.com"><img src="https://img.shields.io/badge/Live-Site-9945FF?style=for-the-badge" alt="Live Site" /></a>
+  <a href="https://github.com/thesithunyein/equxi/actions"><img src="https://img.shields.io/github/actions/workflow/status/thesithunyein/equxi/ci.yml?style=for-the-badge" alt="CI" /></a>
+  <a href="https://superteam.fun/earn/grants/agentic-engineering"><img src="https://img.shields.io/badge/Grant-Agentic%20Engineering-22c55e?style=for-the-badge" alt="Grant" /></a>
 </p>
 
 ---
 
 ## The Problem
 
-AI agents lack economic accountability. Nobody can safely trust an autonomous agent with real capital or financial obligations because:
+AI agents lack economic accountability. Nobody can safely trust an autonomous agent with real money because:
 
-- **Counterparties refuse to deal** with agents that can lose money or misbehave with no recourse
-- **Traditional wallets only hold funds** — they cannot enforce on-chain behavioral constraints
-- **No automatic collateral seizure** to compensate victims when an agent misbehaves
+- **Counterparties refuse** to deal with agents that can lose money with no recourse
+- **Traditional wallets** only hold funds — they can't enforce behavioral rules
+- **No automatic compensation** when an agent misbehaves
 
 ## The Solution
 
-Equxi provides **enforceable on-chain behavioral constraints** for AI agents on Solana:
-
-1. **Bond** — Agents' operators lock SOL collateral as a behavioral guarantee
-2. **Enforce** — Behavioral constraints (spend limits, allowlisted programs, timelocks, velocity) are enforced on-chain
-3. **Slash** — When an agent violates constraints, its bond is automatically slashed
-4. **Compensate** — Slashed collateral compensates affected counterparties
-
-## Architecture
+Equxi makes AI agents **financially accountable** on Solana:
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    Equxi Protocol                       │
-├─────────────────────────────────────────────────────────┤
-│  Solana Program (Anchor)                               │
-│  ├── register_agent()     — Create agent identity      │
-│  ├── create_bond()        — Lock SOL collateral        │
-│  ├── add_constraint()     — Deploy behavioral rules    │
-│  ├── execute_slash()      — Penalize bond on violation │
-│  └── compensate_victim() — Pay out from slashed bond   │
-├─────────────────────────────────────────────────────────┤
-│  TypeScript SDK                                        │
-│  ├── EquxiClient.registerAgent()                       │
-│  ├── EquxiClient.createBond()                          │
-│  ├── EquxiClient.addConstraint()                       │
-│  ├── EquxiClient.executeSlash()                        │
-│  └── EquxiClient.compensateVictim()                    │
-├─────────────────────────────────────────────────────────┤
-│  Frontend (Dashboard)                                  │
-│  ├── Phantom wallet integration                        │
-│  ├── Agent management UI                               │
-│  ├── Bond tracking                                     │
-│  ├── Constraint configuration                          │
-│  └── Slashing interface                                │
+│  1. BOND     Operator locks SOL as safety deposit      │
+│  2. ENFORCE  Rules (spend limits, timelocks) on-chain  │
+│  3. SLASH    Bond penalized when rules are broken       │
+│  4. PAY      Victim compensated from the deposit        │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -65,120 +39,85 @@ Equxi provides **enforceable on-chain behavioral constraints** for AI agents on 
 
 ### Prerequisites
 
-- [Rust](https://rustup.rs/) (latest stable)
-- [Solana CLI](https://docs.solanalabs.com/cli/install) (v1.18+)
-- [Anchor](https://www.anchor-lang.com/docs/installation) (v0.30+)
-- [Node.js](https://nodejs.org/) (v18+)
-
-### 1. Install Dependencies
-
 ```bash
-# Install Solana CLI
+# Solana CLI
 sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
 
-# Configure for devnet
-solana config set --url devnet
-
-# Create wallet (if needed)
-solana-keygen new
-
-# Request airdrop for testing
-solana airdrop 2
-
-# Install Anchor
+# Anchor
 cargo install --git https://github.com/coral-xyz/anchor avm --locked
 avm install 0.30.1
-avm use 0.30.1
+
+# Node.js (v18+)
+# https://nodejs.org/
 ```
 
-### 2. Build & Deploy the Program
+### One-Command Deploy
 
 ```bash
+git clone https://github.com/thesithunyein/equxi.git
 cd equxi
+chmod +x setup.sh
+./setup.sh
+```
 
-# Install JS dependencies
-yarn install
+This will:
+1. Configure Solana for devnet
+2. Generate keypairs
+3. Build the program
+4. Run tests
+5. Deploy to devnet
+6. Print the program ID
 
-# Build the Anchor program
+### Manual Deploy
+
+```bash
+solana config set --url devnet
 anchor build
-
-# Get program ID
-solana address -k target/deploy/equxi-keypair.json
-
-# Update program ID in lib.rs and Anchor.toml
-# Then deploy
 anchor deploy --provider.cluster devnet
 ```
 
-### 3. Run the Frontend
+### Run Frontend
 
 ```bash
-# Serve the dashboard
 npx serve .
-
 # Open http://localhost:3000/app.html
+```
+
+## Architecture
+
+```
+equxi/
+├── programs/equxi/           # Solana program (Rust/Anchor)
+│   └── src/
+│       ├── lib.rs            # 8 instructions
+│       ├── state.rs          # Agent, Bond, Constraint, SlashRecord, Config
+│       ├── error.rs          # 12 error codes
+│       └── instructions/     # All instruction handlers
+├── sdk/                      # TypeScript SDK
+│   └── src/
+│       └── index.ts          # EquxiClient class (9 methods)
+├── tests/                    # Anchor tests (5 cases)
+├── app.html                  # Dashboard
+├── app.css                   # Dashboard styles
+├── app.js                    # Dashboard logic (real Solana txs)
+├── index.html                # Landing page
+├── styles.css                # Landing styles
+├── main.js                   # Landing animations
+└── setup.sh                  # One-command deploy
 ```
 
 ## Program Instructions
 
-### `register_agent`
-
-```rust
-pub fn register_agent(
-    ctx: Context<RegisterAgent>,
-    name: String,           // Agent name (max 32 chars)
-    agent_type: AgentType,  // Trader, Oracle, DeFi, Payment, etc.
-) -> Result<()>
-```
-
-Creates an on-chain agent identity linked to an operator wallet.
-
-### `create_bond`
-
-```rust
-pub fn create_bond(
-    ctx: Context<CreateBond>,
-    amount: u64,            // SOL to lock (min 0.1 SOL)
-    lock_duration: i64,     // Lock period in seconds
-) -> Result<()>
-```
-
-Transfers SOL from operator to a PDA that acts as the bond collateral.
-
-### `add_constraint`
-
-```rust
-pub fn add_constraint(
-    ctx: Context<AddConstraint>,
-    constraint_type: ConstraintType,  // SpendLimit, ProgramAllowlist, Timelock, Velocity
-    params: ConstraintParams,         // Type-specific parameters
-) -> Result<()>
-```
-
-Deploys an on-chain behavioral constraint for an agent.
-
-### `execute_slash`
-
-```rust
-pub fn execute_slash(
-    ctx: Context<ExecuteSlash>,
-    reason: String,         // Violation description
-    slash_amount: u64,      // Amount to slash (lamports)
-) -> Result<()>
-```
-
-Penalizes an agent's bond and transfers slashed SOL to treasury.
-
-### `compensate_victim`
-
-```rust
-pub fn compensate_victim(
-    ctx: Context<CompensateVictim>,
-    amount: u64,            // Compensation amount
-) -> Result<()>
-```
-
-Transfers SOL from a slashed bond to the affected counterparty.
+| Instruction | Description | Who Can Call |
+|-------------|-------------|--------------|
+| `initialize` | Set up admin authority | Anyone (once) |
+| `register_agent` | Create agent identity | Operator |
+| `create_bond` | Lock SOL as collateral | Operator |
+| `withdraw_bond` | Return funds after lock expires | Operator |
+| `add_constraint` | Deploy behavioral rule | Operator |
+| `execute_slash` | Penalize bond for violation | Admin |
+| `compensate_victim` | Pay victim from slashed funds | Admin |
+| `update_trust_score` | Update agent reputation | Admin |
 
 ## SDK Usage
 
@@ -186,21 +125,16 @@ Transfers SOL from a slashed bond to the affected counterparty.
 import { EquxiClient } from "@equxi/sdk";
 import { AnchorProvider } from "@coral-xyz/anchor";
 
-// Initialize
 const provider = new AnchorProvider(connection, wallet, {});
 const client = new EquxiClient(provider);
 
 // Register an agent
 const { agentPDA } = await client.registerAgent("AlphaTrader", { trader: {} });
 
-// Create a bond (5 SOL, 30 days)
-const { bondPDA } = await client.createBond(
-  agentPDA,
-  new BN(5_000_000_000),  // 5 SOL in lamports
-  new BN(30 * 24 * 60 * 60)  // 30 days in seconds
-);
+// Lock 5 SOL for 30 days
+await client.createBond(agentPDA, new BN(5_000_000_000), new BN(2592000));
 
-// Add spend limit (max 500 SOL per tx)
+// Add spending limit (max 500 SOL per tx)
 await client.addConstraint(agentPDA, { spendLimit: {} }, {
   maxAmount: new BN(500_000_000_000),
   maxPerPeriod: new BN(0),
@@ -209,66 +143,44 @@ await client.addConstraint(agentPDA, { spendLimit: {} }, {
   allowedPrograms: Array(8).fill(PublicKey.default),
 });
 
-// Execute slashing (if agent violates constraints)
-await client.executeSlash(agentPDA, "Exceeded spend limit", new BN(1_000_000_000));
-
-// Compensate victim
-await client.compensateVictim(agentPDA, slashTimestamp, victimWallet, amount);
+// Withdraw after lock expires
+await client.withdrawBond(agentPDA);
 ```
 
-## Constraint Types
+## Dashboard Features
 
-| Type | Description | Params |
-|------|-------------|--------|
-| **SpendLimit** | Max SOL per transaction | `maxAmount` |
-| **ProgramAllowlist** | Only allowed Solana programs | `allowedPrograms[8]` |
-| **Timelock** | Delay before withdrawals execute | `timelockSeconds` |
-| **Velocity** | Max transactions per time period | `maxPerPeriod`, `periodSeconds` |
+- **Phantom Wallet** — Connect with one click
+- **Register Agents** — Create on-chain agent identities
+- **Lock Deposits** — Collateralize agent behavior
+- **Add Rules** — Spending limits, program allowlists, timelocks
+- **Report Violations** — Trigger automatic compensation
+- **Explorer Links** — Every transaction linked to Solana Explorer
+- **Live Balance** — Real-time SOL balance from devnet
 
 ## Testing
 
 ```bash
-# Run Anchor tests
+# Run all tests
 anchor test
 
-# Or run TypeScript tests directly
-cd sdk && yarn test
-```
-
-## Project Structure
-
-```
-equxi/
-├── programs/equxi/           # Solana program (Rust)
-│   └── src/
-│       ├── lib.rs            # Entry point
-│       ├── state.rs          # Account structures
-│       ├── error.rs          # Error codes
-│       └── instructions/     # Instruction handlers
-├── sdk/                      # TypeScript SDK
-│   └── src/
-│       ├── index.ts          # Client API
-│       └── types/            # TypeScript types
-├── tests/                    # Anchor tests
-├── app.html                  # Dashboard frontend
-├── app.css                   # Dashboard styles
-├── app.js                    # Dashboard logic + wallet
-├── index.html                # Landing page
-├── styles.css                # Landing styles
-├── main.js                   # Landing animations
-└── README.md                 # This file
+# Run specific test
+anchor test --grep "Registers an agent"
 ```
 
 ## Deployed
 
-- **Frontend**: [equxi.sithunyein.com](https://equxi.sithunyein.com)
-- **Program**: Devnet (deploy after `anchor deploy`)
-- **GitHub**: [github.com/thesithunyein/equxi](https://github.com/thesithunyein/equxi)
+| Component | URL |
+|-----------|-----|
+| **Frontend** | [equxi.sithunyein.com](https://equxi.sithunyein.com) |
+| **Program** | Devnet (run `./setup.sh` to deploy) |
+| **GitHub** | [github.com/thesithunyein/equxi](https://github.com/thesithunyein/equxi) |
 
 ## Grant
 
-This project is built for the [Agentic Engineering Grant](https://superteam.fun/earn/grants/agentic-engineering) program by Superteam.
+Built for the [Agentic Engineering Grant](https://superteam.fun/earn/grants/agentic-engineering) by Superteam.
+
+**Skills:** Frontend · Blockchain · Backend · Content
 
 ---
 
-Built by [Sithu Nyein](https://sithunyein.com) • Generated with Codebuff
+Built by [Sithu Nyein](https://sithunyein.com) · Generated with Codebuff

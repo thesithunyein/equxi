@@ -1,7 +1,16 @@
 # Dependencies
 node_modules/
+.sdk/
 
-# OS files
+# Anchor build
+target/
+.anchor/
+
+# Lock files
+Cargo.lock
+yarn.lock
+
+# OS
 .DS_Store
 Thumbs.db
 
@@ -12,8 +21,13 @@ Thumbs.db
 # Environment
 .env
 .env.local
+.env.*
 
 # Logs
 *.log
+
+# TypeScript
+dist/
+*.js.map
 
 .vercel
