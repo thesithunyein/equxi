@@ -99,37 +99,6 @@ a { text-decoration: none; color: inherit; }
 }
 .stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
 
-/* Docs */
-.docs { width: 100%; max-width: 900px; padding: 60px 0 40px; }
-.docs-title { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px; }
-.docs-subtitle { font-size: 15px; color: var(--muted); margin-bottom: 40px; }
-.docs-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 48px; }
-.doc-card {
-  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px;
-  padding: 24px; transition: border-color 0.2s;
-}
-.doc-card:hover { border-color: rgba(255,255,255,0.12); }
-.doc-icon { width: 36px; height: 36px; border-radius: 8px; background: rgba(153,69,255,0.12); color: var(--purple); display: flex; align-items: center; justify-content: center; font-size: 14px; margin-bottom: 14px; }
-.doc-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
-.doc-card p { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 12px; }
-.doc-link { font-size: 13px; font-weight: 500; color: var(--purple); }
-.doc-link:hover { text-decoration: underline; }
-.docs-section { margin-bottom: 40px; }
-.docs-section h3 { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
-.docs-table { border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; overflow: hidden; }
-.docs-row { display: grid; grid-template-columns: 180px 1fr 100px; padding: 12px 16px; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.04); }
-.docs-row:last-child { border-bottom: none; }
-.docs-row span:first-child { font-weight: 600; font-family: monospace; color: var(--green); }
-.docs-row span:nth-child(2) { color: var(--muted); }
-.docs-row span:nth-child(3) { color: var(--text-muted); font-size: 12px; }
-.docs-header { background: rgba(255,255,255,0.03); font-weight: 600; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
-.docs-header span:first-child { color: var(--muted); font-family: var(--font); }
-.docs-code {
-  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px;
-  padding: 20px; font-family: "SF Mono", "Fira Code", monospace; font-size: 13px;
-  line-height: 1.7; color: #d4d4d8; overflow-x: auto; white-space: pre;
-}
-
 /* Mobile */
 @media (max-width: 768px) {
   .page { padding: 16px 20px; }

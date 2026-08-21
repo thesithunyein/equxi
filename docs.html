@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Equxi — Documentation</title>
+  <meta name="description" content="Equxi documentation — on-chain accountability infrastructure for autonomous AI agents on Solana." />
+  <link rel="icon" type="image/webp" href="assets/logo.webp" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <style>
+    :root {
+      --bg: #09090b;
+      --surface: rgba(15, 15, 18, 0.8);
+      --border: rgba(255, 255, 255, 0.06);
+      --text: #fafafa;
+      --muted: #a1a1aa;
+      --dim: #52525b;
+      --purple: #9945FF;
+      --green: #22c55e;
+      --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.7; }
+    a { text-decoration: none; color: inherit; }
+
+    /* Header */
+    .top {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 32px; background: rgba(9,9,11,0.85); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .top-left { display: flex; align-items: center; gap: 16px; }
+    .logo { display: flex; align-items: center; gap: 10px; }
+    .logo img { width: 28px; height: 28px; border-radius: 6px; }
+    .logo span { font-size: 16px; font-weight: 600; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 500;
+      color: var(--muted); border: 1px solid var(--border); transition: all 0.15s;
+    }
+    .back-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.15); }
+
+    /* Layout */
+    .layout { display: flex; max-width: 1200px; margin: 0 auto; padding: 32px; gap: 48px; }
+    .sidebar { width: 220px; flex-shrink: 0; position: sticky; top: 72px; align-self: flex-start; }
+    .sidebar nav { display: flex; flex-direction: column; gap: 2px; }
+    .sidebar a {
+      display: block; padding: 8px 12px; border-radius: 6px; font-size: 13px; font-weight: 500;
+      color: var(--muted); transition: all 0.15s;
+    }
+    .sidebar a:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+    .sidebar a.active { color: var(--text); background: rgba(153,69,255,0.12); }
+    .sidebar .label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--dim); padding: 16px 12px 6px; }
+
+    .content { flex: 1; min-width: 0; }
+    .content h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px; }
+    .content h2 { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; margin: 40px 0 12px; padding-top: 24px; border-top: 1px solid var(--border); }
+    .content h2:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
+    .content h3 { font-size: 16px; font-weight: 600; margin: 24px 0 8px; }
+    .content p { font-size: 14px; color: var(--muted); margin-bottom: 16px; }
+    .content ul, .content ol { font-size: 14px; color: var(--muted); margin-bottom: 16px; padding-left: 20px; }
+    .content li { margin-bottom: 6px; }
+    .content strong { color: var(--text); font-weight: 600; }
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; font-family: monospace; }
+    .tag.devnet { background: rgba(59,130,246,0.12); color: #3b82f6; }
+    .tag.program { background: rgba(153,69,255,0.12); color: var(--purple); }
+    .tag.solana { background: rgba(34,197,94,0.12); color: var(--green); }
+
+    /* Code blocks */
+    pre {
+      background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 10px;
+      padding: 16px 20px; font-family: "SF Mono", "Fira Code", "JetBrains Mono", monospace;
+      font-size: 13px; line-height: 1.7; color: #d4d4d8; overflow-x: auto; margin-bottom: 16px;
+    }
+    code {
+      font-family: "SF Mono", "Fira Code", monospace; font-size: 13px;
+      background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px;
+    }
+    pre code { background: none; padding: 0; }
+
+    /* Table */
+    .table-wrap { overflow-x: auto; margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; padding: 10px 14px; background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--border); font-weight: 600; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+    td { padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.03); color: var(--muted); }
+    td:first-child { font-family: monospace; font-weight: 500; color: var(--green); }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* Cards */
+    .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px;
+      transition: border-color 0.15s;
+    }
+    .card:hover { border-color: rgba(255,255,255,0.1); }
+    .card h4 { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+    .card p { font-size: 13px; margin-bottom: 0; }
+
+    /* Callout */
+    .callout {
+      display: flex; gap: 12px; padding: 16px; border-radius: 10px; margin-bottom: 16px;
+      font-size: 13px; line-height: 1.6;
+    }
+    .callout.info { background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.15); color: #93c5fd; }
+    .callout.warn { background: rgba(234,179,8,0.08); border: 1px solid rgba(234,179,8,0.15); color: #fde047; }
+    .callout i { margin-top: 2px; flex-shrink: 0; }
+
+    /* Footer */
+    .doc-footer { margin-top: 60px; padding: 24px 0; border-top: 1px solid var(--border); display: flex; justify-content: space-between; font-size: 13px; }
+    .doc-footer a { color: var(--purple); }
+    .doc-footer a:hover { text-decoration: underline; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .layout { flex-direction: column; padding: 16px; gap: 24px; }
+      .sidebar { width: 100%; position: static; }
+      .sidebar nav { flex-direction: row; flex-wrap: wrap; gap: 4px; }
+      .sidebar .label { display: none; }
+      .sidebar a { font-size: 12px; padding: 6px 10px; }
+      .top { padding: 12px 16px; }
+      .content h1 { font-size: 22px; }
+      .cards { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="top-left">
+      <a href="index.html" class="logo">
+        <img src="assets/logo.webp" alt="Equxi" />
+        <span>Equxi</span>
+      </a>
+      <a href="index.html" class="back-btn">
+        <i class="fa-solid fa-arrow-left"></i> Home
+      </a>
+    </div>
+    <a href="app.html" class="back-btn" style="border-color:var(--purple);color:var(--purple);">
+      <i class="fa-solid fa-arrow-right"></i> Open App
+    </a>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="label">Getting Started</div>
+      <nav>
+        <a href="#overview" class="active">Overview</a>
+        <a href="#quickstart">Quick Start</a>
+        <a href="#installation">Installation</a>
+      </nav>
+      <div class="label">Core Concepts</div>
+      <nav>
+        <a href="#agents-section">Agents</a>
+        <a href="#bonds-section">Bonds</a>
+        <a href="#rules-section">Rules</a>
+        <a href="#slashing">Slashing</a>
+      </nav>
+      <div class="label">Developer</div>
+      <nav>
+        <a href="#instructions">Instructions</a>
+        <a href="#accounts">Account Layout</a>
+        <a href="#sdk">SDK</a>
+        <a href="#idl">IDL</a>
+      </nav>
+      <div class="label">Resources</div>
+      <nav>
+        <a href="#deploy">Deployment</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <h1>Equxi Documentation</h1>
+      <p>On-chain accountability infrastructure for autonomous AI agents on Solana.</p>
+
+      <div style="display:flex;gap:8px;margin-bottom:24px;">
+        <span class="tag program">Program: 9p47Li...JVemQ</span>
+        <span class="tag devnet">Devnet</span>
+        <span class="tag solana">Solana</span>
+      </div>
+
+      <!-- Overview -->
+      <h2 id="overview">Overview</h2>
+      <p>Equxi is a Solana program that solves a fundamental problem in AI agent commerce: <strong>nobody can trust an autonomous agent with real capital or financial obligations</strong>.</p>
+      <p>Traditional wallets only hold funds. They cannot enforce on-chain behavioral constraints, nor automatically seize an operator's collateral to compensate victims when an agent misbehaves. Equxi fixes this by providing:</p>
+      <ul>
+        <li><strong>Operator bonding</strong> — Agents must lock SOL as collateral before operating</li>
+        <li><strong>Behavioral constraints</strong> — On-chain rules that limit what an agent can do (spend limits, program allowlists, timelocks)</li>
+        <li><strong>Automatic slashing</strong> — When rules are violated, the bond is slashed and victims are compensated</li>
+        <li><strong>Trust scores</strong> — On-chain reputation that counterparties can verify before transacting</li>
+      </ul>
+
+      <div class="callout info">
+        <i class="fa-solid fa-circle-info"></i>
+        <div>Equxi targets the <strong>Agentic Engineering</strong> grant category. It enables Web3 builders, autonomous traders, and agent frameworks to scale by providing financial accountability that counterparties can trust.</div>
+      </div>
+
+      <!-- Quick Start -->
+      <h2 id="quickstart">Quick Start</h2>
+      <p>Get a working agent with bond and rules in under 5 minutes.</p>
+
+      <h3>1. Connect Your Wallet</h3>
+      <p>Visit <a href="app.html" style="color:var(--purple);">equxi.sithunyein.com/app.html</a> and connect your Phantom wallet. Make sure you're on <strong>Devnet</strong>.</p>
+
+      <h3>2. Register an Agent</h3>
+      <p>Click <strong>+ Register</strong> in the Agents tab. Give your agent a name and select its type (Trader, Assistant, Framework, or Custom). This creates an on-chain account at a PDA derived from the program.</p>
+
+      <h3>3. Lock a Bond</h3>
+      <p>Click <strong>+ Lock Funds</strong> in the Bonds tab. Deposit SOL as collateral. This bond is your agent's accountability guarantee — if it misbehaves, victims are compensated from it.</p>
+
+      <h3>4. Add Rules</h3>
+      <p>Click <strong>+ Add Rule</strong> in the Rules tab. Set constraints on your agent's behavior:</p>
+      <ul>
+        <li><strong>Spend Limit</strong> — Maximum SOL per time period</li>
+        <li><strong>Program Allowlist</strong> — Only interact with approved programs</li>
+        <li><strong>Timelock</strong> — Delay large transactions for review</li>
+      </ul>
+
+      <pre><code>// Your agent is now live on Solana devnet
+// Constraints are enforced on-chain
+// If violated, slashing happens automatically</code></pre>
+
+      <!-- Installation -->
+      <h2 id="installation">SDK Installation</h2>
+      <p>For programmatic access to Equxi from TypeScript or JavaScript:</p>
+
+      <pre><code>npm install @equxi/sdk @solana/web3.js @coral-xyz/anchor</code></pre>
+
+      <p>Or clone the repository and build from source:</p>
+
+      <pre><code>git clone https://github.com/thesithunyein/equxi.git
+cd equxi/sdk
+npm install
+npm run build</code></pre>
+
+      <pre><code>import { EquxiClient } from "@equxi/sdk";
+import { Connection, PublicKey } from "@solana/web3.js";
+import { AnchorProvider } from "@coral-xyz/anchor";
+
+// Initialize
+const connection = new Connection("https://api.devnet.solana.com");
+const provider = new AnchorProvider(wallet, connection, { commitment: "confirmed" });
+const client = new EquxiClient(provider);
+
+// Register an agent
+const { agentPDA } = await client.registerAgent("AlphaTrader", { trader: {} });
+
+// Lock a bond (5 SOL, 30-day lock period)
+await client.createBond(agentPDA, 5_000_000_000, 2_592_000);
+
+// Add a spend limit (1 SOL per day)
+await client.addConstraint(agentPDA, { spendLimit: {} }, {
+  maxAmount: 1_000_000_000,
+  maxPerPeriod: 5_000_000_000,
+  periodSeconds: 86400,
+});
+
+// Query on-chain state
+const agent = await client.getAgent(agentPDA);
+console.log("Trust score:", agent.trustScore);</code></pre>
+
+      <!-- Agents -->
+      <h2 id="agents-section">Agents</h2>
+      <p>An <strong>agent</strong> is an AI program that acts on behalf of an operator. Each agent has:</p>
+      <ul>
+        <li><strong>Operator</strong> — The wallet that registered the agent (controls it)</li>
+        <li><strong>Agent Type</strong> — Trader, Assistant, Framework, or Custom</li>
+        <li><strong>Trust Score</strong> — 0–100 reputation score (starts at 50)</li>
+        <li><strong>Status</strong> — Active, Suspended, or Slashed</li>
+        <li><strong>Registered At</strong> — Unix timestamp of registration</li>
+      </ul>
+      <p>Agent accounts are stored at <strong>Program Derived Addresses (PDAs)</strong> using the operator's wallet and a nonce as seeds. This means each operator can have multiple agents with unique addresses.</p>
+
+      <div class="cards">
+        <div class="card">
+          <h4>Trader</h4>
+          <p>Autonomous trading bots that execute strategies on-chain. Bond protects counterparties from rogue trades.</p>
+        </div>
+        <div class="card">
+          <h4>Assistant</h4>
+          <p>AI assistants that manage wallets, pay bills, or handle DeFi positions on your behalf.</p>
+        </div>
+        <div class="card">
+          <h4>Framework</h4>
+          <p>Agent frameworks (Eliza, CrewAI, etc.) that spawn multiple sub-agents under one operator bond.</p>
+        </div>
+        <div class="card">
+          <h4>Custom</h4>
+          <p>Any other AI agent use case. Define your own rules and constraints.</p>
+        </div>
+      </div>
+
+      <!-- Bonds -->
+      <h2 id="bonds-section">Bonds</h2>
+      <p>A <strong>bond</strong> is SOL locked by the operator as collateral. It serves as the agent's financial guarantee.</p>
+
+      <h3>How Bonds Work</h3>
+      <ul>
+        <li>Operator deposits SOL when creating a bond</li>
+        <li>Bond has a <strong>lock period</strong> (e.g., 30 days) — cannot be withdrawn early</li>
+        <li>After the lock period, the operator can withdraw via <code>withdraw_bond</code></li>
+        <li>If the agent violates rules, the bond is <strong>slashed</strong> (partially or fully)</li>
+        <li>Slashed funds are sent to the <strong>victim</strong> via <code>compensate_victim</code></li>
+      </ul>
+
+      <div class="callout warn">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <div>Bond amounts should be proportional to the agent's operational risk. A trading bot handling millions should have a significantly larger bond than a simple assistant.</div>
+      </div>
+
+      <h3>Bond Lifecycle</h3>
+      <pre><code>create_bond → [active] → [lock expires] → withdraw_bond
+     ↓                      ↓
+  slashed by admin    operator reclaims funds</code></pre>
+
+      <!-- Rules -->
+      <h2 id="rules-section">Rules (Constraints)</h2>
+      <p><strong>Rules</strong> define what an agent is allowed to do. They are enforced on-chain — violations trigger automatic slashing.</p>
+
+      <h3>Constraint Types</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Type</th><th>Description</th><th>Parameters</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Spend Limit</td>
+              <td>Maximum SOL the agent can spend per time period</td>
+              <td>maxAmount, maxPerPeriod, periodSeconds</td>
+            </tr>
+            <tr>
+              <td>Program Allowlist</td>
+              <td>Only specific Solana programs the agent can interact with</td>
+              <td>allowedPrograms[]</td>
+            </tr>
+            <tr>
+              <td>Timelock</td>
+              <td>Large transactions require a delay for operator review</td>
+              <td>threshold, delaySeconds</td>
+            </tr>
+            <tr>
+              <td>Velocity</td>
+              <td>Maximum number of transactions per time period</td>
+              <td>maxTransactions, periodSeconds</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <pre><code>// Example: Agent can spend max 1 SOL per day
+{
+  constraintType: { spendLimit: {} },
+  maxAmount: 1_000_000_000,       // 1 SOL in lamports
+  maxPerPeriod: 5_000_000_000,    // 5 SOL total budget
+  periodSeconds: 86400             // 24 hours
+}</code></pre>
+
+      <!-- Slashing -->
+      <h2 id="slashing">Slashing</h2>
+      <p>When an agent violates its constraints, the program admin (config authority) can execute a <strong>slash</strong>:</p>
+      <ol>
+        <li><strong>Detection</strong> — Off-chain monitor detects violation (or operator self-reports)</li>
+        <li><strong>execute_slash</strong> — Admin calls this instruction with the agent and bond accounts</li>
+        <li><strong>Bond reduction</strong> — The slashed amount is deducted from the bond</li>
+        <li><strong>compensate_victim</strong> — Slashed funds are transferred to the victim's wallet</li>
+        <li><strong>Trust score update</strong> — Agent's trust score is decreased via <code>update_trust_score</code></li>
+      </ol>
+      <p>The config authority (admin) is set during <code>initialize</code> and can only be changed by the current authority. This prevents unauthorized slashing.</p>
+
+      <!-- Instructions -->
+      <h2 id="instructions">Program Instructions</h2>
+      <p>The Equxi program exposes 8 instructions:</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Instruction</th><th>Description</th><th>Authority</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>initialize</td><td>Set up the program with admin config authority</td><td>Deployer</td></tr>
+            <tr><td>register_agent</td><td>Register a new AI agent on-chain (PDA account)</td><td>Operator</td></tr>
+            <tr><td>create_bond</td><td>Lock SOL as collateral for an agent</td><td>Operator</td></tr>
+            <tr><td>withdraw_bond</td><td>Withdraw bond after lock period expires</td><td>Operator</td></tr>
+            <tr><td>add_constraint</td><td>Add a behavioral rule to an agent</td><td>Operator</td></tr>
+            <tr><td>execute_slash</td><td>Penalize a bond for rule violations</td><td>Admin</td></tr>
+            <tr><td>compensate_victim</td><td>Transfer slashed funds to the victim</td><td>Admin</td></tr>
+            <tr><td>update_trust_score</td><td>Update an agent's trust score</td><td>Admin</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Account Layout -->
+      <h2 id="accounts">Account Layout</h2>
+      <p>Key on-chain accounts and their structures:</p>
+
+      <h3>Config (Singleton)</h3>
+      <pre><code>{
+  authority: PublicKey,    // Admin who can slash/compensate
+  bump: u8,               // PDA bump seed
+  nonce: u64,             // Global nonce counter
+}</code></pre>
+
+      <h3>Agent (PDA)</h3>
+      <pre><code>{
+  operator: PublicKey,     // Wallet that registered this agent
+  name: [u8; 32],         // Agent name (fixed-size)
+  agentType: AgentType,   // Trader | Assistant | Framework | Custom
+  trustScore: u16,        // 0-100 reputation
+  status: AgentStatus,    // Active | Suspended | Slashed
+  registeredAt: i64,      // Unix timestamp
+  bump: u8,               // PDA bump seed
+}</code></pre>
+
+      <h3>Bond (PDA)</h3>
+      <pre><code>{
+  agent: PublicKey,        // Associated agent PDA
+  operator: PublicKey,     // Bond owner
+  amount: u64,            // Locked amount in lamports
+  lockExpiry: i64,        // Unix timestamp when withdrawal allowed
+  createdAt: i64,
+  bump: u8,
+}</code></pre>
+
+      <h3>Constraint (PDA)</h3>
+      <pre><code>{
+  agent: PublicKey,        // Associated agent PDA
+  constraintType: ConstraintType,
+  maxAmount: u64,
+  maxPerPeriod: u64,
+  periodSeconds: u32,
+  active: bool,
+  bump: u8,
+}</code></pre>
+
+      <!-- SDK -->
+      <h2 id="sdk">SDK Reference</h2>
+      <p>The TypeScript SDK provides typed wrappers for all program instructions.</p>
+
+      <h3>EquxiClient Methods</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Method</th><th>Returns</th></tr></thead>
+          <tbody>
+            <tr><td>registerAgent(name, type)</td><td>{ agentPDA, tx }</td></tr>
+            <tr><td>createBond(agent, lamports, lockSeconds)</td><td>{ bondPDA, tx }</td></tr>
+            <tr><td>withdrawBond(bond)</td><td>{ tx }</td></tr>
+            <tr><td>addConstraint(agent, type, params)</td><td>{ constraintPDA, tx }</td></tr>
+            <tr><td>getAgent(agentPDA)</td><td>AgentAccount</td></tr>
+            <tr><td>getBond(bondPDA)</td><td>BondAccount</td></tr>
+            <tr><td>getOperatorBonds(operator)</td><td>BondAccount[]</td></tr>
+            <tr><td>getAgentConstraints(agent)</td><td>ConstraintAccount[]</td></tr>
+            <tr><td>getConfig()</td><td>ConfigAccount</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <pre><code>// Full example: register, bond, constrain, query
+import { EquxiClient } from "@equxi/sdk";
+import { PublicKey } from "@solana/web3.js";
+
+const client = new EquxiClient(provider);
+
+// 1. Register
+const { agentPDA } = await client.registerAgent("MyBot", { trader: {} });
+
+// 2. Bond (10 SOL, 60-day lock)
+const { bondPDA } = await client.createBond(
+  agentPDA,
+  10 * 1_000_000_000,  // 10 SOL
+  60 * 24 * 60 * 60     // 60 days
+);
+
+// 3. Constrain (spending limit)
+await client.addConstraint(agentPDA, { spendLimit: {} }, {
+  maxAmount: 2_000_000_000,     // 2 SOL max single tx
+  maxPerPeriod: 20_000_000_000, // 20 SOL per day
+  periodSeconds: 86400,
+});
+
+// 4. Query
+const agent = await client.getAgent(agentPDA);
+console.log(`Agent: ${agent.name}, Trust: ${agent.trustScore}`);
+const constraints = await client.getAgentConstraints(agentPDA);
+console.log(`${constraints.length} active rules`);</code></pre>
+
+      <!-- IDL -->
+      <h2 id="idl">Program IDL</h2>
+      <p>The Interface Definition Language (IDL) describes the program's types and instructions. The full IDL is in <code>target/idl/equxi.json</code> after building.</p>
+
+      <pre><code>{
+  "version": "0.1.0",
+  "name": "equxi",
+  "instructions": [
+    { "name": "initialize", "accounts": [...], "args": [] },
+    { "name": "registerAgent", "accounts": [...], "args": [...] },
+    { "name": "createBond", "accounts": [...], "args": [...] },
+    { "name": "withdrawBond", "accounts": [...], "args": [...] },
+    { "name": "addConstraint", "accounts": [...], "args": [...] },
+    { "name": "executeSlash", "accounts": [...], "args": [...] },
+    { "name": "compensateVictim", "accounts": [...], "args": [...] },
+    { "name": "updateTrustScore", "accounts": [...], "args": [...] }
+  ],
+  "types": [
+    "AgentType", "AgentStatus", "ConstraintType", "Config", "Agent", "Bond", "Constraint"
+  ]
+}</code></pre>
+
+      <!-- Deployment -->
+      <h2 id="deploy">Deployment</h2>
+      <p>Equxi is deployed on <strong>Solana Devnet</strong>. To deploy your own instance:</p>
+
+      <pre><code># Clone and build
+git clone https://github.com/thesithunyein/equxi.git
+cd equxi
+chmod +x setup.sh
+./setup.sh</code></pre>
+
+      <p>The setup script will:</p>
+      <ol>
+        <li>Check prerequisites (Rust, Solana CLI, Anchor)</li>
+        <li>Configure Solana for devnet</li>
+        <li>Generate a program keypair</li>
+        <li>Build the program with <code>cargo build-sbf</code></li>
+        <li>Deploy to devnet</li>
+        <li>Print the program ID and Explorer link</li>
+      </ol>
+
+      <div class="callout info">
+        <i class="fa-solid fa-circle-info"></i>
+        <div><strong>Current Devnet Program ID:</strong> <code>9p47LiT9ondNZwhC1dqC6ChMTNr7mRLc3RGvi39JVemQ</code><br />
+        <a href="https://explorer.solana.com/address/9p47LiT9ondNZwhC1dqC6ChMTNr7mRLc3RGvi39JVemQ?cluster=devnet" style="color:#93c5fd;" target="_blank">View on Solana Explorer →</a></div>
+      </div>
+
+      <!-- FAQ -->
+      <h2 id="faq">FAQ</h2>
+
+      <h3>Why do agents need bonds?</h3>
+      <p>Without bonds, there's no financial consequence for misbehavior. Counterparties won't transact with agents that can lose their money with no recourse. Bonds create skin-in-the-game.</p>
+
+      <h3>Who decides when to slash?</h3>
+      <p>The config authority (set during <code>initialize</code>) can execute slashes. In production, this could be a DAO, a multisig, or an oracle network that monitors on-chain behavior.</p>
+
+      <h3>Can an operator withdraw their bond anytime?</h3>
+      <p>No. Bonds have a lock period. The operator specifies this when creating the bond (e.g., 30 days). Early withdrawal is not possible — this prevents operators from bonding, misbehaving, and withdrawing before consequences.</p>
+
+      <h3>What happens if an agent is slashed below minimum?</h3>
+      <p>The agent's status changes to <strong>Slashed</strong>. The operator would need to create a new bond to continue operating. The trust score is reduced, signaling to counterparties that this agent has a history of violations.</p>
+
+      <h3>Is this on mainnet?</h3>
+      <p>Currently deployed on <strong>Devnet</strong> for testing and grant verification. Mainnet deployment would require a security audit and sufficient TVL in the bonding mechanism.</p>
+
+      <div class="doc-footer">
+        <a href="index.html">← Back to Home</a>
+        <a href="https://github.com/thesithunyein/equxi" target="_blank">GitHub →</a>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Smooth scroll + active nav highlighting
+    document.addEventListener("DOMContentLoaded", () => {
+      const links = document.querySelectorAll(".sidebar a[href^='#']");
+      const sections = [];
+      links.forEach(link => {
+        const id = link.getAttribute("href").slice(1);
+        const el = document.getElementById(id);
+        if (el) sections.push({ el, link });
+      });
+
+      function updateActive() {
+        let current = sections[0];
+        for (const s of sections) {
+          if (s.el.getBoundingClientRect().top <= 120) current = s;
+        }
+        links.forEach(l => l.classList.remove("active"));
+        if (current) current.link.classList.add("active");
+      }
+
+      window.addEventListener("scroll", updateActive, { passive: true });
+      updateActive();
+    });
+  </script>
+</body>
+</html>
