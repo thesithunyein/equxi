@@ -35,7 +35,7 @@ jobs:
 
       - name: Setup Solana
         run: |
-          sh -c "$(curl -sSfL https://release.anza.xyz/v1.18.17/install)"
+          sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
 
       - name: Install Anchor CLI
@@ -46,8 +46,10 @@ jobs:
           solana-keygen new --no-bip39-passphrase --force
           solana config set --url localhost
 
-      - name: Remove stale lockfile
-        run: rm -f programs/equxi/Cargo.lock
+      - name: Remove stale lockfile and generate v3
+        run: |
+          rm -f programs/equxi/Cargo.lock
+          cargo generate-lockfile --lockfile-version 3
 
       - name: Build
         run: anchor build
