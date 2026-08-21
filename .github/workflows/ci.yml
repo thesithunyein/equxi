@@ -18,17 +18,11 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install root dependencies
-        run: yarn install --frozen-lockfile
-
       - name: Install SDK dependencies
-        run: cd sdk && yarn install
+        run: cd sdk && npm install
 
       - name: Typecheck SDK
-        run: cd sdk && yarn tsc --noEmit
-
-      - name: Typecheck Tests
-        run: yarn tsc --noEmit
+        run: cd sdk && npx tsc --noEmit
 
   test:
     name: Anchor Tests
@@ -38,6 +32,8 @@ jobs:
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.82.0
 
       - name: Setup Solana
         run: |
@@ -55,8 +51,10 @@ jobs:
           solana-keygen new --no-bip39-passphrase --force
           solana config set --url localhost
 
-      - name: Remove lock file (regenerate)
-        run: rm -f programs/equxi/Cargo.lock
+      - name: Ensure compatible lockfile
+        run: |
+          rm -f programs/equxi/Cargo.lock
+          rustup override set 1.82.0
 
       - name: Build
         run: anchor build

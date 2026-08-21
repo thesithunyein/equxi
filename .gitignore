@@ -7,6 +7,7 @@ target/
 .anchor/
 
 # Lock files
+Cargo.lock
 yarn.lock
 
 # OS
