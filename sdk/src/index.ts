@@ -72,6 +72,7 @@ const IDL: any = {
     ], args: [{ name: "amount", type: "u64" }] },
   ],
   accounts: [
+    // Config account: 8 (disc) + 32 + 8 + 8 + 8 + 1 = 65 bytes
     { name: "Config", type: { kind: "struct", fields: [
       { name: "admin", type: "publicKey" },
       { name: "totalAgents", type: "u64" },
@@ -89,6 +90,7 @@ const IDL: any = {
       { name: "createdAt", type: "i64" },
       { name: "bumped", type: "u8" },
     ]}},
+    // Bond account: 8 (disc) + 32 + 32 + 8 + 8 + 8 + 8 + 1 + 1 = 106 bytes
     { name: "Bond", type: { kind: "struct", fields: [
       { name: "agent", type: "publicKey" },
       { name: "operator", type: "publicKey" },
@@ -108,6 +110,15 @@ const IDL: any = {
       { name: "timestamp", type: "i64" },
       { name: "victim", type: { option: "publicKey" } },
       { name: "compensated", type: "bool" },
+      { name: "bumped", type: "u8" },
+    ]}},
+    // Constraint account: 8 (disc) + 32 + 1 + 288 + 1 + 8 + 1 = 339 bytes
+    { name: "Constraint", type: { kind: "struct", fields: [
+      { name: "agent", type: "publicKey" },
+      { name: "constraintType", type: { defined: "ConstraintType" } },
+      { name: "params", type: { defined: "ConstraintParams" } },
+      { name: "isEnforced", type: "bool" },
+      { name: "createdAt", type: "i64" },
       { name: "bumped", type: "u8" },
     ]}},
   ],
