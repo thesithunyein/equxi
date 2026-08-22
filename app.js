@@ -212,19 +212,25 @@
       var configPDA = solanaWeb3.PublicKey.findProgramAddressSync([bytes("config")], PROGRAM_ID)[0];
       var info = await connection.getAccountInfo(configPDA);
       if (info && info.data && info.data.length > 0) return null; // Already exists
+      console.log("Config PDA not found, will add init IX");
+    } catch (e) {
+      console.warn("Config check failed, will try init anyway:", e);
+    }
+    // Build init IX — either config missing or check failed
+    try {
       var operator = new solanaWeb3.PublicKey(walletAddress);
       var disc = await instrDiscriminator("initialize");
       var data = concat(disc, operator.toBuffer());
       return new solanaWeb3.TransactionInstruction({
         keys: [
-          { pubkey: configPDA, isSigner: false, isWritable: true },
+          { pubkey: solanaWeb3.PublicKey.findProgramAddressSync([bytes("config")], PROGRAM_ID)[0], isSigner: false, isWritable: true },
           { pubkey: operator, isSigner: true, isWritable: true },
           { pubkey: solanaWeb3.SystemProgram.programId, isSigner: false, isWritable: false },
         ],
         programId: PROGRAM_ID, data: data,
       });
-    } catch (e) {
-      console.warn("Init check failed:", e);
+    } catch (e2) {
+      console.warn("Failed to build init IX:", e2);
       return null;
     }
   }
@@ -634,20 +640,27 @@
       tx.add(registerIx);
       var blockhashInfo = await connection.getLatestBlockhash();
       tx.recentBlockhash = blockhashInfo.blockhash; tx.feePayer = operator;
+      console.log("Sending register TX to Phantom...");
       var sig;
       if (phantom.signAndSendTransaction) {
-        var result = await phantom.signAndSendTransaction(tx);
+        var result = await phantom.signAndSendTransaction(tx, { skipPreflight: false });
         sig = result.signature;
       } else {
         var signed = await phantom.signTransaction(tx);
         sig = await connection.sendRawTransaction(signed.serialize());
       }
+      console.log("TX sent:", sig);
+      showTxPending("Confirming on-chain...");
       await confirmTx(sig);
       showTxSuccess('Agent "' + name + '" registered', sig);
       await Promise.all([refreshData(), refreshBalance()]);
     } catch (err) {
       console.error("Register error:", err);
-      showTxError(err.message && err.message.includes("User rejected") ? "Cancelled" : (err.message || "Transaction failed"));
+      var msg = err.message || "Transaction failed";
+      if (msg.includes("User rejected") || msg.includes("cancelled")) msg = "Cancelled by user";
+      else if (msg.includes("blockhash") || msg.includes("exceeded")) msg = "Transaction expired. Please try again.";
+      else if (msg.includes("0x1")) msg = "Program error: make sure program is initialized.";
+      showTxError(msg);
     }
   }
 
