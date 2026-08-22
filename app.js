@@ -363,12 +363,11 @@
     tx.recentBlockhash = blockhashInfo.blockhash;
     tx.feePayer = new solanaWeb3.PublicKey(walletAddress);
 
-    // Compile and re-create a clean Transaction for Phantom compatibility
+    // Serialize to raw bytes — Phantom handles deserialization correctly
     tx.compileMessage();
     var txBytes = tx.serialize({ requireAllSignatures: false });
-    var cleanTx = solanaWeb3.Transaction.from(txBytes);
-    var signed = await phantom.signTransaction(cleanTx);
-    var raw = signed.serialize({ requireAllSignatures: false });
+    var signed = await phantom.signTransaction(txBytes);
+    var raw = signed.serialize ? signed.serialize({ requireAllSignatures: false }) : signed;
     var sig = await connection.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 3 });
     console.log("TX sent:", sig);
 
