@@ -23,61 +23,63 @@ AI agents lack economic accountability. Nobody can safely trust an autonomous ag
 - **Traditional wallets** only hold funds — they can't enforce behavioral rules
 - **No automatic compensation** when an agent misbehaves
 
-## The Solution
-
-Equxi makes AI agents **financially accountable** on Solana:
+## How It Works
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  1. BOND     Operator locks SOL as safety deposit      │
-│  2. ENFORCE  Rules (spend limits, timelocks) on-chain  │
-│  3. SLASH    Bond penalized when rules are broken       │
-│  4. PAY      Victim compensated from the deposit        │
+│  1. REGISTER  Create on-chain agent identity            │
+│  2. BOND      Operator locks SOL as safety deposit      │
+│  3. ENFORCE   Rules (spend limits, timelocks) on-chain  │
+│  4. SLASH     Bond penalized when rules are broken       │
+│  5. COMPENSATE Victim receives slashed funds             │
 └─────────────────────────────────────────────────────────┘
 ```
 
 ## Deployed
 
-| Component | Details |
-|-----------|---------|
-| **Frontend** | [equxi.sithunyein.com](https://equxi.sithunyein.com) |
+| Component | Link |
+|-----------|------|
+| **Landing Page** | [equxi.sithunyein.com](https://equxi.sithunyein.com) |
 | **Dashboard** | [equxi.sithunyein.com/app.html](https://equxi.sithunyein.com/app.html) |
 | **Documentation** | [equxi.sithunyein.com/docs.html](https://equxi.sithunyein.com/docs.html) |
-| **Program ID** | `D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc` |
+| **Program** | [`D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc`](https://explorer.solana.com/address/D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc?cluster=devnet) |
 | **Network** | Solana Devnet |
-| **Explorer** | [View on Explorer](https://explorer.solana.com/address/D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc?cluster=devnet) |
-| **Deployment TX** | [`4wvtm6ijyocz5YP9BVtwXrmKkKagMQg2RJHqd5nj5HwyT8FBmShCFJBhVQPzx7QpH4cTH5ibyVjestucEyk3bkcw`](https://explorer.solana.com/tx/4wvtm6ijyocz5YP9BVtwXrmKkKagMQg2RJHqd5nj5HwyT8FBmShCFJBhVQPzx7QpH4cTH5ibyVjestucEyk3bkcw?cluster=devnet) |
-| **GitHub** | [github.com/thesithunyein/equxi](https://github.com/thesithunyein/equxi) |
+| **Repo** | [github.com/thesithunyein/equxi](https://github.com/thesithunyein/equxi) |
+
+## On-Chain Proof
+
+The program executes 8 instructions on devnet. Confirmed transactions:
+
+| Instruction | Description |
+|-------------|-------------|
+| `initialize` | Configures admin authority |
+| `register_agent` | Creates agent identity (name, type, trust score) |
+| `create_bond` | Locks SOL as collateral |
+| `withdraw_bond` | Returns SOL after lock period |
+| `add_constraint` | Adds behavioral rule (spend limit, timelock, etc.) |
+| `execute_slash` | Penalizes bond for rule violation |
+| `compensate_victim` | Transfers slashed funds to victim |
+| `update_trust_score` | Updates agent reputation |
 
 ## Quick Start
 
-### Prerequisites
-
-```bash
-# Solana CLI (v2.1+)
-sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
-
-# Rust (stable)
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-
-# Node.js (v18+)
-# https://nodejs.org/
-```
-
-### One-Command Deploy
+### Frontend
 
 ```bash
 git clone https://github.com/thesithunyein/equxi.git
 cd equxi
-chmod +x setup.sh
-./setup.sh
-```
-
-### Run Frontend Locally
-
-```bash
 npx serve .
 # Open http://localhost:3000/app.html
+```
+
+### Program
+
+```bash
+# Prerequisites: Solana CLI v2.1+, Rust stable
+git clone https://github.com/thesithunyein/equxi.git
+cd equxi
+cargo build-sbf
+solana program deploy target/deploy/equxi.so
 ```
 
 ## Architecture
@@ -87,54 +89,60 @@ equxi/
 ├── programs/equxi/           # Solana program (Rust/Anchor)
 │   └── src/
 │       ├── lib.rs            # 8 instructions
-│       ├── state.rs          # Agent, Bond, Constraint, Config
+│       ├── state.rs          # Account structs
 │       ├── error.rs          # Error codes
 │       └── instructions/     # Instruction handlers
-│           ├── initialize.rs
-│           ├── register_agent.rs
-│           ├── create_bond.rs
-│           ├── withdraw_bond.rs
-│           ├── add_constraint.rs
-│           ├── execute_slash.rs
-│           ├── compensate_victim.rs
-│           └── update_trust_score.rs
 ├── sdk/                      # TypeScript SDK
-│   └── src/
-│       └── index.ts          # EquxiClient class (9 methods)
-├── tests/                    # Anchor tests
 ├── app.html                  # Dashboard
+├── app.js                    # Dashboard logic
 ├── app.css                   # Dashboard styles
-├── app.js                    # Dashboard logic (real Solana txs)
 ├── index.html                # Landing page
-├── styles.css                # Landing styles
-├── main.js                   # Landing animations
 ├── docs.html                 # Documentation
-└── setup.sh                  # One-command deploy
+└── styles.css                # Landing styles
 ```
 
-## Program Instructions
+## On-Chain Accounts
 
-| Instruction | Description | Who Can Call |
-|-------------|-------------|--------------|
-| `initialize` | Set up admin config authority | Deployer (once) |
-| `register_agent` | Create on-chain agent identity (PDA) | Operator |
-| `create_bond` | Lock SOL as collateral for agent | Operator |
-| `withdraw_bond` | Withdraw bond after lock period expires | Operator |
-| `add_constraint` | Add behavioral rule (spend limit, timelock, etc.) | Operator |
-| `execute_slash` | Penalize bond for rule violation | Admin |
-| `compensate_victim` | Transfer slashed funds to victim | Admin |
-| `update_trust_score` | Update agent trust score | Admin |
+```rust
+struct Config {
+    admin: Pubkey,           // Admin who can slash
+    total_agents: u64,
+    total_bonds: u64,
+    total_slashed: u64,
+}
 
-## SDK Usage
+struct Agent {
+    owner: Pubkey,           // Operator wallet
+    name: [u8; 32],          // Agent name
+    agent_type: AgentType,   // Trader, Oracle, DeFi, etc.
+    trust_score: u8,         // 0-100 reputation
+    status: AgentStatus,     // Active, Slashed, Deactivated
+}
+
+struct Bond {
+    agent: Pubkey,           // Associated agent
+    operator: Pubkey,        // Bond owner
+    amount: u64,             // Locked lamports
+    expires_at: i64,         // Lock expiry timestamp
+    is_active: bool,
+}
+
+struct Constraint {
+    agent: Pubkey,
+    constraint_type: ConstraintType,  // SpendLimit, ProgramAllowlist, Timelock
+    params: ConstraintParams,
+    is_enforced: bool,
+}
+```
+
+## SDK
 
 ```typescript
-import { EquxiClient } from "@equxi/sdk";
-import { AnchorProvider } from "@coral-xyz/anchor";
+import { EquxiClient } from "./sdk/src";
 
-const provider = new AnchorProvider(connection, wallet, { commitment: "confirmed" });
 const client = new EquxiClient(provider);
 
-// Register an agent
+// Register agent
 const { agentPDA } = await client.registerAgent("AlphaTrader", { trader: {} });
 
 // Lock 5 SOL for 30 days
@@ -147,99 +155,14 @@ await client.addConstraint(agentPDA, { spendLimit: {} }, {
   periodSeconds: 86400,
 });
 
-// Query on-chain state
-const agent = await client.getAgent(agentPDA);
-console.log("Trust score:", agent.trustScore);
-
-// Withdraw after lock expires
-await client.withdrawBond(bondPDA);
+// Slash for violation
+await client.executeSlash(agentPDA, bondPDA, 100_000_000, "Exceeded spending limit");
 ```
 
-## Dashboard Features
+## Built For
 
-- **Phantom Wallet** — Connect with one click, auto-reconnect
-- **Register Agents** — Create on-chain agent identities
-- **Lock Deposits** — Collateralize agent behavior with SOL
-- **Add Rules** — Spending limits, program allowlists, timelocks, velocity limits
-- **Report Violations** — Trigger automatic bond slashing
-- **Explorer Links** — Every transaction linked to Solana Explorer
-- **Live Balance** — Real-time SOL balance from devnet
-- **Video Background** — Consistent branding across landing + dashboard
-
-## On-Chain Accounts
-
-### Config (Singleton)
-```rust
-struct Config {
-    authority: Pubkey,    // Admin who can slash/compensate
-    bump: u8,             // PDA bump seed
-    nonce: u64,           // Global nonce counter
-}
-```
-
-### Agent (PDA)
-```rust
-struct Agent {
-    operator: Pubkey,     // Wallet that registered this agent
-    name: [u8; 32],       // Agent name
-    agent_type: AgentType, // Trader | Assistant | Framework | Custom
-    trust_score: u16,     // 0-100 reputation
-    status: AgentStatus,  // Active | Suspended | Slashed
-    registered_at: i64,   // Unix timestamp
-    bump: u8,
-}
-```
-
-### Bond (PDA)
-```rust
-struct Bond {
-    agent: Pubkey,        // Associated agent
-    operator: Pubkey,     // Bond owner
-    amount: u64,          // Locked lamports
-    lock_expiry: i64,     // Unix timestamp
-    created_at: i64,
-    is_active: bool,
-    bump: u8,
-}
-```
-
-### Constraint (PDA)
-```rust
-struct Constraint {
-    agent: Pubkey,
-    constraint_type: ConstraintType, // SpendLimit | ProgramAllowlist | Timelock | Velocity
-    max_amount: u64,
-    max_per_period: u64,
-    period_seconds: u32,
-    active: bool,
-    bump: u8,
-}
-```
-
-## Testing
-
-```bash
-# Build the program
-cargo build-sbf
-
-# Run tests
-anchor test
-```
-
-## CI/CD
-
-GitHub Actions runs on every push:
-- **Lint & Typecheck** — SDK TypeScript compilation
-- **Verify Project** — File structure, program existence, frontend validation
-
-## Grant
-
-Built for the [Agentic Engineering Grant](https://superteam.fun/earn/grants/agentic-engineering) by Supenteam.
-
-**Category:** Agentic Engineering
-
-**Skills:** Frontend · Blockchain · Backend · Content
+[Agentic Engineering Grant](https://superteam.fun/earn/grants/agentic-engineering) by Superteam.
 
 ---
 
-Built by [Sithu Nyein](https://sithunyein.com) · Generated with Codebuff
+Built by [Sithu Nyein](https://sithunyein.com)
