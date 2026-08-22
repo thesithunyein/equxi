@@ -67,7 +67,6 @@ async function run() {
       { pubkey: BOND_PDA, isSigner: false, isWritable: true },
       { pubkey: slashRecordPDA, isSigner: false, isWritable: true },
       { pubkey: WALLET, isSigner: true, isWritable: true },   // authority
-      { pubkey: WALLET, isSigner: false, isWritable: false },  // owner
       { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
     ],
     programId: PROGRAM_ID,

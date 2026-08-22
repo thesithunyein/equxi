@@ -12,7 +12,6 @@ pub struct ExecuteSlash<'info> {
 
     #[account(
         mut,
-        has_one = owner @ EquxiError::Unauthorized,
         constraint = agent.status == AgentStatus::Active @ EquxiError::AgentNotActive
     )]
     pub agent: Account<'info, Agent>,
@@ -35,10 +34,6 @@ pub struct ExecuteSlash<'info> {
 
     #[account(mut, constraint = authority.key() == config.admin @ EquxiError::SlashingAuthorityRequired)]
     pub authority: Signer<'info>,
-
-    #[account(address = agent.owner)]
-    /// CHECK: Validated by has_one
-    pub owner: AccountInfo<'info>,
 
     pub system_program: Program<'info, System>,
 }
