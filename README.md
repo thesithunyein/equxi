@@ -25,30 +25,13 @@ AI agents lack economic accountability. Nobody can safely trust an autonomous ag
 
 ## How It Works
 
-<table>
-  <tr>
-    <td align="center" width="20%">
-      <h3>1. Register</h3>
-      <p>Create an on-chain<br/>agent identity</p>
-    </td>
-    <td align="center" width="20%">
-      <h3>2. Bond</h3>
-      <p>Lock SOL as<br/>safety deposit</p>
-    </td>
-    <td align="center" width="20%">
-      <h3>3. Enforce</h3>
-      <p>Set rules on-chain<br/>spend limits, timelocks</p>
-    </td>
-    <td align="center" width="20%">
-      <h3>4. Slash</h3>
-      <p>Bond penalized<br/>when rules break</p>
-    </td>
-    <td align="center" width="20%">
-      <h3>5. Compensate</h3>
-      <p>Victim receives<br/>slashed funds</p>
-    </td>
-  </tr>
-</table>
+<p align="center">
+  <strong>1. Register</strong> &nbsp;&rarr;&nbsp; <strong>2. Bond</strong> &nbsp;&rarr;&nbsp; <strong>3. Enforce</strong> &nbsp;&rarr;&nbsp; <strong>4. Slash</strong> &nbsp;&rarr;&nbsp; <strong>5. Compensate</strong>
+</p>
+
+<p align="center">
+  <em>Create identity</em> &nbsp;&middot;&nbsp; <em>Lock SOL</em> &nbsp;&middot;&nbsp; <em>Set rules</em> &nbsp;&middot;&nbsp; <em>Penalize</em> &nbsp;&middot;&nbsp; <em>Pay victims</em>
+</p>
 
 ## Deployed
 
@@ -173,6 +156,25 @@ await client.addConstraint(agentPDA, { spendLimit: {} }, {
 // Slash for violation
 await client.executeSlash(agentPDA, bondPDA, 100_000_000, "Exceeded spending limit");
 ```
+
+## elizaOS Plugin
+
+```bash
+npm install @equxi/plugin-eliza
+```
+
+```typescript
+import { equxiPlugin } from "@equxi/plugin-eliza";
+
+const agent = {
+  plugins: [equxiPlugin],
+  settings: { WALLET_PUBLIC_KEY: "your-wallet-key" },
+};
+```
+
+Adds 4 actions: `EQUXI_REGISTER_AGENT`, `EQUXI_LOCK_BOND`, `EQUXI_ADD_CONSTRAINT`, `EQUXI_SLASH_BOND`.
+
+See [`eliza-plugin/README.md`](eliza-plugin/README.md) for full docs.
 
 ## Built For
 
