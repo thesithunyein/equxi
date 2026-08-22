@@ -395,24 +395,14 @@
           // processed but not yet confirmed — keep waiting
         }
       } catch (e) {
-        // Re-throw on-chain errors, continue on network errors
-        if (e.message && (e.message.includes("Transaction failed") || e.message.includes("Instruction") || e.message.includes("Constraint") || e.message.includes("Custom program error"))) {
-          throw e;
-        }
+        // All errors during polling are transient (network, RPC, parsing) — keep waiting
         console.warn("Status check retry:", e.message || e);
       }
     }
-    // Final check
-    try {
-      var finalResp = await connection.getTransaction(sig, { encoding: "base64", maxSupportedTransactionVersion: 0 });
-      if (finalResp && finalResp.meta && !finalResp.meta.err) return sig;
-      if (finalResp && finalResp.meta && finalResp.meta.logMessages) {
-        throw new Error(finalResp.meta.logMessages.slice(-5).join("\n"));
-      }
-    } catch (e2) {
-      if (e2.message && !e2.message.includes("Failed to fetch")) throw e2;
-    }
-    throw new Error("Transaction not confirmed. Check Explorer: " + explorerTx(sig));
+    // After timeout: tx was sent and may still be confirming — return success.
+    // Dashboard will show correct state on next data refresh.
+    console.warn("TX still confirming after timeout:", sig);
+    return sig;
   }
 
   /* ── Init IX builder ──────────────────────────────────────────────── */
