@@ -367,7 +367,8 @@
     tx.compileMessage();
     var txBytes = tx.serialize({ requireAllSignatures: false });
     var signed = await phantom.signTransaction(txBytes);
-    var raw = signed.serialize ? signed.serialize({ requireAllSignatures: false }) : signed;
+    // Phantom returns Uint8Array when given bytes, or Transaction object when given Transaction
+    var raw = signed instanceof Uint8Array ? signed : (signed.serialize ? signed.serialize({ requireAllSignatures: false }) : signed);
     var sig = await connection.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 3 });
     console.log("TX sent:", sig);
 
