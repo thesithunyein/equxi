@@ -339,9 +339,37 @@
   }
   function hideStatus() { document.getElementById("txStatus").style.display = "none"; }
 
-  async function confirmTx(sig) {
-    var info = await connection.getLatestBlockhash();
-    return connection.confirmTransaction({ signature: sig, blockhash: info.blockhash, lastValidBlockHeight: info.lastValidBlockHeight });
+  async function confirmTx(sig, blockhash, lastValidBlockHeight) {
+    // Use the SAME blockhash that was in the transaction, with retry
+    var start = Date.now();
+    var timeout = 60000; // 60s max wait
+    while (Date.now() - start < timeout) {
+      try {
+        await connection.confirmTransaction({ signature: sig, blockhash: blockhash, lastValidBlockHeight: lastValidBlockHeight }, "confirmed");
+        return;
+      } catch (e) {
+        // If block height exceeded, the blockhash expired — the tx may still land
+        if (e.message && e.message.includes("block height exceeded")) {
+          // Check if tx actually confirmed despite the error
+          var status = await connection.getSignatureStatus(sig);
+          if (status && status.value && !status.value.err) return;
+          // If not confirmed and blockhash expired, we can't re-submit with same blockhash
+          // But the tx might still be in flight — wait a bit more
+          await new Promise(function (r) { setTimeout(r, 2000); });
+          var status2 = await connection.getSignatureStatus(sig);
+          if (status2 && status2.value && !status2.value.err) return;
+          if (status2 && status2.value && status2.value.err) throw new Error("Transaction failed on-chain");
+          // Still unconfirmed after 60s — give up
+          break;
+        }
+        // Other errors: retry
+        await new Promise(function (r) { setTimeout(r, 1000); });
+      }
+    }
+    // Final check: did it confirm?
+    var finalStatus = await connection.getSignatureStatus(sig);
+    if (finalStatus && finalStatus.value && !finalStatus.value.err) return;
+    throw new Error("Transaction confirmation timed out");
   }
 
   async function refreshBalance() {
@@ -583,7 +611,7 @@
         var signed = await phantom.signTransaction(tx);
         sig = await connection.sendRawTransaction(signed.serialize());
       }
-      await confirmTx(sig);
+      await confirmTx(sig, blockhashInfo.blockhash, blockhashInfo.lastValidBlockHeight);
       showTxSuccess('Agent "' + name + '" registered', sig);
       await Promise.all([refreshData(), refreshBalance()]);
     } catch (err) {
@@ -623,7 +651,7 @@
         var signed = await phantom.signTransaction(tx);
         sig = await connection.sendRawTransaction(signed.serialize());
       }
-      await confirmTx(sig);
+      await confirmTx(sig, blockhashInfo.blockhash, blockhashInfo.lastValidBlockHeight);
       showTxSuccess("Locked " + amountSol + " SOL", sig);
       await Promise.all([refreshData(), refreshBalance()]);
     } catch (err) {
@@ -675,7 +703,7 @@
         var signed = await phantom.signTransaction(tx);
         sig = await connection.sendRawTransaction(signed.serialize());
       }
-      await confirmTx(sig);
+      await confirmTx(sig, blockhashInfo.blockhash, blockhashInfo.lastValidBlockHeight);
       showTxSuccess("Rule added", sig);
       await Promise.all([refreshData(), refreshBalance()]);
     } catch (err) {
@@ -709,7 +737,7 @@
         var signed = await phantom.signTransaction(tx);
         sig = await connection.sendRawTransaction(signed.serialize());
       }
-      await confirmTx(sig);
+      await confirmTx(sig, blockhashInfo.blockhash, blockhashInfo.lastValidBlockHeight);
       showTxSuccess("Bond withdrawn", sig);
       await Promise.all([refreshData(), refreshBalance()]);
     } catch (err) {
