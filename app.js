@@ -337,19 +337,12 @@
     var blockhashInfo = await connection.getLatestBlockhash();
     tx.recentBlockhash = blockhashInfo.blockhash;
     tx.feePayer = new solanaWeb3.PublicKey(walletAddress);
+    tx.setSigners(walletAddress);
 
-    var sig;
-    try {
-      // Try signAndSendTransaction first (Phantom's preferred API)
-      var result = await phantom.signAndSendTransaction(tx, { skipPreflight: true });
-      sig = result.signature;
-    } catch (e1) {
-      console.warn("signAndSendTransaction failed, falling back:", e1.message);
-      // Fallback: signTransaction + sendRawTransaction
-      var signed = await phantom.signTransaction(tx);
-      var raw = signed.serialize({ requireAllSignatures: false });
-      sig = await connection.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 3 });
-    }
+    // Always use signTransaction + sendRawTransaction for reliability
+    var signed = await phantom.signTransaction(tx);
+    var raw = signed.serialize({ requireAllSignatures: false });
+    var sig = await connection.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 3 });
     console.log("TX sent:", sig);
 
     // Poll for confirmation with proper error fetching
