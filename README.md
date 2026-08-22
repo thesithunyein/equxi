@@ -10,7 +10,7 @@
   <a href="https://equxi.sithunyein.com"><img src="https://img.shields.io/badge/Live-Site-9945FF?style=for-the-badge" alt="Live Site" /></a>
   <a href="https://github.com/thesithunyein/equxi/actions"><img src="https://img.shields.io/github/actions/workflow/status/thesithunyein/equxi/ci.yml?style=for-the-badge" alt="CI" /></a>
   <a href="https://superteam.fun/earn/grants/agentic-engineering"><img src="https://img.shields.io/badge/Grant-Agentic%20Engineering-22c55e?style=for-the-badge" alt="Grant" /></a>
-  <a href="https://explorer.solana.com/address/9p47LiT9ondNZwhC1dqC6ChMTNr7mRLc3RGvi39JVemQ?cluster=devnet"><img src="https://img.shields.io/badge/Program-Devnet-22c55e?style=for-the-badge" alt="Program" /></a>
+  <a href="https://explorer.solana.com/address/D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc?cluster=devnet"><img src="https://img.shields.io/badge/Program-Devnet-22c55e?style=for-the-badge" alt="Program" /></a>
 </p>
 
 ---
@@ -43,9 +43,9 @@ Equxi makes AI agents **financially accountable** on Solana:
 | **Frontend** | [equxi.sithunyein.com](https://equxi.sithunyein.com) |
 | **Dashboard** | [equxi.sithunyein.com/app.html](https://equxi.sithunyein.com/app.html) |
 | **Documentation** | [equxi.sithunyein.com/docs.html](https://equxi.sithunyein.com/docs.html) |
-| **Program ID** | `9p47LiT9ondNZwhC1dqC6ChMTNr7mRLc3RGvi39JVemQ` |
+| **Program ID** | `D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc` |
 | **Network** | Solana Devnet |
-| **Explorer** | [View on Explorer](https://explorer.solana.com/address/9p47LiT9ondNZwhC1dqC6ChMTNr7mRLc3RGvi39JVemQ?cluster=devnet) |
+| **Explorer** | [View on Explorer](https://explorer.solana.com/address/D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc?cluster=devnet) |
 | **Deployment TX** | [`4wvtm6ijyocz5YP9BVtwXrmKkKagMQg2RJHqd5nj5HwyT8FBmShCFJBhVQPzx7QpH4cTH5ibyVjestucEyk3bkcw`](https://explorer.solana.com/tx/4wvtm6ijyocz5YP9BVtwXrmKkKagMQg2RJHqd5nj5HwyT8FBmShCFJBhVQPzx7QpH4cTH5ibyVjestucEyk3bkcw?cluster=devnet) |
 | **GitHub** | [github.com/thesithunyein/equxi](https://github.com/thesithunyein/equxi) |
 

@@ -2,7 +2,7 @@
 const { Connection, PublicKey, TransactionInstruction, Transaction, SystemProgram } = require('@solana/web3.js');
 
 const RPC = 'https://api.devnet.solana.com';
-const PROGRAM_ID = new PublicKey('9p47LiT9ondNZwhC1dqC6ChMTNr7mRLc3RGvi39JVemQ');
+const PROGRAM_ID = new PublicKey('D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc');
 const connection = new Connection(RPC, 'confirmed');
 
 // Known addresses from the user's wallet

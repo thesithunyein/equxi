@@ -6,6 +6,7 @@ use crate::error::EquxiError;
 #[instruction(name: String, agent_type: AgentType)]
 pub struct RegisterAgent<'info> {
     #[account(
+        mut,
         seeds = [b"config"],
         bump = config.bumped,
     )]

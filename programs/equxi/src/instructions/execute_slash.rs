@@ -5,6 +5,7 @@ use crate::error::EquxiError;
 #[derive(Accounts)]
 pub struct ExecuteSlash<'info> {
     #[account(
+        mut,
         seeds = [b"config"],
         bump = config.bumped,
     )]
@@ -24,7 +25,7 @@ pub struct ExecuteSlash<'info> {
     pub bond: Account<'info, Bond>,
 
     #[account(
-        init,
+        init_if_needed,
         payer = authority,
         space = 8 + SlashRecord::INIT_SPACE,
         seeds = [b"slash", agent.key().as_ref(), config.total_slashed.to_le_bytes().as_ref()],

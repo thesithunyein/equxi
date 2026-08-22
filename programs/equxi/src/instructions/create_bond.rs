@@ -6,6 +6,7 @@ use crate::error::EquxiError;
 #[derive(Accounts)]
 pub struct CreateBond<'info> {
     #[account(
+        mut,
         seeds = [b"config"],
         bump = config.bumped,
     )]

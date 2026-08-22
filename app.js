@@ -3,7 +3,7 @@
 
   const SOLANA_RPC = "https://api.devnet.solana.com";
   const EXPLORER = "https://explorer.solana.com";
-  const PROGRAM_ID_STR = "9p47LiT9ondNZwhC1dqC6ChMTNr7mRLc3RGvi39JVemQ";
+  const PROGRAM_ID_STR = "D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc";
 
   let PROGRAM_ID;
   let walletConnected = false;
@@ -522,7 +522,7 @@
       var agentName = agentObj ? agentObj.name : short(b.agent);
       var buttons = '';
       if (b.isActive) {
-        buttons = '<button class="btn-outline" onclick="window._withdrawBond(\'' + b.pubkey + '\')">Withdraw</button>' +
+        buttons = '<button class="btn-outline" onclick="window._withdrawBond(\'' + b.pubkey + '\',\'' + b.agent + '\')">Withdraw</button>' +
           '<button class="btn-slash" onclick="window._openSlash(\'' + b.pubkey + '\',\'' + b.agent + '\',\'' + b.amount + '\',\'' + agentName + '\')">Slash</button>';
       }
       return '<div class="bond-card"><div class="bond-icon"><i class="fa-solid fa-shield-halved"></i></div><div class="bond-info"><h3>' + lamportsToSol(b.amount) + ' SOL</h3><p>' + agentName + ' \u2014 ' + (b.isActive ? (expired ? "Expired \u2014 withdrawable" : "Locked") : "Withdrawn") + '</p></div><div class="bond-amount"><div class="value">' + (b.isActive ? "Active" : "Closed") + '</div><div class="label">' + (b.expiresAt ? new Date(b.expiresAt * 1000).toLocaleDateString() : "") + '</div></div>' + buttons + '</div>';
@@ -754,7 +754,7 @@
     }
   }
 
-  async function withdrawBond(bondPubkey) {
+  async function withdrawBond(bondPubkey, agentPubkey) {
     if (!(await checkMinBalance(0.002))) return;
     showTxPending("Withdrawing...");
     try {
@@ -763,7 +763,7 @@
       var ix = new solanaWeb3.TransactionInstruction({
         keys: [
           { pubkey: new solanaWeb3.PublicKey(bondPubkey), isSigner: false, isWritable: true },
-          { pubkey: operator, isSigner: false, isWritable: true },
+          { pubkey: new solanaWeb3.PublicKey(agentPubkey), isSigner: false, isWritable: true },
           { pubkey: operator, isSigner: true, isWritable: true },
           { pubkey: solanaWeb3.SystemProgram.programId, isSigner: false, isWritable: false },
         ],
@@ -837,6 +837,10 @@
       console.error("Slash error:", err);
       var msg = err.message || "Transaction failed";
       if (msg.includes("User rejected") || msg.includes("cancelled")) msg = "Cancelled";
+      else if (msg.indexOf("innerInstructions") !== -1 || msg.indexOf("Expected an array value") !== -1) {
+        // Phantom's preview parser glitch on account-creation txs — the tx itself is valid
+        msg = "Phantom preview glitch. Click Slash again to retry.";
+      }
       else if (msg.length > 200) msg = msg.substring(0, 200) + "...";
       showTxError(msg);
     }
