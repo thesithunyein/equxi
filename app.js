@@ -363,24 +363,26 @@
     tx.recentBlockhash = blockhashInfo.blockhash;
     tx.feePayer = new solanaWeb3.PublicKey(walletAddress);
 
-    // signTransaction + sendRawTransaction — only reliable method
+    // signTransaction + sendRawTransaction
     var sig;
+    var method = '';
     try {
       tx.compileMessage();
       var txBytes = tx.serialize({ requireAllSignatures: false });
+      console.log('TX bytes length:', txBytes.length);
       var signed = await phantom.signTransaction(txBytes);
-      // Phantom returns Uint8Array when given bytes
+      console.log('Phantom returned:', typeof signed, signed instanceof Uint8Array ? 'Uint8Array len=' + signed.length : (signed && signed.signature ? 'has signature' : 'unknown'));
       var raw = (signed instanceof Uint8Array) ? signed : null;
       if (!raw && signed && signed.signature && signed.signature instanceof Uint8Array) raw = signed.signature;
-      if (!raw) { console.error("Phantom response:", typeof signed, signed); throw new Error("Could not extract signature from Phantom"); }
+      if (!raw) throw new Error('Could not extract signature from Phantom response: ' + typeof signed);
       sig = await connection.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 3 });
+      method = 'signTransaction+sendRaw';
     } catch (e1) {
-      console.error("signTransaction+sendRaw failed:", e1.message);
-      // Last resort: signAndSendTransaction
-      var result = await phantom.signAndSendTransaction(tx);
-      sig = result.signature;
+      console.error('Method 1 failed:', e1.message);
+      showTxError('Signing failed: ' + e1.message);
+      throw e1;
     }
-    console.log("TX sent:", sig);
+    console.log('TX sent via ' + method + ':', sig);
 
     // Poll for confirmation with proper error fetching
     var start = Date.now();
