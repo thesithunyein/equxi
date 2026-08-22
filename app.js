@@ -658,7 +658,20 @@
     try {
       var operator = new solanaWeb3.PublicKey(walletAddress);
       var configPDA = solanaWeb3.PublicKey.findProgramAddressSync([bytes("config")], PROGRAM_ID)[0];
-      var nonce = cachedConstraints.length + 1;
+      // The Rust seed uses (config.total_bonds + 1) as the nonce — but for first constraint
+      // we need to read the on-chain config to get total_bonds. Use 1 as initial guess.
+      var configPDAForSeed = solanaWeb3.PublicKey.findProgramAddressSync([bytes("config")], PROGRAM_ID)[0];
+      var nonce = 1; // First constraint after init = total_bonds(0) + 1 = 1
+      try {
+        var configInfo = await connection.getAccountInfo(configPDAForSeed);
+        if (configInfo && configInfo.data) {
+          // Config layout: discriminator(8) + admin(32) + total_agents(8) + total_bonds(8) + total_slashed(8) + bumped(1)
+          // total_bonds is at offset 8+32+8 = 48, length 8
+          var totalBonds = Number(new DataView(configInfo.data.buffer, configInfo.data.byteOffset + 48).getBigUint64(0, true));
+          nonce = totalBonds + 1;
+          console.log("Config total_bonds:", totalBonds, "-> constraint nonce:", nonce);
+        }
+      } catch (e) { console.warn("Could not read config for nonce:", e); }
       var constraintPDA = solanaWeb3.PublicKey.findProgramAddressSync(
         [bytes("constraint"), new solanaWeb3.PublicKey(agentPubkey).toBuffer(), u64le(nonce)], PROGRAM_ID
       )[0];
