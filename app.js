@@ -772,7 +772,16 @@
           connection = new solanaWeb3.Connection(SOLANA_RPC, "confirmed");
           setWalletUI(true, walletAddress); refreshData();
         });
-        if (phantom.isConnected) phantom.connect({ onlyIfTrusted: true }).catch(function () {});
+        // Always attempt silent reconnect on page load
+        phantom.connect({ onlyIfTrusted: true }).then(function (resp) {
+          if (resp && resp.publicKey) {
+            walletConnected = true;
+            walletAddress = resp.publicKey.toString();
+            connection = new solanaWeb3.Connection(SOLANA_RPC, "confirmed");
+            setWalletUI(true, walletAddress);
+            refreshData();
+          }
+        }).catch(function () {});
       }
     }).catch(function (e) {
       console.error("Init failed:", e);
