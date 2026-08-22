@@ -339,9 +339,17 @@
     tx.feePayer = new solanaWeb3.PublicKey(walletAddress);
 
     var sig;
-    // signAndSendTransaction handles Phantom serialization correctly
-    var result = await phantom.signAndSendTransaction(tx, { skipPreflight: true });
-    sig = result.signature;
+    try {
+      // Try signAndSendTransaction first (Phantom's preferred API)
+      var result = await phantom.signAndSendTransaction(tx, { skipPreflight: true });
+      sig = result.signature;
+    } catch (e1) {
+      console.warn("signAndSendTransaction failed, falling back:", e1.message);
+      // Fallback: signTransaction + sendRawTransaction
+      var signed = await phantom.signTransaction(tx);
+      var raw = signed.serialize({ requireAllSignatures: false });
+      sig = await connection.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 3 });
+    }
     console.log("TX sent:", sig);
 
     // Poll for confirmation with proper error fetching
@@ -644,7 +652,7 @@
           { pubkey: operator, isSigner: false, isWritable: false },  // owner = agent.owner
           { pubkey: solanaWeb3.SystemProgram.programId, isSigner: false, isWritable: false },
         ],
-        programId: PROGRAM_ID, data: disc,
+        programId: PROGRAM_ID, data: data,
       });
       var tx = new solanaWeb3.Transaction();
       var initIx = await getOrBuildInitIx();
