@@ -629,6 +629,8 @@
     if (!name) { showToast("Enter a name"); return; }
     closeModal(); showTxPending('Registering "' + name + '"');
     try {
+      // Ensure config PDA exists before registering
+      await ensureInitialized();
       var operator = new solanaWeb3.PublicKey(walletAddress);
       var configPDA = solanaWeb3.PublicKey.findProgramAddressSync([bytes("config")], PROGRAM_ID)[0];
       var agentPDA = solanaWeb3.PublicKey.findProgramAddressSync([bytes("agent"), operator.toBuffer(), bytes(name)], PROGRAM_ID)[0];
@@ -671,6 +673,7 @@
     if (!agentPubkey || !amountSol || amountSol < 0.1) { showToast("Fill all fields"); return; }
     closeModal(); showTxPending("Locking " + amountSol + " SOL");
     try {
+      await ensureInitialized();
       var operator = new solanaWeb3.PublicKey(walletAddress);
       var bondPDA = solanaWeb3.PublicKey.findProgramAddressSync(
         [bytes("bond"), new solanaWeb3.PublicKey(agentPubkey).toBuffer()], PROGRAM_ID
@@ -712,6 +715,7 @@
     if (!agentPubkey) { showToast("Select an agent"); return; }
     closeModal(); showTxPending("Adding rule...");
     try {
+      await ensureInitialized();
       var operator = new solanaWeb3.PublicKey(walletAddress);
       var configPDA = solanaWeb3.PublicKey.findProgramAddressSync([bytes("config")], PROGRAM_ID)[0];
       var nonce = cachedConstraints.length + 1;
