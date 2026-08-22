@@ -365,20 +365,16 @@
 
     // Sign via Phantom then send raw
     var sig;
-    try {
-      // Method 1: signTransaction with compiled bytes
-      tx.compileMessage();
-      var txBytes = tx.serialize({ requireAllSignatures: false });
-      var signed = await phantom.signTransaction(txBytes);
-      var raw = (signed && signed.signature) ? signed.signature : (signed instanceof Uint8Array ? signed : (signed && signed.serialize ? signed.serialize({ requireAllSignatures: false }) : null));
-      if (!raw) throw new Error("Phantom returned invalid response");
-      sig = await connection.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 3 });
-    } catch (e1) {
-      console.warn("Method 1 failed:", e1.message);
-      // Method 2: signTransaction + sendTransaction (let validator simulate)
-      var signed2 = await phantom.signTransaction(tx);
-      sig = await connection.sendTransaction(signed2, { skipPreflight: true, maxRetries: 3 });
-    }
+    tx.compileMessage();
+    var txBytes = tx.serialize({ requireAllSignatures: false });
+    var signed = await phantom.signTransaction(txBytes);
+    // Phantom may return {signature: Uint8Array} or raw Uint8Array
+    var raw = null;
+    if (signed instanceof Uint8Array) { raw = signed; }
+    else if (signed && signed.signature) { raw = signed.signature; }
+    else if (signed && signed.serialize) { raw = signed.serialize({ requireAllSignatures: false }); }
+    if (!raw) throw new Error("Phantom returned invalid response");
+    sig = await connection.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 3 });
     console.log("TX sent:", sig);
 
     // Poll for confirmation with proper error fetching
