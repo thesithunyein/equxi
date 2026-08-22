@@ -205,19 +205,17 @@
     } catch (e) { console.warn("Fetch accounts failed:", e); return { agents: [], bonds: [], constraints: [] }; }
   }
 
-  async function ensureInitialized() {
-    // Check if config PDA exists — if not, initialize the program
-    if (!connection) return;
+  async function getOrBuildInitIx() {
+    // Returns an initialize IX if config PDA doesn't exist, null otherwise
+    if (!connection) return null;
     try {
       var configPDA = solanaWeb3.PublicKey.findProgramAddressSync([bytes("config")], PROGRAM_ID)[0];
       var info = await connection.getAccountInfo(configPDA);
-      if (info && info.data && info.data.length > 0) return; // Already initialized
-      // Need to initialize
-      showStatus("Initializing program...");
+      if (info && info.data && info.data.length > 0) return null; // Already exists
       var operator = new solanaWeb3.PublicKey(walletAddress);
       var disc = await instrDiscriminator("initialize");
-      var data = concat(disc, operator.toBuffer()); // admin = wallet address
-      var ix = new solanaWeb3.TransactionInstruction({
+      var data = concat(disc, operator.toBuffer());
+      return new solanaWeb3.TransactionInstruction({
         keys: [
           { pubkey: configPDA, isSigner: false, isWritable: true },
           { pubkey: operator, isSigner: true, isWritable: true },
@@ -225,31 +223,15 @@
         ],
         programId: PROGRAM_ID, data: data,
       });
-      var tx = new solanaWeb3.Transaction().add(ix);
-      var blockhashInfo = await connection.getLatestBlockhash();
-      tx.recentBlockhash = blockhashInfo.blockhash; tx.feePayer = operator;
-      var sig;
-      if (phantom.signAndSendTransaction) {
-        var result = await phantom.signAndSendTransaction(tx);
-        sig = result.signature;
-      } else {
-        var signed = await phantom.signTransaction(tx);
-        sig = await connection.sendRawTransaction(signed.serialize());
-      }
-      await confirmTx(sig);
-      showToast("Program initialized!");
-      await refreshBalance();
     } catch (e) {
-      console.warn("Initialize check/failed:", e);
-      // If it fails, the config might already exist but be unrecognized
-      // Continue anyway
+      console.warn("Init check failed:", e);
+      return null;
     }
   }
 
   async function refreshData() {
     if (!walletConnected) return;
     showStatus("Loading on-chain data...");
-    await ensureInitialized();
     var result = await fetchAllProgramAccounts();
     cachedAgents = result.agents.filter(function (a) { return a.owner === walletAddress; });
     cachedBonds = result.bonds.filter(function (b) { return b.operator === walletAddress; });
@@ -627,17 +609,16 @@
     var name = document.getElementById("regName") ? document.getElementById("regName").value.trim() : "";
     var typeIdx = parseInt(document.getElementById("regType") ? document.getElementById("regType").value : "0");
     if (!name) { showToast("Enter a name"); return; }
-    closeModal(); showTxPending('Registering "' + name + '"');
-    try {
-      // Ensure config PDA exists before registering
-      await ensureInitialized();
+    closeModal(); showTxPending('Registering "' + name + '"');    try {
       var operator = new solanaWeb3.PublicKey(walletAddress);
       var configPDA = solanaWeb3.PublicKey.findProgramAddressSync([bytes("config")], PROGRAM_ID)[0];
-      var agentPDA = solanaWeb3.PublicKey.findProgramAddressSync([bytes("agent"), operator.toBuffer(), bytes(name)], PROGRAM_ID)[0];
+      var agentPDA = solanaWeb3.PublicKey.findProgramAddressSync(
+        [bytes("agent"), operator.toBuffer(), bytes(name)], PROGRAM_ID
+      )[0];
       var disc = await instrDiscriminator("register_agent");
       var data = concat(disc, strWithLen(name), new Uint8Array([typeIdx]));
 
-      var ix = new solanaWeb3.TransactionInstruction({
+      var registerIx = new solanaWeb3.TransactionInstruction({
         keys: [
           { pubkey: configPDA, isSigner: false, isWritable: true },
           { pubkey: agentPDA, isSigner: false, isWritable: true },
@@ -646,7 +627,11 @@
         ],
         programId: PROGRAM_ID, data: data,
       });
-      var tx = new solanaWeb3.Transaction().add(ix);
+      // Combine init + register into ONE transaction (single Phantom approval)
+      var tx = new solanaWeb3.Transaction();
+      var initIx = await getOrBuildInitIx();
+      if (initIx) tx.add(initIx);
+      tx.add(registerIx);
       var blockhashInfo = await connection.getLatestBlockhash();
       tx.recentBlockhash = blockhashInfo.blockhash; tx.feePayer = operator;
       var sig;
@@ -673,7 +658,6 @@
     if (!agentPubkey || !amountSol || amountSol < 0.1) { showToast("Fill all fields"); return; }
     closeModal(); showTxPending("Locking " + amountSol + " SOL");
     try {
-      await ensureInitialized();
       var operator = new solanaWeb3.PublicKey(walletAddress);
       var bondPDA = solanaWeb3.PublicKey.findProgramAddressSync(
         [bytes("bond"), new solanaWeb3.PublicKey(agentPubkey).toBuffer()], PROGRAM_ID
@@ -683,11 +667,14 @@
 
       var space = 106;
       var rent = await connection.getMinimumBalanceForRentExemption(space);
-      var ix = solanaWeb3.SystemProgram.createAccount({
+      var bondIx = solanaWeb3.SystemProgram.createAccount({
         fromPubkey: operator, newAccountPubkey: bondPDA, space: space,
         lamports: rent + Math.floor(amountSol * 1e9), programId: PROGRAM_ID,
       });
-      var tx = new solanaWeb3.Transaction().add(ix);
+      var tx = new solanaWeb3.Transaction();
+      var initIx = await getOrBuildInitIx();
+      if (initIx) tx.add(initIx);
+      tx.add(bondIx);
       var blockhashInfo = await connection.getLatestBlockhash();
       tx.recentBlockhash = blockhashInfo.blockhash; tx.feePayer = operator;
       var sig;
@@ -715,7 +702,6 @@
     if (!agentPubkey) { showToast("Select an agent"); return; }
     closeModal(); showTxPending("Adding rule...");
     try {
-      await ensureInitialized();
       var operator = new solanaWeb3.PublicKey(walletAddress);
       var configPDA = solanaWeb3.PublicKey.findProgramAddressSync([bytes("config")], PROGRAM_ID)[0];
       var nonce = cachedConstraints.length + 1;
@@ -730,7 +716,7 @@
       var allowedPrograms = new Uint8Array(32 * 8);
       var data = concat(disc, new Uint8Array([typeIdx]), maxAmt, maxPerPeriod, period, timelock, allowedPrograms);
 
-      var ix = new solanaWeb3.TransactionInstruction({
+      var constraintIx = new solanaWeb3.TransactionInstruction({
         keys: [
           { pubkey: configPDA, isSigner: false, isWritable: false },
           { pubkey: constraintPDA, isSigner: false, isWritable: true },
@@ -740,7 +726,10 @@
         ],
         programId: PROGRAM_ID, data: data,
       });
-      var tx = new solanaWeb3.Transaction().add(ix);
+      var tx = new solanaWeb3.Transaction();
+      var initIx = await getOrBuildInitIx();
+      if (initIx) tx.add(initIx);
+      tx.add(constraintIx);
       var blockhashInfo = await connection.getLatestBlockhash();
       tx.recentBlockhash = blockhashInfo.blockhash; tx.feePayer = operator;
       var sig;
