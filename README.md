@@ -19,41 +19,56 @@
 
 AI agents lack economic accountability. Nobody can safely trust an autonomous agent with real money because:
 
-- **Counterparties refuse** to deal with agents that can lose money with no recourse
-- **Traditional wallets** only hold funds — they can't enforce behavioral rules
-- **No automatic compensation** when an agent misbehaves
+- Counterparties refuse to deal with agents that can lose money with no recourse
+- Traditional wallets only hold funds and cannot enforce behavioral rules
+- There is no automatic compensation when an agent misbehaves
 
 ## How It Works
 
-```
-┌─────────────────────────────────────────────────────────┐
-│  1. REGISTER  Create on-chain agent identity            │
-│  2. BOND      Operator locks SOL as safety deposit      │
-│  3. ENFORCE   Rules (spend limits, timelocks) on-chain  │
-│  4. SLASH     Bond penalized when rules are broken       │
-│  5. COMPENSATE Victim receives slashed funds             │
-└─────────────────────────────────────────────────────────┘
-```
+<table>
+  <tr>
+    <td align="center" width="20%">
+      <h3>1. Register</h3>
+      <p>Create an on-chain<br/>agent identity</p>
+    </td>
+    <td align="center" width="20%">
+      <h3>2. Bond</h3>
+      <p>Lock SOL as<br/>safety deposit</p>
+    </td>
+    <td align="center" width="20%">
+      <h3>3. Enforce</h3>
+      <p>Set rules on-chain<br/>spend limits, timelocks</p>
+    </td>
+    <td align="center" width="20%">
+      <h3>4. Slash</h3>
+      <p>Bond penalized<br/>when rules break</p>
+    </td>
+    <td align="center" width="20%">
+      <h3>5. Compensate</h3>
+      <p>Victim receives<br/>slashed funds</p>
+    </td>
+  </tr>
+</table>
 
 ## Deployed
 
 | Component | Link |
 |-----------|------|
-| **Landing Page** | [equxi.sithunyein.com](https://equxi.sithunyein.com) |
-| **Dashboard** | [equxi.sithunyein.com/app.html](https://equxi.sithunyein.com/app.html) |
-| **Documentation** | [equxi.sithunyein.com/docs.html](https://equxi.sithunyein.com/docs.html) |
-| **Program** | [`D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc`](https://explorer.solana.com/address/D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc?cluster=devnet) |
-| **Network** | Solana Devnet |
-| **Repo** | [github.com/thesithunyein/equxi](https://github.com/thesithunyein/equxi) |
+| Landing Page | [equxi.sithunyein.com](https://equxi.sithunyein.com) |
+| Dashboard | [equxi.sithunyein.com/app.html](https://equxi.sithunyein.com/app.html) |
+| Documentation | [equxi.sithunyein.com/docs.html](https://equxi.sithunyein.com/docs.html) |
+| Program | [`D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc`](https://explorer.solana.com/address/D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc?cluster=devnet) |
+| Network | Solana Devnet |
+| Repo | [github.com/thesithunyein/equxi](https://github.com/thesithunyein/equxi) |
 
 ## On-Chain Proof
 
-The program executes 8 instructions on devnet. Confirmed transactions:
+The program executes 8 instructions on devnet. All transactions confirmed.
 
 | Instruction | Description |
 |-------------|-------------|
 | `initialize` | Configures admin authority |
-| `register_agent` | Creates agent identity (name, type, trust score) |
+| `register_agent` | Creates agent identity with name, type, and trust score |
 | `create_bond` | Locks SOL as collateral |
 | `withdraw_bond` | Returns SOL after lock period |
 | `add_constraint` | Adds behavioral rule (spend limit, timelock, etc.) |
@@ -86,19 +101,19 @@ solana program deploy target/deploy/equxi.so
 
 ```
 equxi/
-├── programs/equxi/           # Solana program (Rust/Anchor)
+├── programs/equxi/           Solana program (Rust/Anchor)
 │   └── src/
-│       ├── lib.rs            # 8 instructions
-│       ├── state.rs          # Account structs
-│       ├── error.rs          # Error codes
-│       └── instructions/     # Instruction handlers
-├── sdk/                      # TypeScript SDK
-├── app.html                  # Dashboard
-├── app.js                    # Dashboard logic
-├── app.css                   # Dashboard styles
-├── index.html                # Landing page
-├── docs.html                 # Documentation
-└── styles.css                # Landing styles
+│       ├── lib.rs            8 instructions
+│       ├── state.rs          Account structs
+│       ├── error.rs          Error codes
+│       └── instructions/     Instruction handlers
+├── sdk/                      TypeScript SDK
+├── app.html                  Dashboard
+├── app.js                    Dashboard logic
+├── app.css                   Dashboard styles
+├── index.html                Landing page
+├── docs.html                 Documentation
+└── styles.css                Landing styles
 ```
 
 ## On-Chain Accounts

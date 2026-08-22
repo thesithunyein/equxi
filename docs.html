@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Equxi — Documentation</title>
-  <meta name="description" content="Equxi documentation — on-chain accountability infrastructure for autonomous AI agents on Solana." />
+  <title>Equxi: Documentation</title>
+  <meta name="description" content="Equxi documentation: on-chain accountability infrastructure for autonomous AI agents on Solana." />
   <link rel="icon" type="image/webp" href="assets/logo.webp" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -188,10 +188,10 @@
       <p>Equxi is a Solana program that solves a fundamental problem in AI agent commerce: <strong>nobody can trust an autonomous agent with real capital or financial obligations</strong>.</p>
       <p>Traditional wallets only hold funds. They cannot enforce on-chain behavioral constraints, nor automatically seize an operator's collateral to compensate victims when an agent misbehaves. Equxi fixes this by providing:</p>
       <ul>
-        <li><strong>Operator bonding</strong> — Agents must lock SOL as collateral before operating</li>
-        <li><strong>Behavioral constraints</strong> — On-chain rules that limit what an agent can do (spend limits, program allowlists, timelocks)</li>
-        <li><strong>Automatic slashing</strong> — When rules are violated, the bond is slashed and victims are compensated</li>
-        <li><strong>Trust scores</strong> — On-chain reputation that counterparties can verify before transacting</li>
+        <li><strong>Operator bonding</strong>: Agents must lock SOL as collateral before operating</li>
+        <li><strong>Behavioral constraints</strong>: On-chain rules that limit what an agent can do (spend limits, program allowlists, timelocks)</li>
+        <li><strong>Automatic slashing</strong>: When rules are violated, the bond is slashed and victims are compensated</li>
+        <li><strong>Trust scores</strong>: On-chain reputation that counterparties can verify before transacting</li>
       </ul>
 
       <div class="callout info">
@@ -210,14 +210,14 @@
       <p>Click <strong>+ Register</strong> in the Agents tab. Give your agent a name and select its type (Trader, Assistant, Framework, or Custom). This creates an on-chain account at a PDA derived from the program.</p>
 
       <h3>3. Lock a Bond</h3>
-      <p>Click <strong>+ Lock Funds</strong> in the Bonds tab. Deposit SOL as collateral. This bond is your agent's accountability guarantee — if it misbehaves, victims are compensated from it.</p>
+      <p>Click <strong>+ Lock Funds</strong> in the Bonds tab. Deposit SOL as collateral. This bond is your agent's accountability guarantee: if it misbehaves, victims are compensated from it.</p>
 
       <h3>4. Add Rules</h3>
       <p>Click <strong>+ Add Rule</strong> in the Rules tab. Set constraints on your agent's behavior:</p>
       <ul>
-        <li><strong>Spend Limit</strong> — Maximum SOL per time period</li>
-        <li><strong>Program Allowlist</strong> — Only interact with approved programs</li>
-        <li><strong>Timelock</strong> — Delay large transactions for review</li>
+        <li><strong>Spend Limit</strong>: Maximum SOL per time period</li>
+        <li><strong>Program Allowlist</strong>: Only interact with approved programs</li>
+        <li><strong>Timelock</strong>: Delay large transactions for review</li>
       </ul>
 
       <pre><code>// Your agent is now live on Solana devnet
@@ -267,11 +267,11 @@ console.log("Trust score:", agent.trustScore);</code></pre>
       <h2 id="agents-section">Agents</h2>
       <p>An <strong>agent</strong> is an AI program that acts on behalf of an operator. Each agent has:</p>
       <ul>
-        <li><strong>Operator</strong> — The wallet that registered the agent (controls it)</li>
-        <li><strong>Agent Type</strong> — Trader, Assistant, Framework, or Custom</li>
-        <li><strong>Trust Score</strong> — 0–100 reputation score (starts at 50)</li>
-        <li><strong>Status</strong> — Active, Suspended, or Slashed</li>
-        <li><strong>Registered At</strong> — Unix timestamp of registration</li>
+        <li><strong>Operator</strong>: The wallet that registered the agent (controls it)</li>
+        <li><strong>Agent Type</strong>: Trader, Assistant, Framework, or Custom</li>
+        <li><strong>Trust Score</strong>: 0–100 reputation score (starts at 50)</li>
+        <li><strong>Status</strong>: Active, Suspended, or Slashed</li>
+        <li><strong>Registered At</strong>: Unix timestamp of registration</li>
       </ul>
       <p>Agent accounts are stored at <strong>Program Derived Addresses (PDAs)</strong> using the operator's wallet and a nonce as seeds. This means each operator can have multiple agents with unique addresses.</p>
 
@@ -301,7 +301,7 @@ console.log("Trust score:", agent.trustScore);</code></pre>
       <h3>How Bonds Work</h3>
       <ul>
         <li>Operator deposits SOL when creating a bond</li>
-        <li>Bond has a <strong>lock period</strong> (e.g., 30 days) — cannot be withdrawn early</li>
+        <li>Bond has a <strong>lock period</strong> (e.g., 30 days): cannot be withdrawn early</li>
         <li>After the lock period, the operator can withdraw via <code>withdraw_bond</code></li>
         <li>If the agent violates rules, the bond is <strong>slashed</strong> (partially or fully)</li>
         <li>Slashed funds are sent to the <strong>victim</strong> via <code>compensate_victim</code></li>
@@ -319,7 +319,7 @@ console.log("Trust score:", agent.trustScore);</code></pre>
 
       <!-- Rules -->
       <h2 id="rules-section">Rules (Constraints)</h2>
-      <p><strong>Rules</strong> define what an agent is allowed to do. They are enforced on-chain — violations trigger automatic slashing.</p>
+      <p><strong>Rules</strong> define what an agent is allowed to do. They are enforced on-chain: violations trigger automatic slashing.</p>
 
       <h3>Constraint Types</h3>
       <div class="table-wrap">
@@ -364,11 +364,11 @@ console.log("Trust score:", agent.trustScore);</code></pre>
       <h2 id="slashing">Slashing</h2>
       <p>When an agent violates its constraints, the program admin (config authority) can execute a <strong>slash</strong>:</p>
       <ol>
-        <li><strong>Detection</strong> — Off-chain monitor detects violation (or operator self-reports)</li>
-        <li><strong>execute_slash</strong> — Admin calls this instruction with the agent and bond accounts</li>
-        <li><strong>Bond reduction</strong> — The slashed amount is deducted from the bond</li>
-        <li><strong>compensate_victim</strong> — Slashed funds are transferred to the victim's wallet</li>
-        <li><strong>Trust score update</strong> — Agent's trust score is decreased via <code>update_trust_score</code></li>
+        <li><strong>Detection</strong>: Off-chain monitor detects violation (or operator self-reports)</li>
+        <li><strong>execute_slash</strong>: Admin calls this instruction with the agent and bond accounts</li>
+        <li><strong>Bond reduction</strong>: The slashed amount is deducted from the bond</li>
+        <li><strong>compensate_victim</strong>: Slashed funds are transferred to the victim's wallet</li>
+        <li><strong>Trust score update</strong>: Agent's trust score is decreased via <code>update_trust_score</code></li>
       </ol>
       <p>The config authority (admin) is set during <code>initialize</code> and can only be changed by the current authority. This prevents unauthorized slashing.</p>
 
@@ -546,7 +546,7 @@ chmod +x setup.sh
       <p>The config authority (set during <code>initialize</code>) can execute slashes. In production, this could be a DAO, a multisig, or an oracle network that monitors on-chain behavior.</p>
 
       <h3>Can an operator withdraw their bond anytime?</h3>
-      <p>No. Bonds have a lock period. The operator specifies this when creating the bond (e.g., 30 days). Early withdrawal is not possible — this prevents operators from bonding, misbehaving, and withdrawing before consequences.</p>
+      <p>No. Bonds have a lock period. The operator specifies this when creating the bond (e.g., 30 days). Early withdrawal is not possible: this prevents operators from bonding, misbehaving, and withdrawing before consequences.</p>
 
       <h3>What happens if an agent is slashed below minimum?</h3>
       <p>The agent's status changes to <strong>Slashed</strong>. The operator would need to create a new bond to continue operating. The trust score is reduced, signaling to counterparties that this agent has a history of violations.</p>
