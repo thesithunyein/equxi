@@ -334,59 +334,60 @@
   function hideStatus() { document.getElementById("txStatus").style.display = "none"; }
 
   async function sendAndWait(tx) {
-    // Set blockhash and feePayer
     var blockhashInfo = await connection.getLatestBlockhash();
     tx.recentBlockhash = blockhashInfo.blockhash;
     tx.feePayer = new solanaWeb3.PublicKey(walletAddress);
 
     var sig;
-    // Try signAndSendTransaction first (handles serialization internally)
-    if (phantom.signAndSendTransaction) {
-      try {
-        var result = await phantom.signAndSendTransaction(tx, { skipPreflight: true });
-        sig = result.signature;
-        console.log("TX sent via signAndSendTransaction:", sig);
-      } catch (e) {
-        console.warn("signAndSendTransaction failed, trying signTransaction:", e);
-        // Fallback: serialize then sendRawTransaction
-        var serialized = tx.serialize({ requireAllSignatures: false, verifySignatures: false });
-        sig = await connection.sendRawTransaction(serialized, { skipPreflight: true, maxRetries: 3 });
-        console.log("TX sent via sendRawTransaction:", sig);
-      }
-    } else {
-      var serialized = tx.serialize({ requireAllSignatures: false, verifySignatures: false });
-      sig = await connection.sendRawTransaction(serialized, { skipPreflight: true, maxRetries: 3 });
-      console.log("TX sent via sendRawTransaction:", sig);
-    }
+    // signAndSendTransaction handles Phantom serialization correctly
+    var result = await phantom.signAndSendTransaction(tx, { skipPreflight: true });
+    sig = result.signature;
+    console.log("TX sent:", sig);
 
-    // Poll for confirmation
+    // Poll for confirmation with proper error fetching
     var start = Date.now();
-    while (Date.now() - start < 60000) {
+    while (Date.now() - start < 90000) {
       await new Promise(function (r) { setTimeout(r, 3000); });
       try {
-        var status = await connection.getSignatureStatuses([sig]);
-        if (status && status.value && status.value[0]) {
-          var st = status.value[0];
+        var statusResp = await connection.getSignatureStatuses([sig]);
+        if (statusResp && statusResp.value && statusResp.value[0]) {
+          var st = statusResp.value[0];
           if (st.err) {
+            // Fetch full error logs
             var txInfo = await connection.getTransaction(sig, { encoding: "jsonParsed", maxSupportedTransactionVersion: 0 });
-            var errMsg = "Transaction failed";
-            if (txInfo && txInfo.meta && txInfo.meta.logMessages) {
-              errMsg = txInfo.meta.logMessages.join("\n");
+            var errMsg = "Transaction failed on-chain";
+            if (txInfo && txInfo.meta && txInfo.meta.logMessages && txInfo.meta.logMessages.length > 0) {
+              errMsg = txInfo.meta.logMessages.slice(-5).join("\n");
             } else if (txInfo && txInfo.meta && txInfo.meta.err) {
               errMsg = JSON.stringify(txInfo.meta.err);
             }
+            console.error("On-chain error:", errMsg);
             throw new Error(errMsg);
           }
           if (st.confirmationStatus === "confirmed" || st.confirmationStatus === "finalized") {
             return sig;
           }
+          // processed but not yet confirmed — keep waiting
         }
       } catch (e) {
-        if (e.message && !e.message.includes("Transaction failed")) throw e;
-        throw e;
+        // Re-throw on-chain errors, continue on network errors
+        if (e.message && (e.message.includes("Transaction failed") || e.message.includes("Instruction") || e.message.includes("Constraint") || e.message.includes("Custom program error"))) {
+          throw e;
+        }
+        console.warn("Status check retry:", e.message || e);
       }
     }
-    throw new Error("Transaction timed out after 60s");
+    // Final check
+    try {
+      var finalResp = await connection.getTransaction(sig, { encoding: "jsonParsed", maxSupportedTransactionVersion: 0 });
+      if (finalResp && finalResp.meta && !finalResp.meta.err) return sig;
+      if (finalResp && finalResp.meta && finalResp.meta.logMessages) {
+        throw new Error(finalResp.meta.logMessages.slice(-5).join("\n"));
+      }
+    } catch (e2) {
+      if (e2.message && !e2.message.includes("Failed to fetch")) throw e2;
+    }
+    throw new Error("Transaction not confirmed. Check Explorer: " + explorerTx(sig));
   }
 
   /* ── Init IX builder ──────────────────────────────────────────────── */
