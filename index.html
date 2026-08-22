@@ -34,13 +34,22 @@
         <img src="assets/logo.webp" alt="Equxi" width="40" height="40" />
         <span class="logo-text">Equxi</span>
       </a>
-      <nav class="nav">
+      <nav class="nav" id="desktopNav">
         <a href="docs.html" class="nav-link">Docs</a>
         <a href="app.html" class="nav-link">Dashboard</a>
         <a href="https://github.com/thesithunyein/equxi" class="nav-link" target="_blank">GitHub</a>
       </nav>
-      <a href="app.html" class="btn-primary">Open App</a>
+      <a href="app.html" class="btn-primary desktop-only">Open App</a>
+      <button class="menu-toggle" id="menuToggle" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
     </header>
+    <div class="mobile-nav" id="mobileNav">
+      <a href="docs.html" class="mobile-nav-link">Docs</a>
+      <a href="app.html" class="mobile-nav-link">Dashboard</a>
+      <a href="https://github.com/thesithunyein/equxi" class="mobile-nav-link" target="_blank">GitHub</a>
+      <a href="app.html" class="btn-primary" style="width:100%;margin-top:12px;">Open App</a>
+    </div>
 
     <main class="hero">
       <div class="badge">

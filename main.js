@@ -28,6 +28,24 @@
   }
 
   document.addEventListener("DOMContentLoaded", () => {
+    // Hamburger menu
+    var menuBtn = document.getElementById("menuToggle");
+    var mobileNav = document.getElementById("mobileNav");
+    if (menuBtn && mobileNav) {
+      menuBtn.addEventListener("click", function () {
+        menuBtn.classList.toggle("active");
+        mobileNav.classList.toggle("open");
+        document.body.style.overflow = mobileNav.classList.contains("open") ? "hidden" : "";
+      });
+      mobileNav.querySelectorAll(".mobile-nav-link").forEach(function (link) {
+        link.addEventListener("click", function () {
+          menuBtn.classList.remove("active");
+          mobileNav.classList.remove("open");
+          document.body.style.overflow = "";
+        });
+      });
+    }
+
     // Animate elements in
     const header = document.querySelector(".header");
     const badge = document.querySelector(".badge");
