@@ -622,16 +622,22 @@
       var disc = await instrDiscriminator("create_bond");
       var data = concat(disc, u64le(Math.floor(amountSol * 1e9)), i64le(lockDuration));
 
-      var space = 106;
-      var rent = await connection.getMinimumBalanceForRentExemption(space);
-      var bondIx = solanaWeb3.SystemProgram.createAccount({
-        fromPubkey: operator, newAccountPubkey: bondPDA, space: space,
-        lamports: rent + Math.floor(amountSol * 1e9), programId: PROGRAM_ID,
+      // Anchor #[account(init)] creates the bond PDA — no SystemProgram.createAccount needed
+      var bondDataIx = new solanaWeb3.TransactionInstruction({
+        keys: [
+          { pubkey: solanaWeb3.PublicKey.findProgramAddressSync([bytes("config")], PROGRAM_ID)[0], isSigner: false, isWritable: false },
+          { pubkey: bondPDA, isSigner: false, isWritable: true },
+          { pubkey: new solanaWeb3.PublicKey(agentPubkey), isSigner: false, isWritable: true },
+          { pubkey: operator, isSigner: true, isWritable: true },
+          { pubkey: operator, isSigner: false, isWritable: false },  // owner = agent.owner
+          { pubkey: solanaWeb3.SystemProgram.programId, isSigner: false, isWritable: false },
+        ],
+        programId: PROGRAM_ID, data: disc,
       });
       var tx = new solanaWeb3.Transaction();
       var initIx = await getOrBuildInitIx();
       if (initIx) tx.add(initIx);
-      tx.add(bondIx);
+      tx.add(bondDataIx);
 
       var sig = await sendAndWait(tx);
       showTxSuccess("Locked " + amountSol + " SOL", sig);
