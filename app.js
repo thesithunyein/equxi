@@ -363,9 +363,10 @@
     tx.recentBlockhash = blockhashInfo.blockhash;
     tx.feePayer = new solanaWeb3.PublicKey(walletAddress);
 
-    // signAndSendTransaction — Phantom handles everything
-    var result = await phantom.signAndSendTransaction(tx);
-    var sig = result.signature;
+    // Always use signTransaction + sendRawTransaction for reliability
+    var signed = await phantom.signTransaction(tx);
+    var raw = signed.serialize({ requireAllSignatures: false });
+    var sig = await connection.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 3 });
     console.log('TX sent:', sig);
 
     // Poll for confirmation with proper error fetching
