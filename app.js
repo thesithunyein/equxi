@@ -234,6 +234,15 @@
         });
       }
     }
+    for (var c = 0; c < cachedConstraints.length; c++) {
+      var con = cachedConstraints[c];
+      var agentObj = cachedAgents.find(function (a) { return a.pubkey === con.agent; });
+      cachedActivity.push({
+        type: "constraint", title: "Rule Added",
+        desc: (agentObj ? agentObj.name : "Agent") + " \u2014 " + con.title,
+        time: "",
+      });
+    }
     cachedActivity.sort(function (a, b) { return (b.time || "").localeCompare(a.time || ""); });
 
     try {
