@@ -133,11 +133,13 @@ a { text-decoration: none; color: inherit; }
   .nav { display: none; }
   .menu-toggle { display: flex; }
   .desktop-only { display: none; }
-  .headline { font-size: clamp(24px, 7vw, 36px); }
-  .subhead { font-size: 15px; }
-  .cta-row { flex-direction: column; width: 100%; }
-  .btn-primary, .btn-outline { width: 100%; justify-content: center; }
-  .stats { grid-template-columns: repeat(2, 1fr); gap: 20px; padding: 24px 0 8px; }
+  .hero { padding: 0 8px; gap: 16px; }
+  .headline { font-size: 28px; letter-spacing: -0.02em; }
+  .subhead { font-size: 14px; line-height: 1.5; display: none; }
+  .cta-row { flex-direction: column; width: 100%; gap: 10px; }
+  .btn-primary, .btn-outline { width: 100%; justify-content: center; padding: 14px 20px; font-size: 15px; }
+  .stats { grid-template-columns: repeat(2, 1fr); gap: 16px; padding: 20px 0 8px; }
   .stat-value { font-size: 20px; }
+  .stat-label { font-size: 11px; }
   .badge { font-size: 12px; padding: 5px 12px; }
 }
