@@ -1,0 +1,28 @@
+{
+  "name": "@equxi/plugin-eliza",
+  "version": "0.1.0",
+  "description": "On-chain guardrails for Solana AI agents via Equxi. Spend limits, timelocks, and slash enforcement.",
+  "type": "module",
+  "main": "dist/plugin.js",
+  "types": "dist/plugin.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@solana/web3.js": "^1.95.0",
+    "@coral-xyz/anchor": "^0.30.1"
+  },
+  "peerDependencies": {
+    "@elizaos/core": ">=0.1.0"
+  },
+  "keywords": ["solana", "ai-agent", "guardrails", "anchor", "defi", "elizaos"],
+  "author": "Sithu Nyein",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thesithunyein/equxi",
+    "directory": "eliza-plugin"
+  }
+}
