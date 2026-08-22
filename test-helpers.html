@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Equxi — Unit Tests</title>
+  <style>
+    body { background: #09090b; color: #fafafa; font-family: monospace; padding: 20px; }
+    .pass { color: #22c55e; }
+    .fail { color: #ef4444; }
+    h2 { color: #9945FF; }
+    .test { padding: 4px 0; border-bottom: 1px solid #222; }
+  </style>
+</head>
+<body>
+  <h1>Equxi — Frontend Unit Tests</h1>
+  <div id="results"></div>
+  <script src="https://unpkg.com/@solana/web3.js@1.95.3/lib/index.iife.min.js"></script>
+  <script>
+    // ── Inline helpers (same as app.js) ───────────────────────────────
+    const enc = new TextEncoder();
+    const dec = new TextDecoder();
+    function bytes(str) { return enc.encode(str); }
+    function concat(...arrays) {
+      const total = arrays.reduce((s, a) => s + a.length, 0);
+      const out = new Uint8Array(total);
+      let off = 0;
+      for (const a of arrays) { out.set(a instanceof Uint8Array ? a : new Uint8Array(a), off); off += a.length; }
+      return out;
+    }
+    function u64le(n) {
+      const buf = new Uint8Array(8);
+      const big = BigInt(n);
+      const low = Number(big & 0xffffffffn);
+      const high = Number((big >> 32n) & 0xffffffffn);
+      buf[0] = low & 0xff; buf[1] = (low >> 8) & 0xff;
+      buf[2] = (low >> 16) & 0xff; buf[3] = (low >> 24) & 0xff;
+      buf[4] = high & 0xff; buf[5] = (high >> 8) & 0xff;
+      buf[6] = (high >> 16) & 0xff; buf[7] = (high >> 24) & 0xff;
+      return buf;
+    }
+    function i64le(n) {
+      if (n >= 0) return u64le(n);
+      const pos = u64le(-n);
+      let carry = 1;
+      for (let i = 0; i < 8; i++) {
+        pos[i] = (~pos[i] + carry) & 0xff;
+        carry = pos[i] === 0 ? 1 : 0;
+      }
+      return pos;
+    }
+    function strWithLen(str) {
+      const b = bytes(str);
+      return concat(u32le(b.length), b);
+    }
+    function u32le(n) {
+      const buf = new Uint8Array(4);
+      buf[0] = n & 0xff; buf[1] = (n >> 8) & 0xff;
+      buf[2] = (n >> 16) & 0xff; buf[3] = (n >> 24) & 0xff;
+      return buf;
+    }
+    async function sha256(data) {
+      const buf = await window.crypto.subtle.digest("SHA-256", data);
+      return new Uint8Array(buf);
+    }
+    async function instrDiscriminator(name) {
+      const hash = await sha256(bytes("global:" + name));
+      return hash.slice(0, 8);
+    }
+
+    // ── Test runner ───────────────────────────────────────────────────
+    const results = document.getElementById("results");
+    let passed = 0, failed = 0;
+    function test(name, ok) {
+      const div = document.createElement("div");
+      div.className = "test " + (ok ? "pass" : "fail");
+      div.textContent = (ok ? "✓" : "✗") + " " + name;
+      results.appendChild(div);
+      if (ok) passed++; else failed++;
+    }
+    function assert(cond, msg) { test(msg, cond); }
+
+    // ── Tests ─────────────────────────────────────────────────────────
+    async function run() {
+      // u64le
+      let v = u64le(0);
+      assert(v.length === 8, "u64le: length is 8");
+      assert(v[0] === 0 && v[1] === 0, "u64le(0) = all zeros");
+
+      v = u64le(1);
+      assert(v[0] === 1 && v[1] === 0, "u64le(1) = [1,0,0,0,0,0,0,0]");
+
+      v = u64le(256);
+      assert(v[0] === 0 && v[1] === 1, "u64le(256) = [0,1,0,0,0,0,0,0]");
+
+      v = u64le(5000000000);
+      assert(v[0] === 0 && v[4] === 1, "u64le(5000000000) correct LE encoding");
+
+      // i64le
+      v = i64le(30 * 24 * 60 * 60);
+      assert(v.length === 8, "i64le(30d): length is 8");
+
+      v = i64le(-1);
+      assert(v[0] === 0xff && v[1] === 0xff, "i64le(-1) = all 0xff");
+
+      v = i64le(0);
+      assert(v[0] === 0, "i64le(0) = all zeros");
+
+      // u32le
+      v = u32le(4);
+      assert(v.length === 4 && v[0] === 4, "u32le(4) = [4,0,0,0]");
+
+      v = u32le(256);
+      assert(v[0] === 0 && v[1] === 1, "u32le(256) = [0,1,0,0]");
+
+      // strWithLen
+      v = strWithLen("hi");
+      assert(v.length === 6, "strWithLen('hi') = 4 + 2 = 6 bytes");
+      assert(v[0] === 2 && v[1] === 0 && v[2] === 0 && v[3] === 0, "strWithLen: length prefix = 2");
+      assert(v[4] === 104 && v[5] === 105, "strWithLen: 'hi' = [104,105]");
+
+      v = strWithLen("");
+      assert(v[0] === 0, "strWithLen('') = [0,0,0,0]");
+
+      v = strWithLen("TestTrader");
+      assert(v[0] === 10, "strWithLen('TestTrader') length prefix = 10");
+      assert(v.length === 14, "strWithLen('TestTrader') = 4 + 10 = 14 bytes");
+
+      // concat
+      v = concat(new Uint8Array([1, 2]), new Uint8Array([3, 4, 5]));
+      assert(v.length === 5 && v[0] === 1 && v[4] === 5, "concat: merges arrays correctly");
+
+      v = concat();
+      assert(v.length === 0, "concat() = empty");
+
+      // bytes
+      v = bytes("config");
+      assert(v.length === 6, "bytes('config') = 6 bytes");
+      assert(v[0] === 99, "bytes('config')[0] = 'c' (99)");
+
+      // SHA-256
+      v = await sha256(bytes("hello"));
+      assert(v.length === 32, "sha256: output is 32 bytes");
+
+      const expectedHello = new Uint8Array([
+        0x2c, 0xf2, 0x4d, 0xba, 0x5f, 0xb0, 0xa3, 0x0e,
+        0x26, 0xe8, 0x3b, 0x2a, 0xc5, 0xb9, 0xe2, 0x9e,
+        0x1b, 0x16, 0x1e, 0x51, 0xf6, 0x06, 0x66, 0x20,
+        0x15, 0x99, 0x2b, 0x15, 0x03, 0x65, 0xb5, 0x0e
+      ]);
+      assert(v[0] === 0x2c && v[1] === 0xf2, "sha256('hello') starts with correct bytes");
+
+      // Instruction discriminators (Anchor standard)
+      const disc = await instrDiscriminator("initialize");
+      assert(disc.length === 8, "discriminator: 8 bytes");
+
+      const disc2 = await instrDiscriminator("register_agent");
+      assert(disc2.length === 8, "register_agent discriminator: 8 bytes");
+
+      const disc3 = await instrDiscriminator("create_bond");
+      assert(disc3.length === 8, "create_bond discriminator: 8 bytes");
+
+      const disc4 = await instrDiscriminator("add_constraint");
+      assert(disc4.length === 8, "add_constraint discriminator: 8 bytes");
+
+      const disc5 = await instrDiscriminator("execute_slash");
+      assert(disc5.length === 8, "execute_slash discriminator: 8 bytes");
+
+      const disc6 = await instrDiscriminator("withdraw_bond");
+      assert(disc6.length === 8, "withdraw_bond discriminator: 8 bytes");
+
+      // Verify discriminators are unique
+      const discs = [disc, disc2, disc3, disc4, disc5, disc6];
+      const unique = new Set(discs.map(d => Array.from(d).join(",")));
+      assert(unique.size === 6, "All 6 discriminators are unique");
+
+      // Verify PDA derivation
+      const PROGRAM_ID = new solanaWeb3.PublicKey("9p47LiT9ondNZwhC1dqC6ChMTNr7mRLc3RGvi39JVemQ");
+      const [configPDA] = solanaWeb3.PublicKey.findProgramAddressSync([bytes("config")], PROGRAM_ID);
+      assert(configPDA.toString().length === 44, "config PDA is valid base58 (44 chars)");
+
+      // Summary
+      const summary = document.createElement("h2");
+      summary.textContent = passed + " passed, " + failed + " failed, " + (passed + failed) + " total";
+      summary.className = failed === 0 ? "pass" : "fail";
+      results.prepend(summary);
+    }
+
+    run().catch(err => {
+      const div = document.createElement("div");
+      div.className = "fail";
+      div.textContent = "FATAL: " + err.message;
+      results.appendChild(div);
+    });
+  </script>
+</body>
+</html>

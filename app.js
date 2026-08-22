@@ -502,7 +502,14 @@
     if (cachedBonds.length === 0) { target.innerHTML = emptyState("fa-shield-halved", "No bonds yet", "Lock funds to create a safety deposit"); return; }
     target.innerHTML = cachedBonds.map(function (b) {
       var expired = b.expiresAt && Date.now() / 1000 > b.expiresAt;
-      return '<div class="bond-card"><div class="bond-icon"><i class="fa-solid fa-shield-halved"></i></div><div class="bond-info"><h3>' + lamportsToSol(b.amount) + ' SOL</h3><p>' + (b.isActive ? (expired ? "Expired \u2014 withdrawable" : "Locked") : "Withdrawn") + '</p></div><div class="bond-amount"><div class="value">' + (b.isActive ? "Active" : "Closed") + '</div><div class="label">' + (b.expiresAt ? new Date(b.expiresAt * 1000).toLocaleDateString() : "") + '</div></div>' + (b.isActive ? '<button class="btn-outline" onclick="window._withdrawBond(\'' + b.pubkey + '\')">Withdraw</button>' : "") + '</div>';
+      var agentObj = cachedAgents.find(function (a) { return a.pubkey === b.agent; });
+      var agentName = agentObj ? agentObj.name : short(b.agent);
+      var buttons = '';
+      if (b.isActive) {
+        buttons = '<button class="btn-outline" onclick="window._withdrawBond(\'' + b.pubkey + '\')">Withdraw</button>' +
+          '<button class="btn-slash" onclick="window._openSlash(\'' + b.pubkey + '\',\'' + b.agent + '\',\'' + b.amount + '\',\'' + agentName + '\')">Slash</button>';
+      }
+      return '<div class="bond-card"><div class="bond-icon"><i class="fa-solid fa-shield-halved"></i></div><div class="bond-info"><h3>' + lamportsToSol(b.amount) + ' SOL</h3><p>' + agentName + ' \u2014 ' + (b.isActive ? (expired ? "Expired \u2014 withdrawable" : "Locked") : "Withdrawn") + '</p></div><div class="bond-amount"><div class="value">' + (b.isActive ? "Active" : "Closed") + '</div><div class="label">' + (b.expiresAt ? new Date(b.expiresAt * 1000).toLocaleDateString() : "") + '</div></div>' + buttons + '</div>';
     }).join("");
   }
   function renderConstraints() {
@@ -753,6 +760,66 @@
   }
 
   window._withdrawBond = withdrawBond;
+
+  window._openSlash = function (bondPubkey, agentPubkey, bondAmount, agentName) {
+    openModal("Slash Bond",
+      '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">Slash <strong>' + agentName + '</strong>\'s bond. The specified amount transfers from the bond to the admin treasury.</p>' +
+      '<div class="form-group"><label>Slash Amount (SOL)</label><input type="number" id="slashAmount" placeholder="e.g. 0.1" min="0.01" step="0.01" max="' + lamportsToSol(bondAmount) + '" /><p class="hint">Max: ' + lamportsToSol(bondAmount) + ' SOL</p></div>' +
+      '<div class="form-group"><label>Reason</label><input type="text" id="slashReason" placeholder="e.g. Rule violation: exceeded spending limit" maxlength="128" /></div>' +
+      '<div class="form-actions"><button class="btn-ghost" onclick="closeModal()">Cancel</button><button class="btn-danger" id="slashSubmit">Slash Bond</button></div>'
+    );
+    document.getElementById("slashSubmit").onclick = function () { handleSlash(bondPubkey, agentPubkey); };
+  };
+
+  async function handleSlash(bondPubkey, agentPubkey) {
+    var amountSol = parseFloat(document.getElementById("slashAmount") ? document.getElementById("slashAmount").value : "");
+    var reason = document.getElementById("slashReason") ? document.getElementById("slashReason").value.trim() : "";
+    if (!amountSol || amountSol < 0.01) { showToast("Enter a valid amount"); return; }
+    if (!reason) { showToast("Enter a reason"); return; }
+    closeModal(); showTxPending("Slashing bond...");
+    try {
+      var operator = new solanaWeb3.PublicKey(walletAddress);
+      var configPDA = solanaWeb3.PublicKey.findProgramAddressSync([bytes("config")], PROGRAM_ID)[0];
+      var slashIdx = 0;
+      try {
+        var cfgInfo = await connection.getAccountInfo(configPDA);
+        if (cfgInfo && cfgInfo.data) {
+          slashIdx = Number(new DataView(cfgInfo.data.buffer, cfgInfo.data.byteOffset + 48).getBigUint64(0, true));
+        }
+      } catch (e) { console.warn("Could not read config for slash nonce:", e); }
+      var agentKey = new solanaWeb3.PublicKey(agentPubkey);
+      var nonceBytes = new Uint8Array(8);
+      new DataView(nonceBytes.buffer).setBigUint64(0, BigInt(slashIdx), true);
+      var slashRecordPDA = solanaWeb3.PublicKey.findProgramAddressSync(
+        [bytes("slash"), agentKey.toBuffer(), nonceBytes], PROGRAM_ID
+      )[0];
+      var disc = await instrDiscriminator("execute_slash");
+      var data = concat(disc, strWithLen(reason), u64le(Math.floor(amountSol * 1e9)));
+
+      var slashIx = new solanaWeb3.TransactionInstruction({
+        keys: [
+          { pubkey: configPDA, isSigner: false, isWritable: false },
+          { pubkey: agentKey, isSigner: false, isWritable: true },
+          { pubkey: new solanaWeb3.PublicKey(bondPubkey), isSigner: false, isWritable: true },
+          { pubkey: slashRecordPDA, isSigner: false, isWritable: true },
+          { pubkey: agentKey, isSigner: false, isWritable: false },  // owner (validated by has_one)
+          { pubkey: operator, isSigner: true, isWritable: false },  // authority = config.admin
+          { pubkey: solanaWeb3.SystemProgram.programId, isSigner: false, isWritable: false },
+        ],
+        programId: PROGRAM_ID, data: data,
+      });
+      var tx = new solanaWeb3.Transaction().add(slashIx);
+      var sig = await sendAndWait(tx);
+      showTxSuccess("Bond slashed: " + amountSol + " SOL", sig);
+      await Promise.all([refreshData(), refreshBalance()]);
+    } catch (err) {
+      console.error("Slash error:", err);
+      var msg = err.message || "Transaction failed";
+      if (msg.includes("User rejected") || msg.includes("cancelled")) msg = "Cancelled";
+      else if (msg.length > 200) msg = msg.substring(0, 200) + "...";
+      showTxError(msg);
+    }
+  }
 
   /* ── Boot ──────────────────────────────────────────────────────────── */
   function boot() {

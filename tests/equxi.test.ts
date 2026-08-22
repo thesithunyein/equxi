@@ -133,4 +133,35 @@ describe("equxi", () => {
       expect(err.toString()).to.include("BondNotExpired");
     }
   });
+
+  it("Adds a spending limit constraint", async () => {
+    const config = await program.account.config.fetch(configPDA);
+    const nonce = Number(config.totalBonds) + 1;
+    const [constraintPDA] = PublicKey.findProgramAddressSync(
+      [Buffer.from("constraint"), agentPDA.toBuffer(), new BN(nonce).toArrayLike(Buffer, "le", 8)],
+      program.programId
+    );
+
+    const params = {
+      maxAmount: new BN(1_000_000_000),
+      maxPerPeriod: new BN(5_000_000_000),
+      periodSeconds: new BN(86400),
+      timelockSeconds: new BN(0),
+      allowedPrograms: Array(8).fill(SystemProgram.programId),
+    };
+
+    await program.methods
+      .addConstraint({ spendLimit: {} }, params)
+      .accounts({
+        config: configPDA,
+        constraint: constraintPDA,
+        agent: agentPDA,
+        operator: admin.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .rpc();
+
+    const constraint = await program.account.constraint.fetch(constraintPDA);
+    expect(constraint.isEnforced).to.be.true;
+  });
 });

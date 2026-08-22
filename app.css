@@ -216,9 +216,12 @@ button { border: none; background: none; cursor: pointer; font: inherit; color: 
 }
 .btn-primary:hover { background: var(--purple-hover); transform: translateY(-1px); }
 .btn-ghost { font-size: 13px; color: var(--text-secondary); transition: color 0.15s; }
-.btn-ghost:hover { color: var(--text); }
-.btn-outline { border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 12px; color: var(--text-secondary); transition: all 0.15s; }
-.btn-outline:hover { border-color: var(--text-muted); color: var(--text); }
+.btn-ghost:hover { color: var(--text); }  .btn-outline { border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 12px; color: var(--text-secondary); transition: all 0.15s; }
+  .btn-outline:hover { border-color: var(--text-muted); color: var(--text); }
+  .btn-slash { border: 1px solid var(--red); padding: 6px 12px; border-radius: 6px; font-size: 12px; color: var(--red); background: transparent; cursor: pointer; transition: all 0.15s; margin-left: 6px; }
+  .btn-slash:hover { background: var(--red-dim); color: var(--red); }
+  .btn-danger { background: var(--red); color: #fff; border: none; padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+  .btn-danger:hover { background: #dc2626; }
 .btn-danger { background: var(--red-dim); color: var(--red); padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; transition: background 0.15s; }
 .btn-danger:hover { background: rgba(239, 68, 68, 0.2); }
 
