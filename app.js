@@ -363,18 +363,9 @@
     tx.recentBlockhash = blockhashInfo.blockhash;
     tx.feePayer = new solanaWeb3.PublicKey(walletAddress);
 
-    // Sign via Phantom then send raw
-    var sig;
-    tx.compileMessage();
-    var txBytes = tx.serialize({ requireAllSignatures: false });
-    var signed = await phantom.signTransaction(txBytes);
-    // Phantom may return {signature: Uint8Array} or raw Uint8Array
-    var raw = null;
-    if (signed instanceof Uint8Array) { raw = signed; }
-    else if (signed && signed.signature) { raw = signed.signature; }
-    else if (signed && signed.serialize) { raw = signed.serialize({ requireAllSignatures: false }); }
-    if (!raw) throw new Error("Phantom returned invalid response");
-    sig = await connection.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 3 });
+    // Use signAndSendTransaction — Phantom handles serialization internally
+    var result = await phantom.signAndSendTransaction(tx);
+    var sig = result.signature;
     console.log("TX sent:", sig);
 
     // Poll for confirmation with proper error fetching
