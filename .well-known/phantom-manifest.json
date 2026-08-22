@@ -1,0 +1,9 @@
+{
+  "schema_version": "1.0",
+  "name": "Equxi",
+  "description": "Solana-native trust layer for AI agents. On-chain accountability infrastructure.",
+  "url": "https://equxi.sithunyein.com",
+  "iconUrl": "https://equxi.sithunyein.com/assets/logo.webp",
+  "color": "#9945FF",
+  "verified": false
+}

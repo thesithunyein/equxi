@@ -1,0 +1,17 @@
+{
+  "manifest_version": "1.0.0",
+  "name": "Equxi",
+  "description": "Solana-native trust layer for AI agents",
+  "iconUrl": "https://equxi.sithunyein.com/assets/logo.webp",
+  "wechatDisplayName": "Equxi",
+  "alternateLinks": [
+    {
+      "uri": "https://equxi.sithunyein.com",
+      "label": "Homepage"
+    },
+    {
+      "uri": "https://github.com/thesithunyein/equxi",
+      "label": "GitHub"
+    }
+  ]
+}

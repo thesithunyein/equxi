@@ -1,0 +1,21 @@
+{
+  "name": "Equxi",
+  "short_name": "Equxi",
+  "description": "Solana-native trust layer for AI agents",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#9945FF",
+  "icons": [
+    {
+      "src": "/assets/logo.webp",
+      "sizes": "192x192",
+      "type": "image/webp"
+    },
+    {
+      "src": "/assets/logo.webp",
+      "sizes": "512x512",
+      "type": "image/webp"
+    }
+  ]
+}

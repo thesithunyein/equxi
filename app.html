@@ -11,8 +11,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
   <link rel="stylesheet" href="app.css" />
-  <link rel="manifest" href="data:application/json,{\"name\":\"Equxi\",\"description\":\"Solana-Native Trust Layer for AI Agents\",\"url\":\"https://equxi.sithunyein.com\",\"icon\":\"https://equxi.sithunyein.com/assets/logo.webp\"}" />
+  <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#9945FF" />
+  <meta property="og:title" content="Equxi — Dashboard" />
+  <meta property="og:description" content="Manage AI agents, bonds, and rules on Solana." />
+  <meta property="og:image" content="https://equxi.sithunyein.com/assets/logo.webp" />
+  <meta property="og:url" content="https://equxi.sithunyein.com/app.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://equxi.sithunyein.com/app.html" />
 </head>
 <body>
   <div class="bg-video-wrap">
@@ -198,7 +206,7 @@
   <!-- Toast -->
   <div class="toast" id="toast"><span id="toastMessage"></span></div>
 
-  <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
+  <script src="https://unpkg.com/@solana/web3.js@1.95.3/lib/index.iife.min.js" integrity="sha512-yF3SOKDMP98ICBV4JSKnCOJi6G2J9l3VPeKFN3/rGqRqFKj8AJxWR+LMJd1rJOYBui4IHCErf1VhE/DbHW5Q==" crossorigin="anonymous"></script>
   <script src="app.js"></script>
 </body>
 </html>
