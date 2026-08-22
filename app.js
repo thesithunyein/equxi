@@ -205,9 +205,51 @@
     } catch (e) { console.warn("Fetch accounts failed:", e); return { agents: [], bonds: [], constraints: [] }; }
   }
 
+  async function ensureInitialized() {
+    // Check if config PDA exists — if not, initialize the program
+    if (!connection) return;
+    try {
+      var configPDA = solanaWeb3.PublicKey.findProgramAddressSync([bytes("config")], PROGRAM_ID)[0];
+      var info = await connection.getAccountInfo(configPDA);
+      if (info && info.data && info.data.length > 0) return; // Already initialized
+      // Need to initialize
+      showStatus("Initializing program...");
+      var operator = new solanaWeb3.PublicKey(walletAddress);
+      var disc = await instrDiscriminator("initialize");
+      var data = concat(disc, operator.toBuffer()); // admin = wallet address
+      var ix = new solanaWeb3.TransactionInstruction({
+        keys: [
+          { pubkey: configPDA, isSigner: false, isWritable: true },
+          { pubkey: operator, isSigner: true, isWritable: true },
+          { pubkey: solanaWeb3.SystemProgram.programId, isSigner: false, isWritable: false },
+        ],
+        programId: PROGRAM_ID, data: data,
+      });
+      var tx = new solanaWeb3.Transaction().add(ix);
+      var blockhashInfo = await connection.getLatestBlockhash();
+      tx.recentBlockhash = blockhashInfo.blockhash; tx.feePayer = operator;
+      var sig;
+      if (phantom.signAndSendTransaction) {
+        var result = await phantom.signAndSendTransaction(tx);
+        sig = result.signature;
+      } else {
+        var signed = await phantom.signTransaction(tx);
+        sig = await connection.sendRawTransaction(signed.serialize());
+      }
+      await confirmTx(sig);
+      showToast("Program initialized!");
+      await refreshBalance();
+    } catch (e) {
+      console.warn("Initialize check/failed:", e);
+      // If it fails, the config might already exist but be unrecognized
+      // Continue anyway
+    }
+  }
+
   async function refreshData() {
     if (!walletConnected) return;
     showStatus("Loading on-chain data...");
+    await ensureInitialized();
     var result = await fetchAllProgramAccounts();
     cachedAgents = result.agents.filter(function (a) { return a.owner === walletAddress; });
     cachedBonds = result.bonds.filter(function (b) { return b.operator === walletAddress; });
