@@ -363,13 +363,22 @@
     tx.recentBlockhash = blockhashInfo.blockhash;
     tx.feePayer = new solanaWeb3.PublicKey(walletAddress);
 
-    // Serialize to raw bytes — Phantom handles deserialization correctly
-    tx.compileMessage();
-    var txBytes = tx.serialize({ requireAllSignatures: false });
-    var signed = await phantom.signTransaction(txBytes);
-    // Phantom returns Uint8Array when given bytes, or Transaction object when given Transaction
-    var raw = signed instanceof Uint8Array ? signed : (signed.serialize ? signed.serialize({ requireAllSignatures: false }) : signed);
-    var sig = await connection.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 3 });
+    // Sign via Phantom then send raw
+    var sig;
+    try {
+      // Method 1: signTransaction with compiled bytes
+      tx.compileMessage();
+      var txBytes = tx.serialize({ requireAllSignatures: false });
+      var signed = await phantom.signTransaction(txBytes);
+      var raw = (signed && signed.signature) ? signed.signature : (signed instanceof Uint8Array ? signed : (signed && signed.serialize ? signed.serialize({ requireAllSignatures: false }) : null));
+      if (!raw) throw new Error("Phantom returned invalid response");
+      sig = await connection.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 3 });
+    } catch (e1) {
+      console.warn("Method 1 failed:", e1.message);
+      // Method 2: signAndSendTransaction (Phantom handles everything)
+      var result = await phantom.signAndSendTransaction(tx, { skipPreflight: true });
+      sig = result.signature;
+    }
     console.log("TX sent:", sig);
 
     // Poll for confirmation with proper error fetching
@@ -826,7 +835,7 @@
           { pubkey: agentKey, isSigner: false, isWritable: true },
           { pubkey: new solanaWeb3.PublicKey(bondPubkey), isSigner: false, isWritable: true },
           { pubkey: slashRecordPDA, isSigner: false, isWritable: true },
-          { pubkey: agentKey, isSigner: false, isWritable: false },  // owner (validated by has_one)
+          { pubkey: operator, isSigner: false, isWritable: false },  // owner = agent.owner = the wallet that registered the agent
           { pubkey: operator, isSigner: true, isWritable: false },  // authority = config.admin
           { pubkey: solanaWeb3.SystemProgram.programId, isSigner: false, isWritable: false },
         ],
