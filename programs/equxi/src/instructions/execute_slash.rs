@@ -33,12 +33,12 @@ pub struct ExecuteSlash<'info> {
     )]
     pub slash_record: Account<'info, SlashRecord>,
 
+    #[account(mut, constraint = authority.key() == config.admin @ EquxiError::SlashingAuthorityRequired)]
+    pub authority: Signer<'info>,
+
     #[account(address = agent.owner)]
     /// CHECK: Validated by has_one
     pub owner: AccountInfo<'info>,
-
-    #[account(mut, constraint = authority.key() == config.admin @ EquxiError::SlashingAuthorityRequired)]
-    pub authority: Signer<'info>,
 
     pub system_program: Program<'info, System>,
 }
