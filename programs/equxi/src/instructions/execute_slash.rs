@@ -25,7 +25,9 @@ pub struct ExecuteSlash<'info> {
     pub bond: Account<'info, Bond>,
 
     #[account(
-        mut,
+        init,
+        payer = authority,
+        space = 8 + SlashRecord::INIT_SPACE,
         seeds = [b"slash", agent.key().as_ref(), config.total_slashed.to_le_bytes().as_ref()],
         bump
     )]
@@ -35,7 +37,7 @@ pub struct ExecuteSlash<'info> {
     /// CHECK: Validated by has_one
     pub owner: AccountInfo<'info>,
 
-    #[account(constraint = authority.key() == config.admin @ EquxiError::SlashingAuthorityRequired)]
+    #[account(mut, constraint = authority.key() == config.admin @ EquxiError::SlashingAuthorityRequired)]
     pub authority: Signer<'info>,
 
     pub system_program: Program<'info, System>,
