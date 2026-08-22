@@ -337,7 +337,6 @@
     var blockhashInfo = await connection.getLatestBlockhash();
     tx.recentBlockhash = blockhashInfo.blockhash;
     tx.feePayer = new solanaWeb3.PublicKey(walletAddress);
-    tx.setSigners(walletAddress);
 
     // Always use signTransaction + sendRawTransaction for reliability
     var signed = await phantom.signTransaction(tx);
