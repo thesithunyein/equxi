@@ -375,9 +375,9 @@
       sig = await connection.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 3 });
     } catch (e1) {
       console.warn("Method 1 failed:", e1.message);
-      // Method 2: signAndSendTransaction (Phantom handles everything)
-      var result = await phantom.signAndSendTransaction(tx, { skipPreflight: true });
-      sig = result.signature;
+      // Method 2: signTransaction + sendTransaction (let validator simulate)
+      var signed2 = await phantom.signTransaction(tx);
+      sig = await connection.sendTransaction(signed2, { skipPreflight: true, maxRetries: 3 });
     }
     console.log("TX sent:", sig);
 
@@ -817,7 +817,8 @@
       try {
         var cfgInfo = await connection.getAccountInfo(configPDA);
         if (cfgInfo && cfgInfo.data) {
-          slashIdx = Number(new DataView(cfgInfo.data.buffer, cfgInfo.data.byteOffset + 48).getBigUint64(0, true));
+          // Config: disc(8) + admin(32) + total_agents(8) + total_bonds(8) + total_slashed(8) = offset 56
+          slashIdx = Number(new DataView(cfgInfo.data.buffer, cfgInfo.data.byteOffset + 56).getBigUint64(0, true));
         }
       } catch (e) { console.warn("Could not read config for slash nonce:", e); }
       var agentKey = new solanaWeb3.PublicKey(agentPubkey);
