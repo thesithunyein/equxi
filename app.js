@@ -280,6 +280,7 @@
       try { await phantom.disconnect(); } catch (e) { /* ignore */ }
       walletConnected = false; walletAddress = null;
       cachedAgents = []; cachedBonds = []; cachedConstraints = []; cachedActivity = [];
+      localStorage.setItem("equxi_disconnected", "1");
       setWalletUI(false); renderAll(); showToast("Disconnected");
       return;
     }
@@ -289,6 +290,7 @@
       var resp = await phantom.connect();
       walletConnected = true;
       walletAddress = resp.publicKey.toString();
+      localStorage.removeItem("equxi_disconnected");
       connection = new solanaWeb3.Connection(SOLANA_RPC, "confirmed");
       var bal = await connection.getBalance(resp.publicKey);
       document.getElementById("walletBalance").textContent = lamportsToSol(bal) + " SOL";
@@ -851,19 +853,23 @@
       if (phantom) {
         phantom.on("connect", function () {
           walletConnected = true; walletAddress = phantom.publicKey.toString();
+          localStorage.removeItem("equxi_disconnected");
           connection = new solanaWeb3.Connection(SOLANA_RPC, "confirmed");
           setWalletUI(true, walletAddress); refreshData();
         });
-        // Always attempt silent reconnect on page load
+        // Silent reconnect only if user did not explicitly disconnect
+        if (!localStorage.getItem("equxi_disconnected")) {
         phantom.connect({ onlyIfTrusted: true }).then(function (resp) {
           if (resp && resp.publicKey) {
             walletConnected = true;
             walletAddress = resp.publicKey.toString();
+            localStorage.removeItem("equxi_disconnected");
             connection = new solanaWeb3.Connection(SOLANA_RPC, "confirmed");
             setWalletUI(true, walletAddress);
             refreshData();
           }
         }).catch(function () {});
+        }
       }
     }).catch(function (e) {
       console.error("Init failed:", e);
