@@ -157,7 +157,7 @@ await client.addConstraint(agentPDA, { spendLimit: {} }, {
 await client.executeSlash(agentPDA, bondPDA, 100_000_000, "Exceeded spending limit");
 ```
 
-## elizaOS Plugin
+## Usage in elizaOS
 
 ```bash
 npm install @equxi/plugin-eliza
@@ -168,11 +168,21 @@ import { equxiPlugin } from "@equxi/plugin-eliza";
 
 const agent = {
   plugins: [equxiPlugin],
-  settings: { WALLET_PUBLIC_KEY: "your-wallet-key" },
+  settings: {
+    WALLET_PUBLIC_KEY: "your-solana-wallet-public-key",
+    SOLANA_RPC_URL: "https://api.devnet.solana.com",
+  },
 };
 ```
 
-Adds 4 actions: `EQUXI_REGISTER_AGENT`, `EQUXI_LOCK_BOND`, `EQUXI_ADD_CONSTRAINT`, `EQUXI_SLASH_BOND`.
+Then talk to your agent naturally:
+
+| What you say | Action triggered |
+|---|---|
+| `"Register my bot as an agent"` | `EQUXI_REGISTER_AGENT` |
+| `"Lock 0.5 SOL as bond"` | `EQUXI_LOCK_BOND` |
+| `"Set 1 SOL daily spend limit"` | `EQUXI_ADD_CONSTRAINT` |
+| `"Slash 0.1 SOL for exceeding limit"` | `EQUXI_SLASH_BOND` |
 
 See [`eliza-plugin/README.md`](eliza-plugin/README.md) for full docs.
 
