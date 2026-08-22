@@ -59,19 +59,16 @@
     return concat(u32le(b.length), b);
   }
 
-  /* ── Anchor Discriminator (with SHA-256 fallback) ─────────────────── */
+  /* ── SHA-256 (pure JS fallback) ───────────────────────────────────── */
   async function sha256(data) {
-    // Try Web Crypto first (secure contexts)
     if (window.crypto && window.crypto.subtle) {
       const buf = await window.crypto.subtle.digest("SHA-256", data);
       return new Uint8Array(buf);
     }
-    // Fallback: use a simple JS SHA-256 implementation
     return sha256Fallback(data);
   }
 
   function sha256Fallback(message) {
-    // Minimal pure-JS SHA-256 for non-secure contexts
     const K = [
       0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
       0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
@@ -99,20 +96,19 @@
     msg = concat(msg, lenBytes);
 
     let H = [0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
-
     for (let i = 0; i < msg.length; i += 64) {
       const W = new Array(64);
-      for (let j = 0; j < 16; j++) {
-        W[j] = (msg[i+j*4]<<24)|(msg[i+j*4+1]<<16)|(msg[i+j*4+2]<<8)|msg[i+j*4+3];
-      }
+      for (let j = 0; j < 16; j++) W[j] = (msg[i+j*4]<<24)|(msg[i+j*4+1]<<16)|(msg[i+j*4+2]<<8)|msg[i+j*4+3];
       for (let j = 16; j < 64; j++) {
-        W[j] = (ep1(W[j-2])+W[j-7]+ep0(W[j-15])+W[j-16])|0;
+        const s0 = rr(W[j-15],7)^rr(W[j-15],18)^(W[j-15]>>>3);
+        const s1 = rr(W[j-2],17)^rr(W[j-2],19)^(W[j-2]>>>10);
+        W[j] = (W[j-16]+s0+W[j-7]+s1)|0;
       }
       let [a,b,c,d,e,f,g,h] = H;
       for (let j = 0; j < 64; j++) {
         const T1 = (h+sig1(e)+ch(e,f,g)+K[j]+W[j])|0;
         const T2 = (sig0(a)+maj(a,b,c))|0;
-        h=g; g=f; f=e; e=(d+T1)|0; d=c; c=b; b=a; a=(T1+T2)|0;
+        h=g;g=f;f=e;e=(d+T1)|0;d=c;c=b;b=a;a=(T1+T2)|0;
       }
       H = [(H[0]+a)|0,(H[1]+b)|0,(H[2]+c)|0,(H[3]+d)|0,(H[4]+e)|0,(H[5]+f)|0,(H[6]+g)|0,(H[7]+h)|0];
     }
@@ -125,15 +121,13 @@
   }
 
   async function instrDiscriminator(name) {
-    const pre = bytes("global:" + name);
-    const hash = await sha256(pre);
+    const hash = await sha256(bytes("global:" + name));
     return hash.slice(0, 8);
   }
 
   const accountDiscriminators = {};
   async function getAccountDiscriminators() {
-    const types = ["Config", "Agent", "Bond", "Constraint", "SlashRecord"];
-    for (const t of types) {
+    for (const t of ["Config", "Agent", "Bond", "Constraint", "SlashRecord"]) {
       const hash = await sha256(bytes("account:" + t));
       accountDiscriminators[t] = Array.from(hash.slice(0, 8));
     }
@@ -203,36 +197,6 @@
       }
       return { agents: agents, bonds: bonds, constraints: constraints };
     } catch (e) { console.warn("Fetch accounts failed:", e); return { agents: [], bonds: [], constraints: [] }; }
-  }
-
-  async function getOrBuildInitIx() {
-    // Returns an initialize IX if config PDA doesn't exist, null otherwise
-    if (!connection) return null;
-    try {
-      var configPDA = solanaWeb3.PublicKey.findProgramAddressSync([bytes("config")], PROGRAM_ID)[0];
-      var info = await connection.getAccountInfo(configPDA);
-      if (info && info.data && info.data.length > 0) return null; // Already exists
-      console.log("Config PDA not found, will add init IX");
-    } catch (e) {
-      console.warn("Config check failed, will try init anyway:", e);
-    }
-    // Build init IX — either config missing or check failed
-    try {
-      var operator = new solanaWeb3.PublicKey(walletAddress);
-      var disc = await instrDiscriminator("initialize");
-      var data = concat(disc, operator.toBuffer());
-      return new solanaWeb3.TransactionInstruction({
-        keys: [
-          { pubkey: solanaWeb3.PublicKey.findProgramAddressSync([bytes("config")], PROGRAM_ID)[0], isSigner: false, isWritable: true },
-          { pubkey: operator, isSigner: true, isWritable: true },
-          { pubkey: solanaWeb3.SystemProgram.programId, isSigner: false, isWritable: false },
-        ],
-        programId: PROGRAM_ID, data: data,
-      });
-    } catch (e2) {
-      console.warn("Failed to build init IX:", e2);
-      return null;
-    }
   }
 
   async function refreshData() {
@@ -360,7 +324,7 @@
     var el = document.getElementById("txStatus");
     el.innerHTML = '<i class="fa-solid fa-exclamation-circle"></i> ' + msg;
     el.className = "tx-status error";
-    setTimeout(function () { el.style.display = "none"; }, 6000);
+    setTimeout(function () { el.style.display = "none"; }, 10000);
   }
   function showStatus(msg) {
     var el = document.getElementById("txStatus");
@@ -369,39 +333,83 @@
   }
   function hideStatus() { document.getElementById("txStatus").style.display = "none"; }
 
-  async function confirmTx(sig, blockhash, lastValidBlockHeight) {
-    // Use confirmTransaction with the TX's own blockhash — most reliable method
-    try {
-      var result = await connection.confirmTransaction(
-        { signature: sig, blockhash: blockhash, lastValidBlockHeight: lastValidBlockHeight },
-        "confirmed"
-      );
-      if (result.value && result.value.err) {
-        throw new Error("Transaction failed on-chain: " + JSON.stringify(result.value.err));
+  async function sendAndWait(tx) {
+    // Build, get blockhash, send with skipPreflight, poll for result
+    var blockhashInfo = await connection.getLatestBlockhash();
+    tx.recentBlockhash = blockhashInfo.blockhash;
+    tx.feePayer = new solanaWeb3.PublicKey(walletAddress);
+
+    var signed = await phantom.signTransaction(tx);
+    var raw = signed.serialize();
+
+    // Send with skipPreflight to get on-chain errors
+    var sig = await connection.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 3 });
+    console.log("TX sent (skipPreflight):", sig);
+
+    // Poll for confirmation
+    var start = Date.now();
+    while (Date.now() - start < 60000) {
+      await new Promise(function (r) { setTimeout(r, 3000); });
+      try {
+        var status = await connection.getSignatureStatuses([sig]);
+        if (status && status.value && status.value[0]) {
+          var st = status.value[0];
+          if (st.err) {
+            // Get full error via getTransaction
+            var txInfo = await connection.getTransaction(sig, { encoding: "jsonParsed", maxSupportedTransactionVersion: 0 });
+            var errMsg = "Transaction failed";
+            if (txInfo && txInfo.meta && txInfo.meta.err) {
+              errMsg = JSON.stringify(txInfo.meta.err);
+            }
+            if (txInfo && txInfo.meta && txInfo.meta.logMessages) {
+              errMsg = txInfo.meta.logMessages.join("\n");
+            }
+            throw new Error(errMsg);
+          }
+          if (st.confirmationStatus === "confirmed" || st.confirmationStatus === "finalized") {
+            return sig;
+          }
+        }
+      } catch (e) {
+        if (e.message && !e.message.includes("Transaction failed") && !e.message.includes("Instruction") && !e.message.includes("Invalid")) throw e;
+        throw e;
       }
-      return; // Confirmed!
-    } catch (e) {
-      // If block height exceeded, tx might still have landed
-      if (e.message && e.message.includes("block height exceeded")) {
-        console.warn("Block height exceeded, checking if TX landed...");
-        await new Promise(function (r) { setTimeout(r, 3000); });
-        try {
-          var status = await connection.getSignatureStatus(sig);
-          if (status && status.value && !status.value.err) return; // It landed!
-        } catch (e2) { /* ignore */ }
-        console.warn("TX may not have landed:", sig);
-        return; // Don't throw — show as success since user approved
-      }
-      throw e;
     }
+    throw new Error("Transaction timed out after 60s");
   }
 
-  async function refreshBalance() {
-    if (!connection || !walletAddress) return;
+  /* ── Init IX builder ──────────────────────────────────────────────── */
+  async function getOrBuildInitIx() {
+    if (!connection) return null;
     try {
-      var bal = await connection.getBalance(new solanaWeb3.PublicKey(walletAddress));
-      document.getElementById("walletBalance").textContent = lamportsToSol(bal) + " SOL";
-    } catch (e) { /* ignore */ }
+      var configPDA = solanaWeb3.PublicKey.findProgramAddressSync([bytes("config")], PROGRAM_ID)[0];
+      var info = await connection.getAccountInfo(configPDA);
+      if (info && info.data && info.data.length > 0) {
+        console.log("Config PDA already exists:", configPDA.toString());
+        return null;
+      }
+      console.log("Config PDA NOT found:", configPDA.toString());
+    } catch (e) {
+      console.warn("Config check error:", e);
+    }
+    try {
+      var operator = new solanaWeb3.PublicKey(walletAddress);
+      var disc = await instrDiscriminator("initialize");
+      var data = concat(disc, operator.toBuffer());
+      var configPDA2 = solanaWeb3.PublicKey.findProgramAddressSync([bytes("config")], PROGRAM_ID)[0];
+      console.log("Building init IX, data:", Array.from(data).map(function(b){return b.toString(16).padStart(2,'0');}).join(''));
+      return new solanaWeb3.TransactionInstruction({
+        keys: [
+          { pubkey: configPDA2, isSigner: false, isWritable: true },
+          { pubkey: operator, isSigner: true, isWritable: true },
+          { pubkey: solanaWeb3.SystemProgram.programId, isSigner: false, isWritable: false },
+        ],
+        programId: PROGRAM_ID, data: data,
+      });
+    } catch (e) {
+      console.warn("Failed to build init IX:", e);
+      return null;
+    }
   }
 
   /* ── Navigation ─────────────────────────────────────────────────────── */
@@ -410,7 +418,6 @@
     var sections = document.querySelectorAll(".content-section");
     var title = document.getElementById("pageTitle");
     var sidebar = document.getElementById("sidebar");
-
     for (var i = 0; i < links.length; i++) {
       (function (link) {
         link.addEventListener("click", function (e) {
@@ -425,23 +432,18 @@
         });
       })(links[i]);
     }
-
     var menuBtn = document.getElementById("menuToggle");
     if (menuBtn) {
       menuBtn.addEventListener("click", function () { sidebar.classList.toggle("open"); });
     }
   }
-
   window.navigateTo = function (section) {
     var link = document.querySelector('.sidebar-link[data-section="' + section + '"]');
     if (link) link.click();
   };
 
   /* ── Render ─────────────────────────────────────────────────────────── */
-  function renderAll() {
-    updateStats(); renderActivity(); renderAgents(); renderBonds(); renderConstraints();
-  }
-
+  function renderAll() { updateStats(); renderActivity(); renderAgents(); renderBonds(); renderConstraints(); }
   function updateStats() {
     document.getElementById("totalAgents").textContent = cachedAgents.length || "0";
     document.getElementById("totalBonds").textContent = cachedBonds.filter(function (b) { return b.isActive; }).length || "0";
@@ -449,7 +451,6 @@
     document.getElementById("totalStaked").textContent = totalLocked ? lamportsToSol(totalLocked) : "0";
     document.getElementById("totalSlashes").textContent = cachedAgents.filter(function (a) { return a.status === "slashed"; }).length || "0";
   }
-
   function renderActivity() {
     var target = document.getElementById("activityList");
     var fullTarget = document.getElementById("activityFullList");
@@ -458,83 +459,42 @@
     ];
     var iconMap = { bond: "fa-shield-halved", slash: "fa-bolt", constraint: "fa-list-check", tx: "fa-arrow-right-arrow-left" };
     target.innerHTML = items.slice(0, 8).map(function (a) {
-      return '<div class="activity-item">' +
-        '<div class="activity-icon ' + a.type + '"><i class="fa-solid ' + (iconMap[a.type] || "fa-circle") + '"></i></div>' +
-        '<div class="activity-info"><div class="activity-title">' + a.title + '</div><div class="activity-desc">' + a.desc + '</div></div>' +
-        (a.amount ? '<span class="activity-amount ' + a.amountType + '">' + a.amount + '</span>' : "") +
-        (a.time ? '<span class="activity-time">' + a.time + '</span>' : "") +
-        '</div>';
+      return '<div class="activity-item"><div class="activity-icon ' + a.type + '"><i class="fa-solid ' + (iconMap[a.type] || "fa-circle") + '"></i></div><div class="activity-info"><div class="activity-title">' + a.title + '</div><div class="activity-desc">' + a.desc + '</div></div>' + (a.amount ? '<span class="activity-amount ' + a.amountType + '">' + a.amount + '</span>' : "") + (a.time ? '<span class="activity-time">' + a.time + '</span>' : "") + '</div>';
     }).join("");
     if (fullTarget) {
       fullTarget.innerHTML = items.map(function (a) {
-        return '<div class="activity-item">' +
-          '<div class="activity-icon ' + a.type + '"><i class="fa-solid ' + (iconMap[a.type] || "fa-circle") + '"></i></div>' +
-          '<div class="activity-info">' +
-          '<div class="activity-title">' + (a.explorerUrl ? '<a href="' + a.explorerUrl + '" target="_blank" style="color:var(--purple);text-decoration:none;">' + a.title + '</a>' : a.title) + '</div>' +
-          '<div class="activity-desc">' + a.desc + '</div>' +
-          '</div>' +
-          (a.amount ? '<span class="activity-amount ' + a.amountType + '">' + a.amount + '</span>' : "") +
-          (a.time ? '<span class="activity-time">' + a.time + '</span>' : "") +
-          '</div>';
+        return '<div class="activity-item"><div class="activity-icon ' + a.type + '"><i class="fa-solid ' + (iconMap[a.type] || "fa-circle") + '"></i></div><div class="activity-info"><div class="activity-title">' + (a.explorerUrl ? '<a href="' + a.explorerUrl + '" target="_blank" style="color:var(--purple);text-decoration:none;">' + a.title + '</a>' : a.title) + '</div><div class="activity-desc">' + a.desc + '</div></div>' + (a.amount ? '<span class="activity-amount ' + a.amountType + '">' + a.amount + '</span>' : "") + (a.time ? '<span class="activity-time">' + a.time + '</span>' : "") + '</div>';
       }).join("");
     }
   }
-
   function renderAgents() {
     var target = document.getElementById("agentsGrid");
     if (!walletConnected) { target.innerHTML = emptyState("fa-wallet", "Connect wallet to see agents"); return; }
     if (cachedAgents.length === 0) { target.innerHTML = emptyState("fa-robot", "No agents registered yet", "Click Register to create one"); return; }
     target.innerHTML = cachedAgents.map(function (a) {
-      return '<div class="agent-card">' +
-        '<div class="agent-card-header">' +
-        '<div class="agent-card-avatar"><i class="fa-solid fa-robot"></i></div>' +
-        '<div class="agent-card-info"><h3>' + a.name + '</h3><p>' + short(a.pubkey) + '</p></div>' +
-        '<span class="status-badge ' + a.status + '">' + a.status + '</span>' +
-        '</div>' +
-        '<div class="agent-card-stats">' +
-        '<div class="agent-stat"><div class="value">' + a.trustScore + '</div><div class="label">Trust</div></div>' +
-        '<div class="agent-stat"><div class="value"><a href="' + explorerAddr(a.pubkey) + '" target="_blank" style="color:var(--purple);">View \u2197</a></div><div class="label">On-chain</div></div>' +
-        '</div></div>';
+      return '<div class="agent-card"><div class="agent-card-header"><div class="agent-card-avatar"><i class="fa-solid fa-robot"></i></div><div class="agent-card-info"><h3>' + a.name + '</h3><p>' + short(a.pubkey) + '</p></div><span class="status-badge ' + a.status + '">' + a.status + '</span></div><div class="agent-card-stats"><div class="agent-stat"><div class="value">' + a.trustScore + '</div><div class="label">Trust</div></div><div class="agent-stat"><div class="value"><a href="' + explorerAddr(a.pubkey) + '" target="_blank" style="color:var(--purple);">View \u2197</a></div><div class="label">On-chain</div></div></div></div>';
     }).join("");
   }
-
   function renderBonds() {
     var target = document.getElementById("bondsList");
     if (!walletConnected) { target.innerHTML = emptyState("fa-wallet", "Connect wallet to see bonds"); return; }
     if (cachedBonds.length === 0) { target.innerHTML = emptyState("fa-shield-halved", "No bonds yet", "Lock funds to create a safety deposit"); return; }
     target.innerHTML = cachedBonds.map(function (b) {
       var expired = b.expiresAt && Date.now() / 1000 > b.expiresAt;
-      return '<div class="bond-card">' +
-        '<div class="bond-icon"><i class="fa-solid fa-shield-halved"></i></div>' +
-        '<div class="bond-info"><h3>' + lamportsToSol(b.amount) + ' SOL</h3><p>' +
-        (b.isActive ? (expired ? "Expired \u2014 withdrawable" : "Locked") : "Withdrawn") + '</p></div>' +
-        '<div class="bond-amount"><div class="value">' + (b.isActive ? "Active" : "Closed") +
-        '</div><div class="label">' + (b.expiresAt ? new Date(b.expiresAt * 1000).toLocaleDateString() : "") + '</div></div>' +
-        (b.isActive ? '<button class="btn-outline" onclick="window._withdrawBond(\'' + b.pubkey + '\')">Withdraw</button>' : "") +
-        '</div>';
+      return '<div class="bond-card"><div class="bond-icon"><i class="fa-solid fa-shield-halved"></i></div><div class="bond-info"><h3>' + lamportsToSol(b.amount) + ' SOL</h3><p>' + (b.isActive ? (expired ? "Expired \u2014 withdrawable" : "Locked") : "Withdrawn") + '</p></div><div class="bond-amount"><div class="value">' + (b.isActive ? "Active" : "Closed") + '</div><div class="label">' + (b.expiresAt ? new Date(b.expiresAt * 1000).toLocaleDateString() : "") + '</div></div>' + (b.isActive ? '<button class="btn-outline" onclick="window._withdrawBond(\'' + b.pubkey + '\')">Withdraw</button>' : "") + '</div>';
     }).join("");
   }
-
   function renderConstraints() {
     var target = document.getElementById("constraintsGrid");
     if (!walletConnected) { target.innerHTML = emptyState("fa-wallet", "Connect wallet to see rules"); return; }
     if (cachedConstraints.length === 0) { target.innerHTML = emptyState("fa-list-check", "No rules configured", "Add rules to control agent behavior"); return; }
     target.innerHTML = cachedConstraints.map(function (c) {
       var iconClass = c.type === "spend" ? "fa-coins" : c.type === "program" ? "fa-cube" : c.type === "timelock" ? "fa-clock" : "fa-gauge-high";
-      return '<div class="constraint-card">' +
-        '<div class="constraint-header">' +
-        '<div class="constraint-icon ' + c.type + '"><i class="fa-solid ' + iconClass + '"></i></div>' +
-        '<h3>' + c.title + '</h3>' +
-        '</div>' +
-        '<div class="constraint-row"><span class="label">Status</span><span class="value">' + (c.enforced ? "Active" : "Pending") + '</span></div>' +
-        '<div class="constraint-status"><span class="dot"></span>' + (c.enforced ? "Enforced" : "Pending") + '</div>' +
-        '</div>';
+      return '<div class="constraint-card"><div class="constraint-header"><div class="constraint-icon ' + c.type + '"><i class="fa-solid ' + iconClass + '"></i></div><h3>' + c.title + '</h3></div><div class="constraint-row"><span class="label">Status</span><span class="value">' + (c.enforced ? "Active" : "Pending") + '</span></div><div class="constraint-status"><span class="dot"></span>' + (c.enforced ? "Enforced" : "Pending") + '</div></div>';
     }).join("");
   }
-
   function emptyState(icon, text, sub) {
-    return '<div class="empty-state"><i class="fa-solid ' + icon + '" style="font-size:28px;color:var(--text-muted);"></i><p>' + text + '</p>' +
-      (sub ? '<p style="font-size:12px;color:var(--text-muted);margin-top:4px;">' + sub + '</p>' : "") + '</div>';
+    return '<div class="empty-state"><i class="fa-solid ' + icon + '" style="font-size:28px;color:var(--text-muted);"></i><p>' + text + '</p>' + (sub ? '<p style="font-size:12px;color:var(--text-muted);margin-top:4px;">' + sub + '</p>' : "") + '</div>';
   }
 
   /* ── Modals ─────────────────────────────────────────────────────────── */
@@ -545,19 +505,16 @@
   }
   function closeModal() { document.getElementById("modalOverlay").classList.remove("open"); }
   window.closeModal = closeModal;
-
   function initModals() {
     document.getElementById("modalClose").addEventListener("click", closeModal);
-    document.getElementById("modalOverlay").addEventListener("click", function (e) {
-      if (e.target.id === "modalOverlay") closeModal();
-    });
+    document.getElementById("modalOverlay").addEventListener("click", function (e) { if (e.target.id === "modalOverlay") closeModal(); });
 
     document.getElementById("registerAgent").addEventListener("click", function () {
       if (!walletConnected) { showToast("Connect wallet first"); return; }
       openModal("Register Agent",
         '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">Register an AI agent on Solana. It becomes accountable \u2014 if it breaks rules, its operator\'s bond compensates victims.</p>' +
         '<div class="form-group"><label>Agent Name</label><input type="text" id="regName" placeholder="e.g. Trading Bot" maxlength="32" /></div>' +
-        '<div class="form-group"><label>Type</label><select id="regType"><option value="0">Trader</option><option value="1">Oracle</option><option value="3">Payment</option><option value="7">Custom</option></select></div>' +
+        '<div class="form-group"><label>Type</label><select id="regType"><option value="0">Trader</option><option value="1">Oracle</option><option value="2">DeFi</option><option value="3">Payment</option><option value="4">NFT</option><option value="5">Governance</option><option value="6">Bridge</option><option value="7">Custom</option></select></div>' +
         '<div class="form-actions"><button class="btn-ghost" onclick="closeModal()">Cancel</button><button class="btn-primary" id="regSubmit">Register</button></div>'
       );
       document.getElementById("regSubmit").onclick = handleRegister;
@@ -566,8 +523,7 @@
     document.getElementById("createBond").addEventListener("click", function () {
       if (!walletConnected) { showToast("Connect wallet first"); return; }
       if (cachedAgents.length === 0) { showToast("Register an agent first"); return; }
-      var opts = cachedAgents.filter(function (a) { return a.status === "active"; })
-        .map(function (a) { return '<option value="' + a.pubkey + '">' + a.name + '</option>'; }).join("");
+      var opts = cachedAgents.filter(function (a) { return a.status === "active"; }).map(function (a) { return '<option value="' + a.pubkey + '">' + a.name + '</option>'; }).join("");
       openModal("Lock Bond",
         '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">Lock SOL as collateral. If your agent breaks rules, these funds compensate the affected party.</p>' +
         '<div class="form-group"><label>Agent</label><select id="bondAgent">' + opts + '</select></div>' +
@@ -581,8 +537,7 @@
     document.getElementById("addConstraint").addEventListener("click", function () {
       if (!walletConnected) { showToast("Connect wallet first"); return; }
       if (cachedAgents.length === 0) { showToast("Register an agent first"); return; }
-      var opts = cachedAgents.filter(function (a) { return a.status === "active"; })
-        .map(function (a) { return '<option value="' + a.pubkey + '">' + a.name + '</option>'; }).join("");
+      var opts = cachedAgents.filter(function (a) { return a.status === "active"; }).map(function (a) { return '<option value="' + a.pubkey + '">' + a.name + '</option>'; }).join("");
       openModal("Add Rule",
         '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">Rules control what your agent can do. Breaking a rule triggers compensation.</p>' +
         '<div class="form-group"><label>Agent</label><select id="conAgent">' + opts + '</select></div>' +
@@ -602,19 +557,26 @@
     setTimeout(function () { t.classList.remove("show"); }, duration || 3000);
   }
 
-  /* ── TX Handlers ──────────────────────────────────────────────────── */
+  /* ── TX Handlers (skipPreflight for real errors) ───────────────────── */
   async function handleRegister() {
     var name = document.getElementById("regName") ? document.getElementById("regName").value.trim() : "";
     var typeIdx = parseInt(document.getElementById("regType") ? document.getElementById("regType").value : "0");
     if (!name) { showToast("Enter a name"); return; }
-    closeModal(); showTxPending('Registering "' + name + '"');    try {
+    closeModal(); showTxPending('Registering "' + name + '"');
+    try {
       var operator = new solanaWeb3.PublicKey(walletAddress);
       var configPDA = solanaWeb3.PublicKey.findProgramAddressSync([bytes("config")], PROGRAM_ID)[0];
       var agentPDA = solanaWeb3.PublicKey.findProgramAddressSync(
         [bytes("agent"), operator.toBuffer(), bytes(name)], PROGRAM_ID
       )[0];
-      var disc = await instrDiscriminator("register_agent");
-      var data = concat(disc, strWithLen(name), new Uint8Array([typeIdx]));
+      var regDisc = await instrDiscriminator("register_agent");
+      var regData = concat(regDisc, strWithLen(name), new Uint8Array([typeIdx]));
+
+      console.log("Register data:", Array.from(regData).map(function(b){return b.toString(16).padStart(2,'0');}).join(' '));
+      console.log("Config PDA:", configPDA.toString());
+      console.log("Agent PDA:", agentPDA.toString());
+      console.log("Operator:", operator.toString());
+      console.log("Program:", PROGRAM_ID.toString());
 
       var registerIx = new solanaWeb3.TransactionInstruction({
         keys: [
@@ -623,35 +585,25 @@
           { pubkey: operator, isSigner: true, isWritable: true },
           { pubkey: solanaWeb3.SystemProgram.programId, isSigner: false, isWritable: false },
         ],
-        programId: PROGRAM_ID, data: data,
+        programId: PROGRAM_ID, data: regData,
       });
-      // Combine init + register into ONE transaction (single Phantom approval)
+
       var tx = new solanaWeb3.Transaction();
       var initIx = await getOrBuildInitIx();
-      if (initIx) tx.add(initIx);
-      tx.add(registerIx);
-      var blockhashInfo = await connection.getLatestBlockhash();
-      tx.recentBlockhash = blockhashInfo.blockhash; tx.feePayer = operator;
-      console.log("Sending register TX to Phantom...");
-      var sig;
-      if (phantom.signAndSendTransaction) {
-        var result = await phantom.signAndSendTransaction(tx, { skipPreflight: false });
-        sig = result.signature;
-      } else {
-        var signed = await phantom.signTransaction(tx);
-        sig = await connection.sendRawTransaction(signed.serialize());
+      if (initIx) {
+        console.log("Adding init IX to transaction");
+        tx.add(initIx);
       }
-      console.log("TX sent:", sig);
-      showTxPending("Confirming on-chain...");
-      await confirmTx(sig, blockhashInfo.blockhash, blockhashInfo.lastValidBlockHeight);
+      tx.add(registerIx);
+
+      var sig = await sendAndWait(tx);
       showTxSuccess('Agent "' + name + '" registered', sig);
       await Promise.all([refreshData(), refreshBalance()]);
     } catch (err) {
       console.error("Register error:", err);
       var msg = err.message || "Transaction failed";
       if (msg.includes("User rejected") || msg.includes("cancelled")) msg = "Cancelled by user";
-      else if (msg.includes("blockhash") || msg.includes("exceeded")) msg = "Transaction expired. Please try again.";
-      else if (msg.includes("0x1")) msg = "Program error: make sure program is initialized.";
+      else if (msg.length > 200) msg = msg.substring(0, 200) + "...";
       showTxError(msg);
     }
   }
@@ -680,17 +632,8 @@
       var initIx = await getOrBuildInitIx();
       if (initIx) tx.add(initIx);
       tx.add(bondIx);
-      var blockhashInfo = await connection.getLatestBlockhash();
-      tx.recentBlockhash = blockhashInfo.blockhash; tx.feePayer = operator;
-      var sig;
-      if (phantom.signAndSendTransaction) {
-        var result = await phantom.signAndSendTransaction(tx);
-        sig = result.signature;
-      } else {
-        var signed = await phantom.signTransaction(tx);
-        sig = await connection.sendRawTransaction(signed.serialize());
-      }
-      await confirmTx(sig, blockhashInfo.blockhash, blockhashInfo.lastValidBlockHeight);
+
+      var sig = await sendAndWait(tx);
       showTxSuccess("Locked " + amountSol + " SOL", sig);
       await Promise.all([refreshData(), refreshBalance()]);
     } catch (err) {
@@ -735,17 +678,8 @@
       var initIx = await getOrBuildInitIx();
       if (initIx) tx.add(initIx);
       tx.add(constraintIx);
-      var blockhashInfo = await connection.getLatestBlockhash();
-      tx.recentBlockhash = blockhashInfo.blockhash; tx.feePayer = operator;
-      var sig;
-      if (phantom.signAndSendTransaction) {
-        var result = await phantom.signAndSendTransaction(tx);
-        sig = result.signature;
-      } else {
-        var signed = await phantom.signTransaction(tx);
-        sig = await connection.sendRawTransaction(signed.serialize());
-      }
-      await confirmTx(sig, blockhashInfo.blockhash, blockhashInfo.lastValidBlockHeight);
+
+      var sig = await sendAndWait(tx);
       showTxSuccess("Rule added", sig);
       await Promise.all([refreshData(), refreshBalance()]);
     } catch (err) {
@@ -769,17 +703,7 @@
         programId: PROGRAM_ID, data: disc,
       });
       var tx = new solanaWeb3.Transaction().add(ix);
-      var blockhashInfo = await connection.getLatestBlockhash();
-      tx.recentBlockhash = blockhashInfo.blockhash; tx.feePayer = operator;
-      var sig;
-      if (phantom.signAndSendTransaction) {
-        var result = await phantom.signAndSendTransaction(tx);
-        sig = result.signature;
-      } else {
-        var signed = await phantom.signTransaction(tx);
-        sig = await connection.sendRawTransaction(signed.serialize());
-      }
-      await confirmTx(sig, blockhashInfo.blockhash, blockhashInfo.lastValidBlockHeight);
+      var sig = await sendAndWait(tx);
       showTxSuccess("Bond withdrawn", sig);
       await Promise.all([refreshData(), refreshBalance()]);
     } catch (err) {
@@ -792,75 +716,42 @@
 
   /* ── Boot ──────────────────────────────────────────────────────────── */
   function boot() {
-    try {
-      PROGRAM_ID = new solanaWeb3.PublicKey(PROGRAM_ID_STR);
-    } catch (e) {
-      console.error("Invalid program ID:", e);
-      showToast("Failed to initialize. Check console.");
-      return;
+    try { PROGRAM_ID = new solanaWeb3.PublicKey(PROGRAM_ID_STR); } catch (e) {
+      console.error("Invalid program ID:", e); showToast("Failed to initialize."); return;
     }
-
     getAccountDiscriminators().then(function () {
-      initNav();
-      initModals();
-      renderAll();
-
-      // CRITICAL: Bind wallet button FIRST
+      initNav(); initModals(); renderAll();
       var walletBtn = document.getElementById("connectWallet");
       if (walletBtn) {
-        walletBtn.addEventListener("click", function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-          connectWallet();
-        });
+        walletBtn.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); connectWallet(); });
       }
-
-      // Check for existing Phantom connection
       phantom = getPhantom();
       if (phantom) {
         phantom.on("connect", function () {
-          walletConnected = true;
-          walletAddress = phantom.publicKey.toString();
+          walletConnected = true; walletAddress = phantom.publicKey.toString();
           connection = new solanaWeb3.Connection(SOLANA_RPC, "confirmed");
-          setWalletUI(true, walletAddress);
-          refreshData();
+          setWalletUI(true, walletAddress); refreshData();
         });
-        if (phantom.isConnected) {
-          phantom.connect({ onlyIfTrusted: true }).catch(function () {});
-        }
+        if (phantom.isConnected) phantom.connect({ onlyIfTrusted: true }).catch(function () {});
       }
     }).catch(function (e) {
-      console.error("Failed to init discriminators:", e);
-      // Still initialize UI even if discriminators fail
-      initNav();
-      initModals();
-      renderAll();
+      console.error("Init failed:", e);
+      initNav(); initModals(); renderAll();
     });
   }
 
-  /* ── Init ──────────────────────────────────────────────────────────── */
   function waitForSolana() {
-    if (typeof solanaWeb3 !== "undefined") {
-      boot();
-    } else {
+    if (typeof solanaWeb3 !== "undefined") { boot(); }
+    else {
       var attempts = 0;
       var check = setInterval(function () {
         attempts++;
-        if (typeof solanaWeb3 !== "undefined") {
-          clearInterval(check);
-          boot();
-        } else if (attempts > 50) {
-          clearInterval(check);
-          console.error("solana-web3.js failed to load after 5 seconds");
-          showToast("Failed to load Solana library. Refresh the page.");
-        }
+        if (typeof solanaWeb3 !== "undefined") { clearInterval(check); boot(); }
+        else if (attempts > 50) { clearInterval(check); showToast("Failed to load Solana library. Refresh."); }
       }, 100);
     }
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", waitForSolana);
-  } else {
-    waitForSolana();
-  }
+  if (document.readyState === "loading") { document.addEventListener("DOMContentLoaded", waitForSolana); }
+  else { waitForSolana(); }
 })();
