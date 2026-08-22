@@ -342,6 +342,22 @@
   }
   function hideStatus() { document.getElementById("txStatus").style.display = "none"; }
 
+  // Balance check before every transaction (prevents Phantom malicious flag)
+  async function checkMinBalance(requiredSol) {
+    try {
+      var bal = await connection.getBalance(new solanaWeb3.PublicKey(walletAddress));
+      var balSol = bal / 1e9;
+      if (balSol < requiredSol + 0.005) {
+        showToast("Insufficient balance: need " + (requiredSol + 0.005).toFixed(4) + " SOL but have " + balSol.toFixed(4) + " SOL");
+        return false;
+      }
+      return true;
+    } catch (e) {
+      console.warn("Balance check failed:", e);
+      return true;
+    }
+  }
+
   async function sendAndWait(tx) {
     var blockhashInfo = await connection.getLatestBlockhash();
     tx.recentBlockhash = blockhashInfo.blockhash;
@@ -590,6 +606,7 @@
     var name = document.getElementById("regName") ? document.getElementById("regName").value.trim() : "";
     var typeIdx = parseInt(document.getElementById("regType") ? document.getElementById("regType").value : "0");
     if (!name) { showToast("Enter a name"); return; }
+    if (!(await checkMinBalance(0.01))) return;
     closeModal(); showTxPending('Registering "' + name + '"');
     try {
       var operator = new solanaWeb3.PublicKey(walletAddress);
@@ -641,6 +658,7 @@
     var amountSol = parseFloat(document.getElementById("bondAmount") ? document.getElementById("bondAmount").value : "");
     var lockDuration = parseInt(document.getElementById("bondDuration") ? document.getElementById("bondDuration").value : "2592000");
     if (!agentPubkey || !amountSol || amountSol < 0.1) { showToast("Fill all fields"); return; }
+    if (!(await checkMinBalance(amountSol))) return;
     closeModal(); showTxPending("Locking " + amountSol + " SOL");
     try {
       var operator = new solanaWeb3.PublicKey(walletAddress);
@@ -682,6 +700,7 @@
     var maxAmountSol = parseFloat(document.getElementById("conMaxAmount") ? document.getElementById("conMaxAmount").value : "1");
     var periodSecs = parseInt(document.getElementById("conPeriod") ? document.getElementById("conPeriod").value : "86400");
     if (!agentPubkey) { showToast("Select an agent"); return; }
+    if (!(await checkMinBalance(0.01))) return;
     closeModal(); showTxPending("Adding rule...");
     try {
       var operator = new solanaWeb3.PublicKey(walletAddress);
@@ -736,6 +755,7 @@
   }
 
   async function withdrawBond(bondPubkey) {
+    if (!(await checkMinBalance(0.002))) return;
     showTxPending("Withdrawing...");
     try {
       var operator = new solanaWeb3.PublicKey(walletAddress);
@@ -776,6 +796,7 @@
     var reason = document.getElementById("slashReason") ? document.getElementById("slashReason").value.trim() : "";
     if (!amountSol || amountSol < 0.01) { showToast("Enter a valid amount"); return; }
     if (!reason) { showToast("Enter a reason"); return; }
+    if (!(await checkMinBalance(0.01))) return;
     closeModal(); showTxPending("Slashing bond...");
     try {
       var operator = new solanaWeb3.PublicKey(walletAddress);
