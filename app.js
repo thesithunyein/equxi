@@ -836,7 +836,7 @@
           { pubkey: new solanaWeb3.PublicKey(bondPubkey), isSigner: false, isWritable: true },
           { pubkey: slashRecordPDA, isSigner: false, isWritable: true },
           { pubkey: operator, isSigner: false, isWritable: false },  // owner = agent.owner = the wallet that registered the agent
-          { pubkey: operator, isSigner: true, isWritable: false },  // authority = config.admin
+          { pubkey: operator, isSigner: true, isWritable: true },  // authority = config.admin (mut: pays for init + receives slashed SOL)
           { pubkey: solanaWeb3.SystemProgram.programId, isSigner: false, isWritable: false },
         ],
         programId: PROGRAM_ID, data: data,
