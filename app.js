@@ -379,7 +379,7 @@
           var st = statusResp.value[0];
           if (st.err) {
             // Fetch full error logs
-            var txInfo = await connection.getTransaction(sig, { encoding: "jsonParsed", maxSupportedTransactionVersion: 0 });
+            var txInfo = await connection.getTransaction(sig, { encoding: "base64", maxSupportedTransactionVersion: 0 });
             var errMsg = "Transaction failed on-chain";
             if (txInfo && txInfo.meta && txInfo.meta.logMessages && txInfo.meta.logMessages.length > 0) {
               errMsg = txInfo.meta.logMessages.slice(-5).join("\n");
@@ -404,7 +404,7 @@
     }
     // Final check
     try {
-      var finalResp = await connection.getTransaction(sig, { encoding: "jsonParsed", maxSupportedTransactionVersion: 0 });
+      var finalResp = await connection.getTransaction(sig, { encoding: "base64", maxSupportedTransactionVersion: 0 });
       if (finalResp && finalResp.meta && !finalResp.meta.err) return sig;
       if (finalResp && finalResp.meta && finalResp.meta.logMessages) {
         throw new Error(finalResp.meta.logMessages.slice(-5).join("\n"));
@@ -671,7 +671,7 @@
       // Anchor #[account(init)] creates the bond PDA — no SystemProgram.createAccount needed
       var bondDataIx = new solanaWeb3.TransactionInstruction({
         keys: [
-          { pubkey: solanaWeb3.PublicKey.findProgramAddressSync([bytes("config")], PROGRAM_ID)[0], isSigner: false, isWritable: false },
+          { pubkey: solanaWeb3.PublicKey.findProgramAddressSync([bytes("config")], PROGRAM_ID)[0], isSigner: false, isWritable: true },
           { pubkey: bondPDA, isSigner: false, isWritable: true },
           { pubkey: new solanaWeb3.PublicKey(agentPubkey), isSigner: false, isWritable: true },
           { pubkey: operator, isSigner: true, isWritable: true },
@@ -820,7 +820,7 @@
 
       var slashIx = new solanaWeb3.TransactionInstruction({
         keys: [
-          { pubkey: configPDA, isSigner: false, isWritable: false },
+          { pubkey: configPDA, isSigner: false, isWritable: true },
           { pubkey: agentKey, isSigner: false, isWritable: true },
           { pubkey: new solanaWeb3.PublicKey(bondPubkey), isSigner: false, isWritable: true },
           { pubkey: slashRecordPDA, isSigner: false, isWritable: true },
