@@ -78,7 +78,7 @@ a { text-decoration: none; color: inherit; }
 .subhead {
   font-size: 16px;
   font-weight: 400;
-  color: var(--muted);
+  color: rgba(255,255,255,0.7);
   line-height: 1.65;
   max-width: 480px;
 }
@@ -187,9 +187,11 @@ a { text-decoration: none; color: inherit; }
   transition: border-color 0.2s, transform 0.2s;
 }
 .how-card:hover { border-color: rgba(153, 69, 255, 0.3); transform: translateY(-2px); }
-.how-num {
-  font-size: 28px; font-weight: 800; color: var(--purple);
-  margin-bottom: 12px; opacity: 0.8;
+.how-icon {
+  width: 44px; height: 44px; border-radius: 12px;
+  background: rgba(153, 69, 255, 0.12); border: 1px solid rgba(153, 69, 255, 0.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: var(--purple); margin-bottom: 16px;
 }
 .how-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
 .how-card p { font-size: 13px; color: var(--muted); line-height: 1.55; }
