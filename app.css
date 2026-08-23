@@ -346,8 +346,16 @@ button { border: none; background: none; cursor: pointer; font: inherit; color: 
 @keyframes sectionIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
 /* Stat card hover */
-.stat-card { transition: border-color 0.15s, transform 0.15s; }
-.stat-card:hover { transform: translateY(-2px); }
+.stat-card { transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s; }
+.stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2); }
+
+/* Agent card hover */
+.agent-card { transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s; }
+.agent-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2); }
+
+/* Bond card hover */
+.bond-card { transition: border-color 0.2s, transform 0.2s; }
+.bond-card:hover { transform: translateY(-1px); }
 
 /* Responsive */
 @media (max-width: 768px) {

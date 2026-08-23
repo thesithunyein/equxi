@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Equxi - Pitch Deck</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
   <style>
     .bg { position: fixed; inset: 0; z-index: 0; }
     .bg-video { position: absolute; inset: -5%; width: 110%; height: 110%; object-fit: cover; opacity: 0.35; }
@@ -176,24 +177,24 @@
     }
     
     .step {
-      background: rgba(153, 69, 255, 0.08);
-      border: 1px solid rgba(153, 69, 255, 0.2);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
       border-radius: 14px;
-      padding: 20px 28px;
+      padding: 20px 24px;
       text-align: center;
-      min-width: 110px;
+      min-width: 100px;
     }
     
-    .step-num {
-      font-size: 24px;
-      font-weight: 800;
-      color: var(--purple);
-      margin-bottom: 4px;
+    .step-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: rgba(153, 69, 255, 0.12); border: 1px solid rgba(153, 69, 255, 0.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; color: var(--purple); margin: 0 auto 10px;
     }
     
     .step-label {
       font-size: 13px;
-      font-weight: 500;
+      font-weight: 600;
       color: var(--text);
     }
     
@@ -354,27 +355,27 @@
     <p class="lead">Equxi is a Solana-native trust layer. Operators lock SOL as a bond, set on-chain behavioral rules, and get slashed automatically when agents misbehave.</p>
     <div class="flow">
       <div class="step">
-        <div class="step-num">1</div>
+        <div class="step-icon"><i class="fa-solid fa-user-plus"></i></div>
         <div class="step-label">Register</div>
       </div>
       <div class="arrow">→</div>
       <div class="step">
-        <div class="step-num">2</div>
+        <div class="step-icon"><i class="fa-solid fa-lock"></i></div>
         <div class="step-label">Bond</div>
       </div>
       <div class="arrow">→</div>
       <div class="step">
-        <div class="step-num">3</div>
+        <div class="step-icon"><i class="fa-solid fa-shield-halved"></i></div>
         <div class="step-label">Enforce</div>
       </div>
       <div class="arrow">→</div>
       <div class="step">
-        <div class="step-num">4</div>
+        <div class="step-icon"><i class="fa-solid fa-bolt"></i></div>
         <div class="step-label">Slash</div>
       </div>
       <div class="arrow">→</div>
       <div class="step">
-        <div class="step-num">5</div>
+        <div class="step-icon"><i class="fa-solid fa-hand-holding-dollar"></i></div>
         <div class="step-label">Compensate</div>
       </div>
     </div>
