@@ -172,7 +172,7 @@ a { text-decoration: none; color: inherit; }
   margin-bottom: 12px;
 }
 .how-sub {
-  font-size: 15px; color: var(--muted);
+  font-size: 15px; color: rgba(255,255,255,0.6);
   max-width: 520px; margin: 0 auto 48px;
   line-height: 1.6;
 }
@@ -181,10 +181,11 @@ a { text-decoration: none; color: inherit; }
   gap: 16px; text-align: left;
 }
 .how-card {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(10, 10, 12, 0.85);
+  border: 1px solid rgba(255,255,255,0.1);
   border-radius: 14px; padding: 28px 20px;
   transition: border-color 0.2s, transform 0.2s;
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
 }
 .how-card:hover { border-color: rgba(153, 69, 255, 0.3); transform: translateY(-2px); }
 .how-icon {
@@ -193,8 +194,8 @@ a { text-decoration: none; color: inherit; }
   display: flex; align-items: center; justify-content: center;
   font-size: 18px; color: var(--purple); margin-bottom: 16px;
 }
-.how-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
-.how-card p { font-size: 13px; color: var(--muted); line-height: 1.55; }
+.how-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 8px; color: #fff; }
+.how-card p { font-size: 13px; color: rgba(255,255,255,0.65); line-height: 1.55; }
 
 /* Footer */
 .site-footer {
