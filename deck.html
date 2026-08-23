@@ -274,7 +274,26 @@
     .contact-row .btn svg { width: 18px; height: 18px; }
     
     @media print {
-      .slide { page-break-after: always; min-height: 100vh; }
+      .bg { display: none; }
+      body { background: #000 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .slide {
+        page-break-after: always;
+        page-break-inside: avoid;
+        min-height: 100vh;
+        height: 100vh;
+        background: #000 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .card { background: rgba(255,255,255,0.05) !important; border-color: rgba(255,255,255,0.1) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .step { background: rgba(153, 69, 255, 0.15) !important; border-color: rgba(153, 69, 255, 0.3) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .tag { background: rgba(255,255,255,0.08) !important; border-color: rgba(255,255,255,0.12) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .btn-fill { background: #9945FF !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .btn-outline { border-color: rgba(255,255,255,0.2) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .icon { background: rgba(153, 69, 255, 0.2) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .items li { border-color: rgba(255,255,255,0.08) !important; }
+      .metric-val { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      h1, h2, h3, p, span, li, .step-label, .metric-label, .small { color: inherit !important; }
     }
   </style>
 </head>
