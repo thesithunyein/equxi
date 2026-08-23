@@ -181,11 +181,10 @@ a { text-decoration: none; color: inherit; }
   gap: 16px; text-align: left;
 }
 .how-card {
-  background: rgba(10, 10, 12, 0.85);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
   border-radius: 14px; padding: 28px 20px;
   transition: border-color 0.2s, transform 0.2s;
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
 }
 .how-card:hover { border-color: rgba(153, 69, 255, 0.3); transform: translateY(-2px); }
 .how-icon {
