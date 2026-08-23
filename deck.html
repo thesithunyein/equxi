@@ -4,73 +4,66 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Equxi - Pitch Deck</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     .bg { position: fixed; inset: 0; z-index: 0; }
-    .bg-video { position: absolute; inset: -5%; width: 110%; height: 110%; object-fit: cover; opacity: 0.4; }
-    .bg-overlay { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 40%, transparent 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.8) 100%); }
+    .bg-video { position: absolute; inset: -5%; width: 110%; height: 110%; object-fit: cover; opacity: 0.35; }
+    .bg-overlay { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 40%, transparent 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.85) 100%); }
     
     :root {
       --bg: #000;
       --text: #fff;
-      --muted: #888;
+      --muted: #999;
+      --dim: #666;
       --purple: #9945FF;
-      --purple-hover: #8033e0;
       --purple-glow: rgba(153, 69, 255, 0.25);
       --green: #14F195;
       --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
     
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: var(--font); background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
     
     .slide {
       width: 100vw;
-      height: 100vh;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      padding: 80px 120px;
+      padding: 80px 100px;
       position: relative;
       page-break-after: always;
       z-index: 1;
     }
     
-    .slide-number {
+    .slide-num {
       position: absolute;
       bottom: 40px;
       right: 60px;
-      font-size: 13px;
-      color: var(--muted);
+      font-size: 12px;
+      color: var(--dim);
       font-weight: 500;
+      letter-spacing: 0.05em;
     }
     
-    .logo-mark {
-      width: 80px;
-      height: 80px;
-      border-radius: 18px;
-      margin-bottom: 24px;
-      object-fit: contain;
-    }
-    
-    .badge {
+    .tag {
       display: inline-flex;
       align-items: center;
       gap: 8px;
       padding: 6px 16px;
       border-radius: 999px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.1);
-      font-size: 13px;
-      font-weight: 500;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      font-size: 11px;
+      font-weight: 600;
       color: var(--muted);
-      margin-bottom: 28px;
+      margin-bottom: 32px;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 1px;
     }
     
-    .badge-dot {
+    .tag-dot {
       width: 6px;
       height: 6px;
       border-radius: 50%;
@@ -78,180 +71,210 @@
     }
     
     h1 {
-      font-size: clamp(40px, 5vw, 64px);
-      font-weight: 700;
-      line-height: 1.1;
-      text-align: center;
-      max-width: 900px;
-      letter-spacing: -0.03em;
-    }
-    
-    h1 span { color: var(--purple); }
-    
-    h2 {
-      font-size: clamp(32px, 4vw, 48px);
-      font-weight: 700;
-      line-height: 1.2;
+      font-size: clamp(48px, 6vw, 80px);
+      font-weight: 800;
+      line-height: 1.05;
       text-align: center;
       max-width: 800px;
-      letter-spacing: -0.03em;
+      letter-spacing: -0.04em;
     }
     
-    h2 span { color: var(--purple); }
+    h1 em {
+      font-style: normal;
+      color: var(--purple);
+    }
     
-    .subtitle {
-      font-size: 16px;
-      color: var(--muted);
-      margin-top: 20px;
+    h2 {
+      font-size: clamp(36px, 4.5vw, 56px);
+      font-weight: 700;
+      line-height: 1.15;
       text-align: center;
-      max-width: 520px;
-      line-height: 1.65;
+      max-width: 750px;
+      letter-spacing: -0.035em;
     }
     
-    .grid-2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 24px;
-      max-width: 900px;
-      width: 100%;
-      margin-top: 40px;
+    h2 em {
+      font-style: normal;
+      color: var(--purple);
     }
     
-    .card {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 14px;
-      padding: 28px;
-    }
-    
-    .card h3 {
-      font-size: 16px;
-      font-weight: 600;
-      margin-bottom: 10px;
-      color: var(--text);
-    }
-    
-    .card p {
-      font-size: 14px;
-      color: var(--muted);
-      line-height: 1.6;
-    }
-    
-    .flow {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-top: 44px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-    
-    .flow-step {
-      background: rgba(153, 69, 255, 0.1);
-      border: 1px solid rgba(153, 69, 255, 0.25);
-      border-radius: 12px;
-      padding: 18px 24px;
-      text-align: center;
-      min-width: 100px;
-    }
-    
-    .flow-step .num {
+    h3 {
       font-size: 20px;
       font-weight: 700;
-      color: var(--purple);
-    }
-    
-    .flow-step .label {
-      font-size: 13px;
-      color: var(--text);
-      margin-top: 4px;
-      font-weight: 500;
-    }
-    
-    .flow-arrow {
-      font-size: 18px;
-      color: var(--muted);
-    }
-    
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
-      max-width: 700px;
-      margin-top: 44px;
-    }
-    
-    .stat { text-align: center; }
-    
-    .stat .number {
-      font-size: 44px;
-      font-weight: 700;
-      color: var(--purple);
       letter-spacing: -0.02em;
     }
     
-    .stat .label {
-      font-size: 12px;
+    .lead {
+      font-size: 18px;
       color: var(--muted);
-      margin-top: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      margin-top: 24px;
+      text-align: center;
+      max-width: 560px;
+      line-height: 1.7;
+      font-weight: 400;
     }
     
-    .links {
-      margin-top: 32px;
-      display: flex;
-      gap: 12px;
-    }
-    
-    .links a {
-      padding: 12px 24px;
-      border-radius: 10px;
+    .small {
       font-size: 14px;
+      color: var(--dim);
+      line-height: 1.6;
+    }
+    
+    /* Components */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border-radius: 12px;
+      font-size: 15px;
       font-weight: 600;
       text-decoration: none;
       transition: all 0.2s;
     }
     
-    .links .primary {
+    .btn-fill {
       background: var(--purple);
       color: #fff;
-      box-shadow: 0 0 20px var(--purple-glow);
+      box-shadow: 0 0 30px var(--purple-glow);
     }
     
-    .links .secondary {
-      border: 1px solid rgba(255,255,255,0.15);
+    .btn-outline {
+      background: transparent;
       color: var(--text);
+      border: 1px solid rgba(255,255,255,0.12);
     }
     
-    .list {
-      list-style: none;
-      max-width: 640px;
-      margin-top: 36px;
+    .btn-outline:hover { border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.03); }
+    
+    .row { display: flex; gap: 12px; margin-top: 32px; }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      max-width: 880px;
+      width: 100%;
+      margin-top: 48px;
     }
     
-    .list li {
-      padding: 14px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      font-size: 15px;
-      color: rgba(255,255,255,0.8);
+    .card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 16px;
+      padding: 32px;
+    }
+    
+    .card h3 { margin-bottom: 12px; }
+    .card p { color: var(--muted); line-height: 1.65; }
+    
+    .flow {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 16px;
+      margin-top: 48px;
     }
     
-    .list li::before {
-      content: '→';
+    .step {
+      background: rgba(153, 69, 255, 0.08);
+      border: 1px solid rgba(153, 69, 255, 0.2);
+      border-radius: 14px;
+      padding: 20px 28px;
+      text-align: center;
+      min-width: 110px;
+    }
+    
+    .step-num {
+      font-size: 24px;
+      font-weight: 800;
       color: var(--purple);
-      font-weight: 700;
+      margin-bottom: 4px;
     }
     
-    .list li strong {
+    .step-label {
+      font-size: 13px;
+      font-weight: 500;
       color: var(--text);
     }
     
+    .arrow { font-size: 20px; color: var(--dim); }
+    
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 32px;
+      max-width: 800px;
+      margin-top: 48px;
+    }
+    
+    .metric { text-align: center; }
+    .metric-val {
+      font-size: 48px;
+      font-weight: 800;
+      color: var(--purple);
+      letter-spacing: -0.03em;
+    }
+    .metric-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 500;
+    }
+    
+    .items {
+      list-style: none;
+      max-width: 680px;
+      width: 100%;
+      margin-top: 40px;
+    }
+    
+    .items li {
+      padding: 16px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 16px;
+      color: rgba(255,255,255,0.75);
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    
+    .items li .icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      background: rgba(153, 69, 255, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    
+    .items li .icon svg { width: 12px; height: 12px; }
+    
+    .items li strong { color: var(--text); font-weight: 600; }
+    
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      max-width: 880px;
+      width: 100%;
+      margin-top: 40px;
+    }
+    
+    .contact-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 28px;
+    }
+    
+    .contact-row .btn svg { width: 18px; height: 18px; }
+    
     @media print {
-      .slide { page-break-after: always; }
+      .slide { page-break-after: always; min-height: 100vh; }
     }
   </style>
 </head>
@@ -263,162 +286,239 @@
     <div class="bg-overlay"></div>
   </div>
 
-  <!-- Slide 1: Title -->
+  <!-- 01 — Title -->
   <div class="slide">
-    <img src="assets/logo.webp" alt="Equxi" class="logo-mark" />
-    <div class="badge"><span class="badge-dot"></span> Open Source Trust Layer</div>
-    <h1>Equxi</h1>
-    <p class="subtitle">An open-source accountability infrastructure for AI agents on Solana. Bond operators, enforce rules on-chain, slash misbehaving agents.</p>
-    <div class="links">
-      <a href="https://equxi.sithunyein.com" class="primary" target="_blank">Live Demo</a>
-      <a href="https://github.com/thesithunyein/equxi" class="secondary" target="_blank">GitHub</a>
+    <img src="assets/logo.webp" alt="Equxi" style="width: 72px; height: 72px; border-radius: 16px; margin-bottom: 28px;" />
+    <div class="tag"><span class="tag-dot"></span> Solana Trust Layer</div>
+    <h1>The accountability layer for <em>autonomous commerce</em></h1>
+    <p class="lead">Bond operators. Enforce rules on-chain. Slash misbehaving agents. Compensate victims.</p>
+    <div class="row">
+      <a href="https://equxi.sithunyein.com/app.html" class="btn btn-fill" target="_blank">Open Dashboard</a>
+      <a href="https://github.com/thesithunyein/equxi" class="btn btn-outline" target="_blank">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+        Source Code
+      </a>
     </div>
-    <div class="slide-number">01</div>
+    <div class="slide-num">01</div>
   </div>
 
-  <!-- Slide 2: Problem -->
+  <!-- 02 — Problem -->
   <div class="slide">
-    <div class="badge"><span class="badge-dot"></span> The Problem</div>
-    <h2>AI agents handle money.<br><span>Nobody can trust them.</span></h2>
-    <p class="subtitle">Counterparties refuse to deal with agents that can lose funds with no recourse. Traditional wallets only hold money — they cannot enforce behavioral rules or compensate victims.</p>
-    <div class="grid-2">
+    <div class="tag"><span class="tag-dot"></span> The Problem</div>
+    <h2>AI agents are handling real money. <em>Nobody can trust them.</em></h2>
+    <p class="lead">Counterparties refuse to deal with agents that can lose funds with no recourse. Traditional wallets hold money but cannot enforce rules or compensate victims.</p>
+    <div class="grid">
       <div class="card">
-        <h3>No Accountability</h3>
-        <p>AI agents execute transactions autonomously. When they misbehave, there is no mechanism to penalize them or compensate victims.</p>
+        <h3>$0 Accountability</h3>
+        <p>AI agents execute transactions autonomously. When they misbehave, there is no mechanism to penalize them. Victims have no recourse.</p>
       </div>
       <div class="card">
-        <h3>No Trust Layer</h3>
-        <p>Existing wallets hold funds but cannot enforce spending limits, timelocks, or program allowlists on-agent behavior.</p>
+        <h3>No Behavioral Enforcement</h3>
+        <p>Existing wallets hold funds but cannot enforce spending limits, timelocks, or program allowlists. Agents can do anything with deposited capital.</p>
+      </div>
+      <div class="card">
+        <h3>Trust Gap Blocks Scale</h3>
+        <p>Without accountability, institutional capital cannot flow into agent-managed strategies. The market is stuck at experiments.</p>
+      </div>
+      <div class="card">
+        <h3>No Compensation Mechanism</h3>
+        <p>When an agent rug-pulls or malfunctions, there is no on-chain mechanism to automatically compensate affected parties.</p>
       </div>
     </div>
-    <div class="slide-number">02</div>
+    <div class="slide-num">02</div>
   </div>
 
-  <!-- Slide 3: Solution -->
+  <!-- 03 — Solution -->
   <div class="slide">
-    <div class="badge"><span class="badge-dot"></span> The Solution</div>
-    <h2>Bond. Enforce. <span>Slash.</span></h2>
-    <p class="subtitle">Equxi is a Solana program that makes AI agents financially accountable. Operators lock SOL as a bond, set on-chain rules, and get slashed when agents misbehave.</p>
+    <div class="tag"><span class="tag-dot"></span> The Solution</div>
+    <h2>Bond. Enforce. <em>Slash.</em> Compensate.</h2>
+    <p class="lead">Equxi is a Solana-native trust layer. Operators lock SOL as a bond, set on-chain behavioral rules, and get slashed automatically when agents misbehave.</p>
     <div class="flow">
-      <div class="flow-step">
-        <div class="num">1</div>
-        <div class="label">Register</div>
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-label">Register</div>
       </div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-step">
-        <div class="num">2</div>
-        <div class="label">Bond</div>
+      <div class="arrow">→</div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-label">Bond</div>
       </div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-step">
-        <div class="num">3</div>
-        <div class="label">Enforce</div>
+      <div class="arrow">→</div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-label">Enforce</div>
       </div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-step">
-        <div class="num">4</div>
-        <div class="label">Slash</div>
+      <div class="arrow">→</div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-label">Slash</div>
       </div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-step">
-        <div class="num">5</div>
-        <div class="label">Compensate</div>
-      </div>
-    </div>
-    <div class="slide-number">03</div>
-  </div>
-
-  <!-- Slide 4: How It Works -->
-  <div class="slide">
-    <div class="badge"><span class="badge-dot"></span> On-Chain Infrastructure</div>
-    <h2>8 instructions. <span>All verified.</span></h2>
-    <ul class="list">
-      <li><strong>Register Agent</strong> — create on-chain identity with operator wallet</li>
-      <li><strong>Create Bond</strong> — lock SOL as security deposit</li>
-      <li><strong>Add Constraint</strong> — set spend limits, timelocks, program allowlists</li>
-      <li><strong>Execute Slash</strong> — penalize bond when rules are violated</li>
-      <li><strong>Compensate</strong> — distribute slashed funds to victims</li>
-      <li><strong>Withdraw</strong> — return bond when agent is decommissioned</li>
-      <li><strong>Trust Score</strong> — calculate reputation from on-chain history</li>
-      <li><strong>Initialize</strong> — deploy program config</li>
-    </ul>
-    <div class="slide-number">04</div>
-  </div>
-
-  <!-- Slide 5: Traction -->
-  <div class="slide">
-    <div class="badge"><span class="badge-dot"></span> Traction</div>
-    <h2>Built and <span>verified on Solana.</span></h2>
-    <div class="stats">
-      <div class="stat">
-        <div class="number">8</div>
-        <div class="label">On-Chain Instructions</div>
-      </div>
-      <div class="stat">
-        <div class="number">12+</div>
-        <div class="label">Confirmed Transactions</div>
-      </div>
-      <div class="stat">
-        <div class="number">3</div>
-        <div class="label">Integrations Ready</div>
+      <div class="arrow">→</div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-label">Compensate</div>
       </div>
     </div>
-    <div class="grid-2" style="margin-top: 32px;">
+    <div class="slide-num">03</div>
+  </div>
+
+  <!-- 04 — Product -->
+  <div class="slide">
+    <div class="tag"><span class="tag-dot"></span> Product</div>
+    <h2>Everything is <em>built and live.</em></h2>
+    <div class="two-col">
+      <div class="card">
+        <h3>Solana Program</h3>
+        <p class="small">8 on-chain instructions. Anchor framework. Deployed on devnet. Full register-bond-enforce-slash flow verified with confirmed transactions.</p>
+      </div>
       <div class="card">
         <h3>Dashboard</h3>
-        <p>Live on equxi.sithunyein.com with Phantom wallet integration. Register, bond, enforce, slash — all from the UI.</p>
+        <p class="small">Live at equxi.sithunyein.com. Phantom wallet integration. Register agents, lock bonds, add rules, execute slashes. Clean, responsive UI.</p>
+      </div>
+      <div class="card">
+        <h3>TypeScript SDK</h3>
+        <p class="small">Programmatic access to all 8 instructions. Import into any Solana project. Full type safety with Anchor IDL.</p>
       </div>
       <div class="card">
         <h3>elizaOS Plugin</h3>
-        <p>One-line integration for any Solana agent built on elizaOS. Import, configure, deploy.</p>
+        <p class="small">One-line integration for any agent built on elizaOS. Natural language commands trigger on-chain actions automatically.</p>
       </div>
     </div>
-    <div class="slide-number">05</div>
+    <div class="slide-num">04</div>
   </div>
 
-  <!-- Slide 6: Open Source -->
+  <!-- 05 — Traction -->
   <div class="slide">
-    <div class="badge"><span class="badge-dot"></span> Open Source</div>
-    <h2>Fully open. <span>MIT license.</span></h2>
-    <p class="subtitle">The entire codebase is public. Solana program, TypeScript SDK, elizaOS plugin, dashboard. Anyone can fork, audit, and build on it.</p>
-    <div class="grid-2">
-      <div class="card">
-        <h3>Why Open Source Matters</h3>
-        <p>Closed trust layers can be revoked, surveilled, or priced out of reach. Open-source accountability infrastructure belongs to everyone — especially developers in underserved markets who cannot afford proprietary alternatives.</p>
+    <div class="tag"><span class="tag-dot"></span> Traction</div>
+    <h2>Verified on <em>Solana devnet.</em></h2>
+    <div class="metrics">
+      <div class="metric">
+        <div class="metric-val">8</div>
+        <div class="metric-label">Instructions</div>
       </div>
-      <div class="card">
-        <h3>What Happens If It Closes</h3>
-        <p>AI agent builders lose the only open accountability layer on Solana. They must build from scratch or depend on centralized solutions that can be switched off overnight.</p>
+      <div class="metric">
+        <div class="metric-val">12+</div>
+        <div class="metric-label">On-Chain Txs</div>
+      </div>
+      <div class="metric">
+        <div class="metric-val">3</div>
+        <div class="metric-label">Products</div>
+      </div>
+      <div class="metric">
+        <div class="metric-val">MIT</div>
+        <div class="metric-label">License</div>
       </div>
     </div>
-    <div class="slide-number">06</div>
-  </div>
-
-  <!-- Slide 7: Team -->
-  <div class="slide">
-    <div class="badge"><span class="badge-dot"></span> Team</div>
-    <h2><span>Sithu Nyein</span></h2>
-    <p class="subtitle">Solo founder and engineer. 23 years old. Based in Yangon, Myanmar. Studying at University of the People. Built the entire product: Rust program, Anchor framework, TypeScript SDK, frontend, and elizaOS plugin.</p>
-    <div class="links">
-      <a href="https://x.com/equxi_ai" class="secondary" target="_blank"><svg width="18" height="18" viewBox="0 0 24 24" fill="white" style="vertical-align: middle;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
-      <a href="https://github.com/thesithunyein/equxi" class="secondary" target="_blank"><svg width="18" height="18" viewBox="0 0 24 24" fill="white" style="vertical-align: middle;"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg></a>
-      <a href="https://www.linkedin.com/in/sithunyein/" class="secondary" target="_blank"><svg width="18" height="18" viewBox="0 0 24 24" fill="white" style="vertical-align: middle;"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
-    </div>
-    <div class="slide-number">07</div>
-  </div>
-
-  <!-- Slide 8: Grant Ask -->
-  <div class="slide">
-    <div class="badge"><span class="badge-dot"></span> Grant Ask</div>
-    <h2>$10,000 to launch on <span>mainnet.</span></h2>
-    <ul class="list">
-      <li>Mainnet deployment with security audit through Solana ecosystem grants</li>
-      <li>Automated enforcement via risk oracle integration</li>
-      <li>elizaOS plugin shipped and tested with 5 real agent builders</li>
-      <li>First 10 paying operators using Equxi to bond their AI agents</li>
+    <ul class="items">
+      <li>
+        <span class="icon"><svg viewBox="0 0 24 24" fill="#14F195"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
+        <span><strong>Full flow proven:</strong> register agent → lock 0.5 SOL bond → add spending limit rule → slash 0.1 SOL → bond reduced to 0.4 SOL. All confirmed on-chain.</span>
+      </li>
+      <li>
+        <span class="icon"><svg viewBox="0 0 24 24" fill="#14F195"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
+        <span><strong>CI/CD passing:</strong> GitHub Actions builds Rust program and TypeScript SDK on every push. Auto-deploys to Vercel.</span>
+      </li>
+      <li>
+        <span class="icon"><svg viewBox="0 0 24 24" fill="#14F195"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
+        <span><strong>Program ID:</strong> D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc — verified on Solana Explorer.</span>
+      </li>
     </ul>
-    <p class="subtitle" style="margin-top: 24px;">Without this grant, the product stays on devnet. The infrastructure to launch on mainnet — audit, RPC endpoints, and distribution — requires funding.</p>
-    <div class="slide-number">08</div>
+    <div class="slide-num">05</div>
+  </div>
+
+  <!-- 06 — Market -->
+  <div class="slide">
+    <div class="tag"><span class="tag-dot"></span> Market</div>
+    <h2>AI agents are the <em>next trillion-dollar economy.</em></h2>
+    <p class="lead">Autonomous trading, agent-to-agent commerce, automated treasury management. Every transaction needs accountability. Equxi is the trust layer.</p>
+    <div class="grid">
+      <div class="card">
+        <h3>Autonomous Traders</h3>
+        <p class="small">Trading bots managing real capital need to prove they operate within defined risk parameters. Equxi enforces spending limits on-chain.</p>
+      </div>
+      <div class="card">
+        <h3>Agent Frameworks</h3>
+        <p class="small">elizaOS, GRIFFAIN, Headless. Every framework needs a trust layer for their agents. Equxi plugs in with one import.</p>
+      </div>
+      <div class="card">
+        <h3>Institutional DeFi</h3>
+        <p class="small">Protocols accepting agent deposits need accountability guarantees. Equxi bonds provide slashable collateral as security.</p>
+      </div>
+      <div class="card">
+        <h3>Agent-to-Agent Commerce</h3>
+        <p class="small">When agents transact with each other, both parties need trust guarantees. Equxi provides the enforcement layer.</p>
+      </div>
+    </div>
+    <div class="slide-num">06</div>
+  </div>
+
+  <!-- 07 — Open Source -->
+  <div class="slide">
+    <div class="tag"><span class="tag-dot"></span> Open Source</div>
+    <h2>Public code. <em>Permanent trust.</em></h2>
+    <p class="lead">The entire codebase is MIT licensed. Solana program, SDK, plugin, dashboard. Anyone can fork, audit, and build on it. Open weights, once released, can never be taken back.</p>
+    <div class="two-col">
+      <div class="card">
+        <h3>Why This Matters</h3>
+        <p class="small">Closed trust layers can be revoked, surveilled, or priced out of reach. Accountability infrastructure must be open to be trusted. Developers in underserved markets need access to the same tools as everyone else.</p>
+      </div>
+      <div class="card">
+        <h3>What Happens If It Disappears</h3>
+        <p class="small">Agent builders lose the only open accountability layer on Solana. They must build from scratch or depend on centralized alternatives that can be switched off overnight.</p>
+      </div>
+    </div>
+    <div class="slide-num">07</div>
+  </div>
+
+  <!-- 08 — Team -->
+  <div class="slide">
+    <div class="tag"><span class="tag-dot"></span> Founder</div>
+    <h2><em>Sithu Nyein</em></h2>
+    <p class="lead">Solo founder and engineer. Built the entire product: Rust program, Anchor framework, TypeScript SDK, frontend dashboard, and elizaOS plugin. Based in Yangon, Myanmar. Studying at University of the People.</p>
+    <div class="contact-row">
+      <a href="https://x.com/equxi_ai" class="btn btn-outline" target="_blank">
+        <svg viewBox="0 0 24 24" fill="white"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      </a>
+      <a href="https://github.com/thesithunyein/equxi" class="btn btn-outline" target="_blank">
+        <svg viewBox="0 0 24 24" fill="white"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+      </a>
+      <a href="https://www.linkedin.com/in/sithunyein/" class="btn btn-outline" target="_blank">
+        <svg viewBox="0 0 24 24" fill="white"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+      </a>
+    </div>
+    <div class="slide-num">08</div>
+  </div>
+
+  <!-- 09 — Ask -->
+  <div class="slide">
+    <div class="tag"><span class="tag-dot"></span> The Ask</div>
+    <h2>$10,000 to go <em>mainnet.</em></h2>
+    <ul class="items">
+      <li>
+        <span class="icon"><svg viewBox="0 0 24 24" fill="#9945FF"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
+        <span><strong>Mainnet deployment</strong> with security audit through Solana ecosystem grants</span>
+      </li>
+      <li>
+        <span class="icon"><svg viewBox="0 0 24 24" fill="#9945FF"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
+        <span><strong>Automated enforcement</strong> via risk oracle integration for real-time slash triggers</span>
+      </li>
+      <li>
+        <span class="icon"><svg viewBox="0 0 24 24" fill="#9945FF"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
+        <span><strong>elizaOS plugin</strong> shipped and tested with 5 real agent builders</span>
+      </li>
+      <li>
+        <span class="icon"><svg viewBox="0 0 24 24" fill="#9945FF"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
+        <span><strong>First 10 paying operators</strong> using Equxi to bond their AI agents on mainnet</span>
+      </li>
+    </ul>
+    <div class="row" style="margin-top: 40px;">
+      <a href="https://equxi.sithunyein.com" class="btn btn-fill" target="_blank">equxi.sithunyein.com</a>
+      <a href="https://github.com/thesithunyein/equxi" class="btn btn-outline" target="_blank">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+        GitHub
+      </a>
+    </div>
+    <div class="slide-num">09</div>
   </div>
 
 </body>
