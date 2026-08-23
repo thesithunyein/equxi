@@ -6,6 +6,10 @@
   <title>Equxi - Pitch Deck</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
+    .bg { position: fixed; inset: 0; z-index: 0; }
+    .bg-video { position: absolute; inset: -5%; width: 110%; height: 110%; object-fit: cover; opacity: 0.4; }
+    .bg-overlay { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 40%, transparent 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.8) 100%); }
+    
     :root {
       --bg: #000;
       --text: #fff;
@@ -30,14 +34,7 @@
       padding: 80px 120px;
       position: relative;
       page-break-after: always;
-    }
-    
-    .slide::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: radial-gradient(ellipse at 50% 40%, rgba(153, 69, 255, 0.08) 0%, transparent 60%);
-      pointer-events: none;
+      z-index: 1;
     }
     
     .slide-number {
@@ -265,6 +262,12 @@
   </style>
 </head>
 <body>
+  <div class="bg">
+    <video class="bg-video" autoplay muted loop playsinline>
+      <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260506_031045_0e1165dd-ab48-46e3-ad3d-5fe77f217647.mp4" type="video/mp4" />
+    </video>
+    <div class="bg-overlay"></div>
+  </div>
 
   <!-- Slide 1: Title -->
   <div class="slide">
