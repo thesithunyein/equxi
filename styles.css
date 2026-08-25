@@ -16,8 +16,8 @@ a { text-decoration: none; color: inherit; }
 
 /* Background */
 .bg { position: fixed; inset: 0; z-index: 0; }
-.bg-video { position: absolute; inset: -5%; width: 110%; height: 110%; object-fit: cover; opacity: 0.5; }
-.bg-overlay { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 40%, transparent 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.8) 100%); }
+.bg-video { position: absolute; inset: -5%; width: 110%; height: 110%; object-fit: cover; opacity: 0.25; }
+.bg-overlay { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 40%, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.9) 100%); }
 
 /* Page */
 .page { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; min-height: 100dvh; padding: 20px 32px; }
