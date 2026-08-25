@@ -204,6 +204,11 @@ a { text-decoration: none; color: inherit; }
   display: grid; grid-template-columns: repeat(5, 1fr);
   gap: 16px; text-align: left;
 }
+
+/* Mobile override for how-grid */
+@media (max-width: 768px) {
+  .how-grid { grid-template-columns: 1fr !important; }
+}
 .how-card {
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.06);
