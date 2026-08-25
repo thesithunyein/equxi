@@ -359,15 +359,54 @@ button { border: none; background: none; cursor: pointer; font: inherit; color: 
 
 /* Responsive */
 @media (max-width: 768px) {
-  .sidebar { transform: translateX(-100%); }
+  .sidebar { transform: translateX(-100%); width: 280px; }
   .sidebar.open { transform: translateX(0); }
+  .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 45; display: none; }
+  .sidebar-overlay.open { display: block; }
   .main-content { margin-left: 0; }
   .menu-toggle { display: flex; }
   .content-section { padding: 16px; }
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .section-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .section-header h2 { font-size: 16px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .stat-card { padding: 14px; gap: 10px; }
+  .stat-icon { width: 36px; height: 36px; font-size: 14px; }
+  .stat-body .stat-value { font-size: 18px; }
   .wallet-btn span { display: none; }
+  .wallet-btn { padding: 8px 12px; }
+  .wallet-balance { font-size: 11px; }
+  .topbar { padding: 0 12px; gap: 8px; }
+  .topbar-title h1 { font-size: 14px; }
   .agents-grid, .constraints-grid { grid-template-columns: 1fr; }
-  .quick-steps { flex-direction: column; }
-  .bond-card { flex-direction: column; align-items: flex-start; }
+  .agent-card { padding: 16px; }
+  .agent-card-header { margin-bottom: 12px; }
+  .agent-card-stats { gap: 8px; }
+  .quick-steps { flex-direction: column; gap: 12px; padding: 16px; }
+  .qstep { gap: 10px; }
+  .qstep-text strong { font-size: 13px; }
+  .qstep-text span { font-size: 12px; }
+  .bond-card { flex-direction: column; align-items: flex-start; gap: 12px; }
   .bond-amount { text-align: left; }
+  .constraint-card { padding: 14px; }
+  .modal { margin: 16px; max-width: none; }
+  .modal-body { padding: 16px; }
+  .form-group input, .form-group select { font-size: 16px; padding: 12px 14px; }
+  .toast { left: 16px; right: 16px; bottom: 16px; }
+  .activity-item { padding: 10px 16px; }
+  .activity-title { font-size: 12px; }
+  .activity-desc { font-size: 11px; }
+  .activity-amount { font-size: 12px; }
+  .card-header { padding: 12px 16px; }
+  .empty-state { padding: 40px 16px; }
+  .empty-state h3 { font-size: 14px; }
+  .empty-state p { font-size: 12px; }
+}
+
+/* Small phones */
+@media (max-width: 380px) {
+  .stat-card { padding: 12px; gap: 8px; }
+  .stat-icon { width: 32px; height: 32px; font-size: 12px; }
+  .stat-body .stat-value { font-size: 16px; }
+  .agent-card { padding: 12px; }
+  .bond-card { padding: 12px; }
 }

@@ -457,13 +457,28 @@
           var target = document.getElementById("section-" + link.dataset.section);
           if (target) target.classList.add("active");
           title.textContent = link.querySelector("span").textContent;
-          sidebar.classList.remove("open");
+          closeSidebar();
         });
       })(links[i]);
     }
     var menuBtn = document.getElementById("menuToggle");
+    var overlay = document.getElementById("sidebarOverlay");
+    function closeSidebar() {
+      sidebar.classList.remove("open");
+      if (overlay) overlay.classList.remove("open");
+    }
+    function openSidebar() {
+      sidebar.classList.add("open");
+      if (overlay) overlay.classList.add("open");
+    }
     if (menuBtn) {
-      menuBtn.addEventListener("click", function () { sidebar.classList.toggle("open"); });
+      menuBtn.addEventListener("click", function () {
+        if (sidebar.classList.contains("open")) closeSidebar();
+        else openSidebar();
+      });
+    }
+    if (overlay) {
+      overlay.addEventListener("click", closeSidebar);
     }
   }
   window.navigateTo = function (section) {
