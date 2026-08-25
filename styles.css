@@ -203,11 +203,44 @@ a { text-decoration: none; color: inherit; }
 .how-grid {
   display: grid; grid-template-columns: repeat(5, 1fr);
   gap: 16px; text-align: left;
+  position: relative;
+}
+.how-grid::before {
+  content: "";
+  position: absolute;
+  top: 22px;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  background: rgba(153, 69, 255, 0.15);
+  z-index: 0;
+}
+.how-grid::after {
+  content: "";
+  position: absolute;
+  top: 22px;
+  left: 10%;
+  width: 60px;
+  height: 2px;
+  background: var(--purple);
+  box-shadow: 0 0 12px var(--purple-glow);
+  z-index: 1;
+  animation: flowLine 4s ease-in-out infinite;
+}
+@keyframes flowLine {
+  0% { left: 10%; opacity: 0.5; }
+  50% { left: calc(90% - 60px); opacity: 1; }
+  100% { left: 10%; opacity: 0.5; }
+}
+.how-card {
+  position: relative;
+  z-index: 1;
 }
 
 /* Mobile override for how-grid */
 @media (max-width: 768px) {
   .how-grid { grid-template-columns: 1fr !important; }
+  .how-grid::before, .how-grid::after { display: none; }
 }
 .how-card {
   background: rgba(255,255,255,0.04);
