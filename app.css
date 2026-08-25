@@ -53,6 +53,7 @@ button { border: none; background: none; cursor: pointer; font: inherit; color: 
 .sidebar-link.active { background: var(--purple); color: #fff; }
 .sidebar-link i { width: 18px; text-align: center; font-size: 14px; }
 .sidebar-footer { padding: 12px 8px; border-top: 1px solid var(--border); }
+.sidebar-x { justify-content: center; }
 
 /* Main */
 .main-content { flex: 1; margin-left: var(--sidebar-w); min-height: 100vh; display: flex; flex-direction: column; position: relative; z-index: 1; }
