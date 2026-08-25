@@ -203,35 +203,7 @@ a { text-decoration: none; color: inherit; }
 .how-grid {
   display: grid; grid-template-columns: repeat(5, 1fr);
   gap: 0; text-align: center;
-  position: relative;
   padding: 0 20px;
-}
-.how-grid::before {
-  content: "";
-  position: absolute;
-  top: 28px;
-  left: 12%;
-  right: 12%;
-  height: 2px;
-  background: rgba(153, 69, 255, 0.2);
-  z-index: 0;
-}
-.how-grid::after {
-  content: "";
-  position: absolute;
-  top: 28px;
-  left: 12%;
-  width: 80px;
-  height: 2px;
-  background: var(--purple);
-  box-shadow: 0 0 16px var(--purple-glow), 0 0 32px var(--purple-glow);
-  z-index: 1;
-  animation: flowLine 3s ease-in-out infinite;
-}
-@keyframes flowLine {
-  0% { left: 12%; opacity: 0.4; }
-  50% { left: calc(88% - 80px); opacity: 1; }
-  100% { left: 12%; opacity: 0.4; }
 }
 .how-card {
   position: relative;
