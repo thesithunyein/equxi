@@ -136,24 +136,42 @@ a { text-decoration: none; color: inherit; }
 
 /* Mobile */
 @media (max-width: 768px) {
-  .page { padding: 16px 20px; }
+  .page { padding: 12px 16px; }
   .nav { display: none; }
   .menu-toggle { display: flex; }
   .desktop-only { display: none; }
-  .hero { padding: 0 8px; gap: 16px; }
-  .headline { font-size: 28px; letter-spacing: -0.02em; }
-  .subhead { font-size: 14px; line-height: 1.5; display: none; }
+  .header { padding: 8px 0; }
+  .logo img { width: 32px; height: 32px; }
+  .logo-text { font-size: 16px; }
+  .hero { padding: 0 4px; gap: 16px; min-height: auto; flex: unset; }
+  .headline { font-size: 26px; letter-spacing: -0.02em; line-height: 1.2; }
+  .subhead { font-size: 13px; line-height: 1.5; display: block; max-width: 100%; }
   .cta-row { flex-direction: column; width: 100%; gap: 10px; }
-  .btn-primary, .btn-outline { width: 100%; justify-content: center; padding: 14px 20px; font-size: 15px; }
-  .stats { grid-template-columns: repeat(2, 1fr); gap: 16px; padding: 20px 0 8px; }
-  .stat-value { font-size: 20px; }
-  .stat-label { font-size: 11px; }
-  .badge { font-size: 12px; padding: 5px 12px; }
-  .how-section { padding: 60px 20px; }
-  .how-grid { grid-template-columns: 1fr; }
-  .how-card { padding: 24px 20px; }
+  .btn-primary, .btn-outline { width: 100%; justify-content: center; padding: 14px 20px; font-size: 15px; min-height: 48px; }
+  .stats { grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 16px 0 8px; }
+  .stat { padding: 8px; }
+  .stat-value { font-size: 18px; }
+  .stat-label { font-size: 10px; }
+  .badge { font-size: 11px; padding: 5px 12px; }
+  .how-section { padding: 40px 16px; }
+  .how-title { font-size: 20px; }
+  .how-sub { font-size: 13px; margin-bottom: 32px; }
+  .how-grid { grid-template-columns: 1fr; gap: 12px; }
+  .how-card { padding: 20px 16px; }
+  .how-icon { width: 40px; height: 40px; }
+  .site-footer { padding: 32px 16px; }
   .footer-inner { flex-direction: column; gap: 16px; text-align: center; }
-  .footer-links { flex-wrap: wrap; justify-content: center; }
+  .footer-brand { justify-content: center; }
+  .footer-links { flex-wrap: wrap; justify-content: center; gap: 16px; }
+  .footer-copy { font-size: 11px; }
+}
+
+/* Small phones */
+@media (max-width: 380px) {
+  .headline { font-size: 22px; }
+  .subhead { font-size: 12px; }
+  .stat-value { font-size: 16px; }
+  .stat-label { font-size: 9px; }
 }
 
 /* How It Works */
