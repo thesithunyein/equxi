@@ -143,5 +143,19 @@
   </footer>
 
   <script src="main.js"></script>
+  <script>
+    // Cursor glow effect
+    var cursor = document.createElement('div');
+    cursor.className = 'cursor-glow';
+    document.body.appendChild(cursor);
+    document.addEventListener('mousemove', function(e) {
+      cursor.style.left = e.clientX + 'px';
+      cursor.style.top = e.clientY + 'px';
+      cursor.style.opacity = '1';
+    });
+    document.addEventListener('mouseleave', function() {
+      cursor.style.opacity = '0';
+    });
+  </script>
 </body>
 </html>
