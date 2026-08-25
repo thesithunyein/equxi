@@ -226,7 +226,7 @@ a { text-decoration: none; color: inherit; }
 
 /* Mobile override for how-grid */
 @media (max-width: 768px) {
-  .how-grid { grid-template-columns: 1fr !important; gap: 20px; padding: 0; }
+  .how-grid { grid-template-columns: 1fr !important; gap: 16px; padding: 0; max-width: 280px; margin: 0 auto; }
   .how-grid::before, .how-grid::after { display: none; }
   .how-card { text-align: left; display: flex; gap: 16px; align-items: center; padding: 12px 16px !important; background: rgba(255,255,255,0.03); border-radius: 12px; }
   .how-card p { display: none; }
