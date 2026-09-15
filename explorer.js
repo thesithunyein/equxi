@@ -317,12 +317,14 @@
       .map(function (entry, index) {
         var isBase = index === 0;
         var points = entry.points;
-        var label = isBase ? entry.label : (points < 0 ? "\u2212" : "+") + Math.abs(points);
+        // Always the number, including the base row: the label already says what
+        // it is, and repeating it in the points column reads like a mistake.
+        var amount = (points < 0 ? "\u2212" : "+") + Math.abs(points);
         return (
           '<div class="x-ledger-row' +
           (isBase ? " base" : "") +
           '"><span class="x-ledger-pts">' +
-          esc(label) +
+          esc(amount) +
           "</span><span>" +
           esc(entry.label) +
           "</span></div>"
@@ -688,7 +690,7 @@
       '<a href="' + link + '"><img src="' + badgeUrl + '" alt="Equxi trust: ' + esc(agent.name) + '" /></a>';
 
     return (
-      '<h2 style="margin-top:22px;font-size:15px;">Embed this agent\\u2019s live grade</h2>' +
+      '<h2 style="margin-top:22px;font-size:15px;">Embed this agent\u2019s live grade</h2>' +
       '<div class="x-sub">The badge is not a certificate — it re-reads the chain on every request, ' +
       "so it cannot go stale or be faked by copying markup.</div>" +
       '<div class="x-embed-preview"><img src="' +
