@@ -83,6 +83,54 @@
     .x-error code { color: #ffb3b3; font-size: 12.5px; }
 
     .x-empty { text-align: center; padding: 44px 20px; color: var(--muted); font-size: 14px; }
+
+    /* Sort / filter chips. Rendered by explorer.js so the state lives in one place. */
+    .x-controls { padding: 16px 18px; }
+    .x-control-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+    .x-control-row:last-child { margin-bottom: 0; }
+    .x-control-label {
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em;
+      color: var(--muted); min-width: 46px;
+    }
+    button.x-chip {
+      padding: 6px 12px; border-radius: 999px; border: 1px solid #262626; background: #0c0c0c;
+      color: var(--muted); font-size: 12.5px; font-family: var(--font); cursor: pointer;
+    }
+    button.x-chip:hover { border-color: #3a3a3a; color: var(--text); }
+    button.x-chip.on { border-color: var(--purple); color: #fff; background: rgba(153, 69, 255, 0.16); }
+
+    /* The score ledger. Monospace numbers, so the arithmetic lines up. */
+    .x-ledger { margin-top: 12px; border: 1px solid #1a1a1a; border-radius: 12px; overflow: hidden; }
+    .x-ledger-row {
+      display: flex; gap: 14px; padding: 10px 14px; font-size: 13.5px;
+      border-bottom: 1px solid #141414; align-items: baseline;
+    }
+    .x-ledger-row:last-child { border-bottom: none; }
+    .x-ledger-row.base { color: var(--muted); }
+    .x-ledger-row.total { background: #0d0d0d; font-weight: 600; }
+    .x-ledger-pts {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      min-width: 52px; text-align: right; font-size: 13px;
+    }
+
+    /* Embed controls: badge preview plus one-line copyable snippets. */
+    .x-embed-preview {
+      margin: 12px 0; padding: 14px; border: 1px dashed #262626; border-radius: 12px;
+      background: #0a0a0a; display: flex; align-items: center; gap: 12px;
+    }
+    .x-embed-row { display: flex; gap: 8px; margin-top: 8px; }
+    .x-embed-row input {
+      flex: 1 1 auto; min-width: 0; padding: 9px 12px; border-radius: 9px; border: 1px solid #222;
+      background: #0a0a0a; color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 12px;
+    }
+    .x-embed-row button {
+      flex: 0 0 auto; padding: 9px 14px; border-radius: 9px; border: 1px solid #262626;
+      background: #0c0c0c; color: var(--text); cursor: pointer; font-family: var(--font); font-size: 12.5px;
+    }
+    .x-embed-row button:hover { border-color: var(--purple); }
+    table.x-table tbody tr.sel { background: #101010; }
+    table.x-table tbody tr.sel td { border-bottom-color: #1e1e1e; }
     .x-spinner { display: inline-block; width: 15px; height: 15px; border: 2px solid #333; border-top-color: var(--purple); border-radius: 50%; animation: xspin 0.8s linear infinite; vertical-align: -2px; margin-right: 8px; }
     @keyframes xspin { to { transform: rotate(360deg); } }
     .x-slashes { margin-top: 6px; }
@@ -137,36 +185,46 @@
         One question matters when an autonomous agent holds your money:
         <strong>does it have collateral at risk, and has it ever been slashed?</strong>
         Every number on this page is read from the Equxi program on Solana — nothing here is
-        self-reported by the agent.
+        self-reported by the agent, and every grade comes with the deductions that produced it.
       </p>
 
       <form class="x-search" id="searchForm" autocomplete="off">
         <input
           id="agentInput"
           type="text"
-          placeholder="Paste an agent PDA address, or leave empty to list all agents"
+          placeholder="Agent name, agent address, or owner wallet — or leave empty to list every agent"
           spellcheck="false"
         />
         <button type="submit" id="lookupBtn">Look up</button>
         <button type="button" class="ghost" id="allBtn">All agents</button>
+        <button type="button" class="ghost" id="refreshBtn">Refresh</button>
       </form>
 
       <div id="status" aria-live="polite"></div>
       <div id="summary"></div>
       <div id="detail"></div>
+      <div id="controls"></div>
       <div id="registry"></div>
 
       <p class="x-foot">
         <strong>How the grade is computed.</strong> The score is derived from observable on-chain
         evidence only: whether a bond is posted and how large it is, and whether each recorded
-        violation has actually been compensated to a victim. It deliberately ignores the on-chain
+        violation has actually been compensated to a victim. Each agent's detail panel lists the
+        deductions as a ledger that sums to the score, so the number can be checked rather than
+        trusted. It deliberately ignores the on-chain
         <span class="x-mono">trust_score</span> field, which is set by the program admin and is
         therefore an assertion rather than evidence. An agent with no bond is reported as
         <em>ungraded</em> — not as trustworthy.
         <br />
+        <strong>Embed a live grade.</strong> Any agent can wear its own badge:
+        <span class="x-mono">GET /api/badge?agent=&lt;pda&gt;</span> returns an SVG that re-reads
+        the chain on every request (add <span class="x-mono">&amp;format=json</span> for the
+        numbers). A badge is a live view, not a certificate.
+        <br />
         Data comes from <span class="x-mono">GET /api/trust</span> over the
         <span id="clusterName" class="x-mono">devnet</span> cluster. The source for this page is
-        <a href="https://github.com/thesithunyein/equxi/blob/main/api/trust.js" target="_blank">api/trust.js</a>
+        <a href="https://github.com/thesithunyein/equxi/blob/main/api/trust.js" target="_blank">api/trust.js</a>,
+        <a href="https://github.com/thesithunyein/equxi/blob/main/api/badge.js" target="_blank">api/badge.js</a>
         and
         <a href="https://github.com/thesithunyein/equxi/blob/main/lib/equxi-layout.js" target="_blank">lib/equxi-layout.js</a>,
         with the scoring rules pinned by tests in

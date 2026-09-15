@@ -90,9 +90,18 @@ declare namespace EquxiLayout {
 
   type TrustGrade = "A" | "B" | "C" | "D" | "F" | "ungraded";
 
+  interface TrustScoreEntry {
+    /** Human-readable reason for this line of the ledger. */
+    label: string;
+    /** `+100` for the base entry, negative for each deduction. Sums to `score`. */
+    points: number;
+  }
+
   interface TrustProfileResult {
     grade: TrustGrade;
     score: number;
+    /** The deductions that produced `score`, summing exactly to it. */
+    breakdown: TrustScoreEntry[];
     onChainTrustScore: number;
     bond: {
       amountLamports: string;

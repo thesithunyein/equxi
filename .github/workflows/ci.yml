@@ -131,6 +131,9 @@ jobs:
           test -f sdk/src/idl/equxi.json || exit 1
           test -f eliza-plugin/src/coder.ts || exit 1
           test -f api/trust.js || exit 1
+          test -f api/trust.d.ts || exit 1
+          test -f api/badge.js || exit 1
+          test -f api/badge.d.ts || exit 1
           test -f lib/equxi-layout.js || exit 1
           test -f explorer.html || exit 1
           test -f explorer.js || exit 1
@@ -146,7 +149,7 @@ jobs:
         run: |
           echo "Checking Rust program..."
           head -5 programs/equxi/src/lib.rs | grep -q "anchor_lang" || exit 1
-          for ix in initialize register_agent create_bond withdraw_bond \
+          for ix in initialize create_vault register_agent create_bond withdraw_bond \
                     add_constraint execute_slash compensate_victim update_trust_score; do
             grep -q "fn handler" "programs/equxi/src/instructions/$ix.rs" || exit 1
           done
@@ -172,15 +175,25 @@ jobs:
           # The function must not acquire dependencies: `vercel.json` disables the
           # build, so anything imported here has to resolve at runtime unbuilt.
           # Every `require` must therefore be relative.
-          for f in api/trust.js lib/equxi-layout.js; do
+          for f in api/trust.js api/badge.js lib/equxi-layout.js; do
             if grep -oE 'require\("[^"]+"\)' "$f" | grep -vE 'require\("\.[^"]*"\)'; then
               echo "$f requires a package; it must stay dependency-free" && exit 1
             fi
           done
           node --check api/trust.js || exit 1
+          node --check api/badge.js || exit 1
           node --check lib/equxi-layout.js || exit 1
           node --check explorer.js || exit 1
+          node --check dev-server.js || exit 1
           grep -q 'module.exports' api/trust.js || exit 1
+          grep -q 'module.exports' api/badge.js || exit 1
+          # The badge must escape the agent-controlled values it prints.
+          grep -q 'function xml(' api/badge.js || exit 1
+          # Every api/*.js file is a route; dev-server.js must serve the same set
+          # or the Explorer cannot be developed locally.
+          for route in trust badge; do
+            grep -q "/api/$route" dev-server.js || exit 1
+          done
           echo "Read API complete"
       - name: Verify README
         run: |

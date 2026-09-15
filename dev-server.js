@@ -5,7 +5,7 @@
  * Vercel serves `api/*.js` as functions; nothing does that in a plain checkout,
  * which is why `explorer.html` cannot be tested by opening the file directly.
  * This shim closes that gap: it serves the repo as static files and dispatches
- * `/api/trust` to the real handler.
+ * `/api/trust` and `/api/badge` to the real handlers.
  *
  * It works because the handler uses only `req.method`, `req.query`, and the
  * standard `ServerResponse` surface — no vendor-specific glue — so a Node
@@ -23,7 +23,12 @@ var fs = require("fs");
 var path = require("path");
 var { URL } = require("url");
 
-var handler = require("./api/trust.js");
+// One entry per file in api/, keyed by its path. Vercel derives the route from
+// the filename the same way, so a new endpoint is wired in one place here.
+var API_ROUTES = {
+  "/api/trust": require("./api/trust.js"),
+  "/api/badge": require("./api/badge.js"),
+};
 
 var ROOT = __dirname;
 var PORT = Number(process.argv[2] || process.env.PORT || 4321);
@@ -76,7 +81,8 @@ function serveStatic(res, pathname) {
 var server = http.createServer(function (req, res) {
   var url = new URL(req.url, "http://localhost:" + PORT);
 
-  if (url.pathname === "/api/trust") {
+  var handler = API_ROUTES[url.pathname];
+  if (handler) {
     // `req.query` is the one thing Vercel adds that Node does not, so the handler
     // only ever sees the shape it expects.
     var query = {};
@@ -87,6 +93,7 @@ var server = http.createServer(function (req, res) {
 
     Promise.resolve(handler(req, res)).catch(function (error) {
       res.statusCode = 500;
+      res.setHeader("content-type", "application/json; charset=utf-8");
       res.end(JSON.stringify({ ok: false, error: String(error) }));
     });
     return;
@@ -99,4 +106,5 @@ server.listen(PORT, function () {
   console.log("Equxi dev server: http://localhost:" + PORT);
   console.log("  Explorer:  http://localhost:" + PORT + "/explorer.html");
   console.log("  Read API:  http://localhost:" + PORT + "/api/trust");
+  console.log("  Badge:     http://localhost:" + PORT + "/api/badge?agent=<pda>");
 });

@@ -4,7 +4,7 @@
 > be confused:
 >
 > * **JavaScript/TypeScript** checks — these have been **executed** and the results
->   are recorded below. `npm run test:unit` runs **100** assertions over the wire
+>   are recorded below. `npm run test:unit` runs **119** assertions over the wire
 >   formats, PDA seeds, IDL, SDK, read layer, and read API with no validator. The
 >   read API additionally has **live devnet evidence** (below), which is the one
 >   place a real network was involved.
@@ -21,7 +21,7 @@
 
 | Check | Status | Notes |
 |-------|--------|-------|
-| `npm run test:unit` | ✅ **100 passing** | Wire formats, PDA seeds, IDL, SDK, read layer, read API |
+| `npm run test:unit` | ✅ **119 passing** | Wire formats, PDA seeds, IDL, SDK, read layer, read API, badge |
 | `tsc --noEmit` (tests) | ✅ **0 errors** | |
 | `tsc --noEmit` (SDK) | ✅ **0 errors** | |
 | `tsc --noEmit` (elizaOS plugin) | ✅ **0 errors** | Was **16 errors** before the rewrite |
@@ -30,8 +30,11 @@
 | Read API against live devnet | ✅ **returned real data** | See “Live devnet read” below |
 | Trust Explorer rendered | ✅ **verified in a browser** | Screenshot reproduced below in prose; served by `dev-server.js` |
 | `anchor build` | ✅ **compiled** | CI run [34983589484](https://github.com/thesithunyein/equxi/actions/runs/34983589484), `Build program` took 201s |
-| `anchor test` | ✅ **113 passing, 0 failing** | 13 on-chain tests + 100 unit tests on a real local validator |
-| CI (Wire-format Unit Tests) | ✅ **100 passing** | Runs on every push |
+| `anchor test` | ✅ **113 passing, 0 failing** | 13 on-chain tests + 100 unit tests on a real local validator (at that revision; the unit suite has since grown to 119) |
+| CI (Wire-format Unit Tests) | ✅ **119 passing** | Runs on every push |
+| `GET /api/badge` against live devnet | ✅ **returned a real badge** | `x-equxi-status: graded`, `x-equxi-grade: D`, `x-equxi-score: 48` for agent Augur — see below |
+| Explorer: search, sort, filter, ledger, embed | ✅ **verified in a browser against live devnet** | See below |
+| SDK scorer vs. API scorer agreement | ✅ **119 passing** | Both implementations asserted equal across six scenarios, including the floored one |
 | CI (Build & Test Program) | ✅ **green** | Compiles the program and runs the on-chain suite |
 | Devnet redeploy of v0.2 | ⬜ **Not deployed** | The live program is still v0.1; the frontend speaks both ABIs |
 
@@ -61,6 +64,50 @@ Each is recorded because each one had a way of looking fine:
 | CI reported **success while testing nothing** | The npm `@coral-xyz/anchor-cli` wrapper printed `Expected "anchor-cli 0.31.2", found "anchor-cli 0.31.0"` → `Could not find globally installed anchor` and **exited 0**. The job took 32s and contained zero `Compiling` lines. Fixed by installing the real CLI with `cargo install anchor-cli --version 0.31.2` |
 | `Run program tests` reported 100 passing but never ran the on-chain suite | `tests/**/*.ts` in a shell without `globstar` expands to *subdirectory* files only, silently skipping `tests/equxi.test.ts`. Fixed by listing both patterns |
 | All 13 on-chain tests failed, 12 of them cascading from the first | `anchor test` on localnet loaded the program with the 2-argument `--bpf-program <id> <so>` form, which does **not** give the test wallet the program's upgrade authority, so `initialize` was correctly rejected. Fixed with `[test] upgradeable = true`, which makes anchor pass `--upgradeable-program <id> <so> <wallet>` — the local validator then matches a real `anchor deploy` |
+
+### The embeddable badge, read from the running endpoint (executed)
+
+```
+GET /api/badge?agent=8RsJkPR3YyYyf612RKa5PKHtp81q6LfLAvD3WxGHzrYK
+HTTP/1.1 200 OK
+content-type: image/svg+xml; charset=utf-8
+x-equxi-status: graded
+x-equxi-grade: D
+x-equxi-score: 48
+aria-label="equxi: D 48"
+
+# and for an address with no agent account:
+GET /api/badge?agent=11111111111111111111111111111111
+HTTP/1.1 200 OK
+x-equxi-status: unknown
+x-equxi-grade: unknown
+aria-label="equxi: not found"
+```
+
+An unknown address returns a grey `not found` badge rather than a `404`, because
+a broken image in a README hides the problem while a grey badge shows it.
+
+### Explorer interactions against live devnet (executed)
+
+Driven in a real browser against live devnet, reading the deployed v0.1 program:
+
+| Behaviour | Observed |
+|-----------|----------|
+| Deep link `?q=aug` | 1 row shown, filter labelled, registry intact |
+| Owner wallet `3zpsb…MsiR` | Resolved through the `?agent=` → `?owner=` fallback and opened agent “Augur” |
+| An address with no agent | “Nothing is registered at … — it is not an agent account, and it owns no agents on this cluster.” |
+| Grade filter `A` | 0 rows, “No agent matches the current filter”, Clear filters restores the registry |
+| Sort / “Only unpaid slashes” chips | State reflected in the chip row and the table |
+| Score ledger | `+100 − 20 − 24 − 8 = 48`, matching the score in the same panel |
+| Rules column | `1 found (counter n/a)` — where the old page printed a contradictory `0` |
+| Badge preview | `<img src="/api/badge?agent=…"` loaded, 81px wide, `naturalWidth` non-zero |
+
+Two bugs were found by doing this rather than by reading the code:
+
+* the empty state announced “no agents are registered on this cluster” when the
+  reader had simply pasted an address that holds nothing;
+* an RPC failure during the owner-wallet fallback was being converted into a
+  reassuring “nothing found” — the one failure mode this page must never have.
 
 ### Frontend ABI dispatch against live devnet (executed)
 
