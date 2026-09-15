@@ -1,5 +1,7 @@
 # Kept in lockstep with CI (.github/workflows/ci.yml) and the proc-macro2 pin
-# in programs/equxi/Cargo.toml: anchor 0.30.1 needs the pre-1.88 proc_macro
-# span API shape. Bump all three together.
+# in programs/equxi/Cargo.toml. Two constraints squeeze the toolchain choice:
+#   - anchor 0.30.1 needs the pre-1.88 proc_macro span API shape  -> rustc < 1.88
+#   - block-buffer 0.12.1 in the graph declares edition 2024      -> rustc >= 1.85
+# Valid window: 1.85-1.87. Bump together with the proc-macro2 pin.
 [toolchain]
-channel = "1.83.0"
+channel = "1.87.0"
