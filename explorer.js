@@ -926,6 +926,18 @@
     submitSearch(el.input.value);
   });
 
+  // Handle Enter on the input directly instead of relying on implicit form
+  // submission. Implicit submission works in a desktop browser with one submit
+  // button, but it is the one interaction a phone keyboard ("Go") and an
+  // embedded webview disagree about, and a search box that ignores Enter reads
+  // as broken. `preventDefault` keeps the two paths from both firing.
+  el.input.addEventListener("keydown", function (event) {
+    if (event.key === "Enter" && !event.isComposing) {
+      event.preventDefault();
+      submitSearch(el.input.value);
+    }
+  });
+
   el.all.addEventListener("click", function () {
     el.input.value = "";
     state.nameFilter = "";
