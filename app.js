@@ -202,7 +202,7 @@
 
   async function refreshData() {
     if (!walletConnected) return;
-    checkProgramVersion();
+    detectProgramVersion();
     showStatus("Loading on-chain data...");
     var result = await fetchAllProgramAccounts();
     cachedAgents = result.agents.filter(function (a) { return a.owner === walletAddress; });
@@ -411,67 +411,44 @@
 
   /* ── Init IX builder ──────────────────────────────────────────────── */
   // ------------------------------------------------------------------
-  // Program version guard.
+  // Program ABI dispatcher.
   //
-  // The v0.2 instructions (signed owner on create_bond, vault on slash)
-  // are rejected by the currently deployed v0.1 program. Detect which
-  // version is live by checking the Config account size: v0.2 grew Config
-  // by 8 bytes (two new u64 vault counters), so live sizes are 65 (v0.1)
-  // vs 73 (v0.2). Cached after the first check so repeated refreshes stay
-  // free. null = unknown (e.g. RPC hiccup) — never block on unknown.
+  // Two program versions exist in the wild:
+  //   v0.1 — the currently deployed devnet program (no vault, owner is a
+  //          non-signing account on create_bond, one constraint per agent)
+  //   v0.2 — the hardened program (escrow vault, owner-signed bonds,
+  //          per-agent constraint counter)
+  //
+  // Instead of blocking writes on a version mismatch, the app speaks both
+  // dialects and picks per transaction. Detection is by the vault PDA's
+  // existence (Config's layout is byte-identical in both versions, so its
+  // size cannot discriminate):
+  //   vault exists            -> v0.2
+  //   config exists, no vault -> v0.1
+  //   neither                 -> v0.2 (a fresh deployment gets the current ABI)
+  // Cached after first check; null (RPC error) falls back to v0.2 builders.
   // ------------------------------------------------------------------
-  var programSupportsV2 = null;
+  var programVersion = null;
 
-  function setWriteUi(enabled, msg) {
-    var ids = ["regSubmit", "bondSubmit", "conSubmit", "slashSubmit"];
-    for (var i = 0; i < ids.length; i++) {
-      var b = document.getElementById(ids[i]);
-      if (b) {
-        b.disabled = !enabled;
-        b.title = enabled ? "" : (msg || "Program upgrade pending");
-      }
-    }
-    var old = document.getElementById("vGuard");
-    if (old) old.parentNode.removeChild(old);
-    if (!enabled && msg) {
-      var tx = document.getElementById("txStatus");
-      var banner = document.createElement("div");
-      banner.id = "vGuard";
-      banner.style.cssText = "position:fixed;left:50%;transform:translateX(-50%);bottom:20px;z-index:9999;max-width:640px;" +
-        "background:#2b1a00;border:1px solid #b8860b;color:#ffd700;padding:12px 16px;border-radius:10px;font-size:13px;line-height:1.5;" +
-        "box-shadow:0 6px 24px rgba(0,0,0,.45);";
-      banner.textContent = msg;
-      if (tx && tx.parentNode) tx.parentNode.insertBefore(banner, tx); else document.body.appendChild(banner);
-    }
-  }
-
-  async function checkProgramVersion() {
-    if (programSupportsV2 !== null) return programSupportsV2;
-    if (typeof solanaWeb3 === "undefined") return null;
+  async function detectProgramVersion() {
+    if (programVersion !== null) return programVersion;
+    if (typeof solanaWeb3 === "undefined" || !PROGRAM_ID) return null;
     // Read-only check must work before any wallet connects, so make our own
     // connection if the wallet flow has not created one yet.
     if (!connection) connection = new solanaWeb3.Connection(SOLANA_RPC, "confirmed");
     try {
       var configPDA = solanaWeb3.PublicKey.findProgramAddressSync([bytes("config")], PROGRAM_ID)[0];
-      var info = await connection.getAccountInfo(configPDA);
-      if (!info || !info.data || info.data.length === 0) {
-        // No config on-chain: nothing has been initialized, writes of any
-        // version would fail — but that is a different message. Leave unknown.
-        return programSupportsV2;
-      }
-      programSupportsV2 = info.data.length >= 73;
-      if (!programSupportsV2) {
-        var m = "This deployment is still the v0.1 program — the v0.2 upgrade (escrow vault, owner-signed bonds, multi-constraint) is not live on devnet yet. " +
-          "Bonds, rules and slashes are disabled so transactions don't fail; browsing still works.";
-        setWriteUi(false, m);
-        console.warn("[equxi] v0.1 program detected (Config " + info.data.length + " bytes). Writes disabled until v0.2 is deployed.");
-      } else {
-        setWriteUi(true);
-      }
+      var vaultPDA = solanaWeb3.PublicKey.findProgramAddressSync([bytes("vault")], PROGRAM_ID)[0];
+      var cfg = await connection.getAccountInfo(configPDA);
+      var vault = await connection.getAccountInfo(vaultPDA);
+      if (vault && vault.data && vault.data.length > 0) programVersion = 2;
+      else if (cfg && cfg.data && cfg.data.length > 0) programVersion = 1;
+      else programVersion = 2; // fresh deployment
+      console.log("[equxi] program ABI: v0." + programVersion);
     } catch (e) {
-      console.warn("[equxi] version check failed (writes left enabled):", e);
+      console.warn("[equxi] ABI detection failed; will build v0.2 transactions:", e);
     }
-    return programSupportsV2;
+    return programVersion;
   }
 
   async function getOrBuildInitIx() {
@@ -490,25 +467,39 @@
     try {
       var payer = new solanaWeb3.PublicKey(walletAddress);
       var disc = await instrDiscriminator("initialize");
-      // initialize() takes no arguments. The signer must be the program's
-      // upgrade authority, which becomes the slash/compensation admin.
-      var data = disc;
       var configPDA2 = solanaWeb3.PublicKey.findProgramAddressSync([bytes("config")], PROGRAM_ID)[0];
-      var vaultPDA = solanaWeb3.PublicKey.findProgramAddressSync([bytes("vault")], PROGRAM_ID)[0];
-      var BPF_LOADER_UPGRADEABLE = new solanaWeb3.PublicKey("BPFLoaderUpgradeab1e11111111111111111111111");
-      var programDataPDA = solanaWeb3.PublicKey.findProgramAddressSync(
-        [PROGRAM_ID.toBuffer()], BPF_LOADER_UPGRADEABLE
-      )[0];
-      console.log("Building init IX, data:", Array.from(data).map(function(b){return b.toString(16).padStart(2,'0');}).join(''));
-      return new solanaWeb3.TransactionInstruction({
-        keys: [
+      // ABI differs:
+      //   v0.2 — no args; [config, vault, payer(signer), program, programData, sys];
+      //          signer must be the upgrade authority, which becomes admin
+      //   v0.1 — admin Pubkey arg; [config, payer(signer), sys]
+      var ver = await detectProgramVersion();
+      var data, initKeys;
+      if (ver === 1) {
+        data = concat(disc, payer.toBuffer());
+        initKeys = [
+          { pubkey: configPDA2, isSigner: false, isWritable: true },
+          { pubkey: payer, isSigner: true, isWritable: true },
+          { pubkey: solanaWeb3.SystemProgram.programId, isSigner: false, isWritable: false },
+        ];
+      } else {
+        data = disc;
+        var vaultPDA = solanaWeb3.PublicKey.findProgramAddressSync([bytes("vault")], PROGRAM_ID)[0];
+        var BPF_LOADER_UPGRADEABLE = new solanaWeb3.PublicKey("BPFLoaderUpgradeab1e11111111111111111111111");
+        var programDataPDA = solanaWeb3.PublicKey.findProgramAddressSync(
+          [PROGRAM_ID.toBuffer()], BPF_LOADER_UPGRADEABLE
+        )[0];
+        initKeys = [
           { pubkey: configPDA2, isSigner: false, isWritable: true },
           { pubkey: vaultPDA, isSigner: false, isWritable: true },
           { pubkey: payer, isSigner: true, isWritable: true },
           { pubkey: PROGRAM_ID, isSigner: false, isWritable: false },
           { pubkey: programDataPDA, isSigner: false, isWritable: false },
           { pubkey: solanaWeb3.SystemProgram.programId, isSigner: false, isWritable: false },
-        ],
+        ];
+      }
+      console.log("Building init IX, data:", Array.from(data).map(function(b){return b.toString(16).padStart(2,'0');}).join(''));
+      return new solanaWeb3.TransactionInstruction({
+        keys: initKeys,
         programId: PROGRAM_ID, data: data,
       });
     } catch (e) {
@@ -628,16 +619,6 @@
   function openModal(title, html) {
     document.getElementById("modalTitle").textContent = title;
     document.getElementById("modalBody").innerHTML = html;
-    // Apply the version guard to whatever submit buttons this modal just
-    // rendered (they only exist inside the overlay). Handlers re-check
-    // programSupportsV2 too, so this is belt and braces.
-    if (programSupportsV2 === false) {
-      var btns = document.getElementById("modalBody").querySelectorAll(".btn-primary, .btn-danger");
-      for (var i = 0; i < btns.length; i++) {
-        btns[i].disabled = true;
-        btns[i].title = "Program upgrade pending — writes are disabled until v0.2 is deployed";
-      }
-    }
     document.getElementById("modalOverlay").classList.add("open");
   }
   function closeModal() { document.getElementById("modalOverlay").classList.remove("open"); }
@@ -696,7 +677,6 @@
 
   /* ── TX Handlers (skipPreflight for real errors) ───────────────────── */
   async function handleRegister() {
-    if (programSupportsV2 === false) { showToast("Program upgrade pending — writes are disabled until v0.2 is deployed"); return; }
     var name = document.getElementById("regName") ? document.getElementById("regName").value.trim() : "";
     var typeIdx = parseInt(document.getElementById("regType") ? document.getElementById("regType").value : "0");
     if (!name) { showToast("Enter a name"); return; }
@@ -748,7 +728,6 @@
   }
 
   async function handleBond() {
-    if (programSupportsV2 === false) { showToast("Program upgrade pending — writes are disabled until v0.2 is deployed"); return; }
     var agentPubkey = document.getElementById("bondAgent") ? document.getElementById("bondAgent").value : "";
     var amountSol = parseFloat(document.getElementById("bondAmount") ? document.getElementById("bondAmount").value : "");
     var lockDuration = parseInt(document.getElementById("bondDuration") ? document.getElementById("bondDuration").value : "2592000");
@@ -764,16 +743,23 @@
       var data = concat(disc, u64le(Math.floor(amountSol * 1e9)), i64le(lockDuration));
 
       // Anchor #[account(init)] creates the bond PDA — no SystemProgram.createAccount needed.
-      // The owner must SIGN: the program enforces has_one = owner, so a third party
-      // can no longer occupy an agent's bond PDA.
+      //
+      // ABI differs on the owner account:
+      //   v0.2 — owner is the required SIGNER (has_one = owner), 5 keys
+      //   v0.1 — owner is a plain non-signing account, 6 keys
+      var ver = await detectProgramVersion();
+      var bondKeys = [
+        { pubkey: solanaWeb3.PublicKey.findProgramAddressSync([bytes("config")], PROGRAM_ID)[0], isSigner: false, isWritable: true },
+        { pubkey: bondPDA, isSigner: false, isWritable: true },
+        { pubkey: new solanaWeb3.PublicKey(agentPubkey), isSigner: false, isWritable: true },
+        { pubkey: operator, isSigner: true, isWritable: true },
+      ];
+      if (ver === 1) {
+        bondKeys.push({ pubkey: operator, isSigner: false, isWritable: false }); // owner (non-signing)
+      }
+      bondKeys.push({ pubkey: solanaWeb3.SystemProgram.programId, isSigner: false, isWritable: false });
       var bondDataIx = new solanaWeb3.TransactionInstruction({
-        keys: [
-          { pubkey: solanaWeb3.PublicKey.findProgramAddressSync([bytes("config")], PROGRAM_ID)[0], isSigner: false, isWritable: true },
-          { pubkey: bondPDA, isSigner: false, isWritable: true },
-          { pubkey: new solanaWeb3.PublicKey(agentPubkey), isSigner: false, isWritable: true },
-          { pubkey: operator, isSigner: true, isWritable: true },
-          { pubkey: solanaWeb3.SystemProgram.programId, isSigner: false, isWritable: false },
-        ],
+        keys: bondKeys,
         programId: PROGRAM_ID, data: data,
       });
       var tx = new solanaWeb3.Transaction();
@@ -791,7 +777,6 @@
   }
 
   async function handleConstraint() {
-    if (programSupportsV2 === false) { showToast("Program upgrade pending — writes are disabled until v0.2 is deployed"); return; }
     var agentPubkey = document.getElementById("conAgent") ? document.getElementById("conAgent").value : "";
     var typeIdx = parseInt(document.getElementById("conType") ? document.getElementById("conType").value : "0");
     var maxAmountSol = parseFloat(document.getElementById("conMaxAmount") ? document.getElementById("conMaxAmount").value : "1");
@@ -802,25 +787,59 @@
     try {
       var operator = new solanaWeb3.PublicKey(walletAddress);
       var agentKey = new solanaWeb3.PublicKey(agentPubkey);
-      // The constraint PDA is seeded on the agent's own constraint counter (u16),
-      // so one agent can hold many rules. The old seed used config.total_bonds,
-      // which limited every agent to a single constraint.
-      var constraintIndex = 0;
-      try {
-        var agentInfo = await connection.getAccountInfo(agentKey);
-        if (agentInfo && agentInfo.data) {
-          // Agent layout: disc(8) + owner(32) + name(32) + type(1) + trust(1)
-          //               + status(1) + bond_address(32) = 107, then constraint_count: u16
-          var agentDv = new DataView(agentInfo.data.buffer, agentInfo.data.byteOffset);
-          constraintIndex = agentDv.getUint16(107, true);
-          console.log("Agent constraint_count:", constraintIndex);
-        }
-      } catch (e) { console.warn("Could not read agent for constraint index:", e); }
-      var constraintIndexBytes = new Uint8Array(2);
-      new DataView(constraintIndexBytes.buffer).setUint16(0, constraintIndex, true);
-      var constraintPDA = solanaWeb3.PublicKey.findProgramAddressSync(
-        [bytes("constraint"), agentKey.toBuffer(), constraintIndexBytes], PROGRAM_ID
-      )[0];
+      var ver = await detectProgramVersion();
+      var configPDA = solanaWeb3.PublicKey.findProgramAddressSync([bytes("config")], PROGRAM_ID)[0];
+      var constraintPDA, constraintKeys;
+      if (ver === 1) {
+        // v0.1 seeds the constraint PDA with u64(config.total_bonds + 1) —
+        // a global counter, which is why v0.1 allowed one constraint per
+        // agent in practice. Seed length is 8 bytes.
+        var nonce = 1;
+        try {
+          var cfgInfo = await connection.getAccountInfo(configPDA);
+          if (cfgInfo && cfgInfo.data) {
+            // Config layout: disc(8) + admin(32) + total_agents(8) + total_bonds(8)
+            // total_bonds at offset 48, u64le
+            nonce = Number(new DataView(cfgInfo.data.buffer, cfgInfo.data.byteOffset + 48).getBigUint64(0, true)) + 1;
+          }
+        } catch (e) { console.warn("Could not read config for constraint nonce:", e); }
+        var nonceBytes = new Uint8Array(8);
+        new DataView(nonceBytes.buffer).setBigUint64(0, BigInt(nonce), true);
+        constraintPDA = solanaWeb3.PublicKey.findProgramAddressSync(
+          [bytes("constraint"), agentKey.toBuffer(), nonceBytes], PROGRAM_ID
+        )[0];
+        constraintKeys = [
+          { pubkey: configPDA, isSigner: false, isWritable: false },
+          { pubkey: constraintPDA, isSigner: false, isWritable: true },
+          { pubkey: agentKey, isSigner: false, isWritable: true },
+          { pubkey: operator, isSigner: true, isWritable: true },
+          { pubkey: solanaWeb3.SystemProgram.programId, isSigner: false, isWritable: false },
+        ];
+      } else {
+        // v0.2 seeds the PDA on the agent's own constraint counter (u16),
+        // so one agent can hold many rules.
+        var constraintIndex = 0;
+        try {
+          var agentInfo = await connection.getAccountInfo(agentKey);
+          if (agentInfo && agentInfo.data) {
+            // Agent layout: disc(8) + owner(32) + name(32) + type(1) + trust(1)
+            //               + status(1) + bond_address(32) = 107, then constraint_count: u16
+            var agentDv = new DataView(agentInfo.data.buffer, agentInfo.data.byteOffset);
+            constraintIndex = agentDv.getUint16(107, true);
+          }
+        } catch (e) { console.warn("Could not read agent for constraint index:", e); }
+        var constraintIndexBytes = new Uint8Array(2);
+        new DataView(constraintIndexBytes.buffer).setUint16(0, constraintIndex, true);
+        constraintPDA = solanaWeb3.PublicKey.findProgramAddressSync(
+          [bytes("constraint"), agentKey.toBuffer(), constraintIndexBytes], PROGRAM_ID
+        )[0];
+        constraintKeys = [
+          { pubkey: constraintPDA, isSigner: false, isWritable: true },
+          { pubkey: agentKey, isSigner: false, isWritable: true },
+          { pubkey: operator, isSigner: true, isWritable: true },
+          { pubkey: solanaWeb3.SystemProgram.programId, isSigner: false, isWritable: false },
+        ];
+      }
       var disc = await instrDiscriminator("add_constraint");
       var maxAmt = u64le(Math.floor(maxAmountSol * 1e9));
       var maxPerPeriod = u64le(Math.floor(maxAmountSol * 1e9 * 5));
@@ -830,12 +849,7 @@
       var data = concat(disc, new Uint8Array([typeIdx]), maxAmt, maxPerPeriod, period, timelock, allowedPrograms);
 
       var constraintIx = new solanaWeb3.TransactionInstruction({
-        keys: [
-          { pubkey: constraintPDA, isSigner: false, isWritable: true },
-          { pubkey: agentKey, isSigner: false, isWritable: true },
-          { pubkey: operator, isSigner: true, isWritable: true },
-          { pubkey: solanaWeb3.SystemProgram.programId, isSigner: false, isWritable: false },
-        ],
+        keys: constraintKeys,
         programId: PROGRAM_ID, data: data,
       });
       var tx = new solanaWeb3.Transaction();
@@ -890,7 +904,6 @@
   };
 
   async function handleSlash(bondPubkey, agentPubkey) {
-    if (programSupportsV2 === false) { showToast("Program upgrade pending — writes are disabled until v0.2 is deployed"); return; }
     var amountSol = parseFloat(document.getElementById("slashAmount") ? document.getElementById("slashAmount").value : "");
     var reason = document.getElementById("slashReason") ? document.getElementById("slashReason").value.trim() : "";
     if (!amountSol || amountSol < 0.01) { showToast("Enter a valid amount"); return; }
@@ -917,17 +930,27 @@
       var disc = await instrDiscriminator("execute_slash");
       var data = concat(disc, strWithLen(reason), u64le(Math.floor(amountSol * 1e9)));
 
-      var vaultPDA = solanaWeb3.PublicKey.findProgramAddressSync([bytes("vault")], PROGRAM_ID)[0];
+      // ABI differs on the vault account (v0.2 routes slashed funds into
+      // program-owned escrow; v0.1 credited the admin directly):
+      //   v0.2 — [config, vault, agent, bond, slashRecord, authority, sys]
+      //   v0.1 — [config, agent, bond, slashRecord, authority, sys]
+      var ver = await detectProgramVersion();
+      var slashKeys = [
+        { pubkey: configPDA, isSigner: false, isWritable: true },
+      ];
+      if (ver !== 1) {
+        var vaultPDA = solanaWeb3.PublicKey.findProgramAddressSync([bytes("vault")], PROGRAM_ID)[0];
+        slashKeys.push({ pubkey: vaultPDA, isSigner: false, isWritable: true });
+      }
+      slashKeys.push(
+        { pubkey: agentKey, isSigner: false, isWritable: true },
+        { pubkey: new solanaWeb3.PublicKey(bondPubkey), isSigner: false, isWritable: true },
+        { pubkey: slashRecordPDA, isSigner: false, isWritable: true },
+        { pubkey: operator, isSigner: true, isWritable: true },  // authority = config.admin
+        { pubkey: solanaWeb3.SystemProgram.programId, isSigner: false, isWritable: false },
+      );
       var slashIx = new solanaWeb3.TransactionInstruction({
-        keys: [
-          { pubkey: configPDA, isSigner: false, isWritable: true },
-          { pubkey: vaultPDA, isSigner: false, isWritable: true },
-          { pubkey: agentKey, isSigner: false, isWritable: true },
-          { pubkey: new solanaWeb3.PublicKey(bondPubkey), isSigner: false, isWritable: true },
-          { pubkey: slashRecordPDA, isSigner: false, isWritable: true },
-          { pubkey: operator, isSigner: true, isWritable: true },  // authority = config.admin
-          { pubkey: solanaWeb3.SystemProgram.programId, isSigner: false, isWritable: false },
-        ],
+        keys: slashKeys,
         programId: PROGRAM_ID, data: data,
       });
       var tx = new solanaWeb3.Transaction().add(slashIx);
@@ -954,7 +977,7 @@
     }
     getAccountDiscriminators().then(function () {
       initNav(); initModals(); renderAll();
-      checkProgramVersion();
+      detectProgramVersion();
       var walletBtn = document.getElementById("connectWallet");
       if (walletBtn) {
         walletBtn.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); connectWallet(); });

@@ -22,6 +22,13 @@ pub mod equxi {
         instructions::initialize::handler(ctx)
     }
 
+    /// One-time migration for deployments initialized before the vault
+    /// existed: create the escrow vault on a v0.1 config after the v0.2
+    /// program is deployed. Upgrade authority + config admin only.
+    pub fn create_vault(ctx: Context<CreateVault>) -> Result<()> {
+        instructions::create_vault::handler(ctx)
+    }
+
     /// Register a new AI agent
     pub fn register_agent(
         ctx: Context<RegisterAgent>,

@@ -11,7 +11,10 @@ equxi = "D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Devnet"
+# Tests must run against a local validator, never devnet: `anchor test`
+# deploys the freshly built program to the configured cluster first, and a
+# CI wallet on devnet has no SOL. CI starts its own validator.
+cluster = "Localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
