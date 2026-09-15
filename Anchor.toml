@@ -17,6 +17,19 @@ url = "https://api.apr.dev"
 cluster = "Localnet"
 wallet = "~/.config/solana/id.json"
 
+[test]
+# Load the program on the local validator exactly the way a real deployment
+# looks: upgradeable, upgrade authority = the wallet (`anchor test` then passes
+# `--upgradeable-program <id> <so> <wallet-pubkey>` to solana-test-validator).
+#
+# Without this, anchor passes the 2-argument `--bpf-program <id> <so>` form,
+# which gives the program an upgrade authority that is NOT the test wallet. The
+# program deliberately requires the upgrade authority to sign `initialize`
+# (otherwise anyone could claim the admin role), so the whole on-chain suite
+# failed with InvalidAdminAuthority on the first test and the other twelve
+# cascaded from the config never existing.
+upgradeable = true
+
 [scripts]
 # Two patterns, not "tests/**/*.ts": bash expands ** without globstar to
 # subdirectory files only, which silently skipped the on-chain suite in
