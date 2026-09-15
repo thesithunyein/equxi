@@ -8,11 +8,12 @@
 >   formats, PDA seeds, IDL, SDK, read layer, and read API with no validator. The
 >   read API additionally has **live devnet evidence** (below), which is the one
 >   place a real network was involved.
-> * **Rust** checks — `anchor build` and `anchor test` have **never run**. The
->   authoring machine had no Rust linker at all (no `gcc`, no `ld`, no MSVC
->   `link.exe`, no Windows SDK), so the program has never been compiled. Treat every
->   Rust claim in this repository as **unverified by execution** until that run is
->   recorded here.
+> * **Rust** checks — `anchor build` and `anchor test` **do run, in CI, and pass**.
+>   They could not run on the authoring machine (no Rust linker at all: no `gcc`,
+>   no `ld`, no MSVC `link.exe`, no Windows SDK), so they run on GitHub Actions
+>   instead, and the results are recorded below. Everything Rust in this
+>   repository is now compile- and test-verified — except a **devnet redeploy**,
+>   which still has not happened (the live program is still v0.1).
 >
 > The records marked **(v0.1)** are historical results for the original deployment.
 
@@ -25,14 +26,14 @@
 | `tsc --noEmit` (SDK) | ✅ **0 errors** | |
 | `tsc --noEmit` (elizaOS plugin) | ✅ **0 errors** | Was **16 errors** before the rewrite |
 | `node --check` (app, explorer, api, lib, dev-server) | ✅ **parses** | |
-| Frontend v0.1/v0.2 version guard | ✅ **verified in a browser against live devnet** | Banner rendered, writes disabled — see below |
+| Frontend v0.1/v0.2 ABI dispatch | ✅ **verified in a browser against live devnet** | No banner; v0.1 detected, writes enabled and built for v0.1 — see below |
 | Read API against live devnet | ✅ **returned real data** | See “Live devnet read” below |
 | Trust Explorer rendered | ✅ **verified in a browser** | Screenshot reproduced below in prose; served by `dev-server.js` |
-| `anchor build` | ⬜ **Not run** | No Rust linker on the authoring machine |
-| `anchor test` | ⬜ **Not run** | Same reason |
-| CI (Wire-format Unit Tests) | ⬜ **Not run** | Added in v0.2; needs a push to run |
-| CI (Build & Test Program) | ⬜ **Not run** | Added in v0.2; needs a push to run |
-| Devnet redeploy of v0.2 | ⬜ **Not deployed** | The v0.2 ABI differs from what is on chain |
+| `anchor build` | ✅ **compiled** | CI run [34983589484](https://github.com/thesithunyein/equxi/actions/runs/34983589484), `Build program` took 201s |
+| `anchor test` | ✅ **113 passing, 0 failing** | 13 on-chain tests + 100 unit tests on a real local validator |
+| CI (Wire-format Unit Tests) | ✅ **100 passing** | Runs on every push |
+| CI (Build & Test Program) | ✅ **green** | Compiles the program and runs the on-chain suite |
+| Devnet redeploy of v0.2 | ⬜ **Not deployed** | The live program is still v0.1; the frontend speaks both ABIs |
 
 Update this table as each check passes, with the actual command output.
 
@@ -48,23 +49,42 @@ These were live defects, not hypotheticals. Each was caught by running the suite
 | The SDK's IDL instructions had no `discriminator` array | Anchor 0.30 does **not** recompute it — `new Program(...)` threw `Expected Buffer` |
 | `decodeBond` / `decodeSlashRecord` asserted the wrong minimum length (107/267 vs 106/259) | Valid accounts would have been rejected as malformed |
 
-### Frontend version guard against live devnet (executed)
+### On-chain suite: what it took to get a real green (executed)
 
-Because the v0.2 frontend talks to a v0.1 program until redeploy, `app.js`
-checks the live Config account size on load (v0.1 = 65 bytes, v0.2 = 73 after
-the two vault counters) and, on v0.1, disables the Register/Lock/Rule/Slash
-writes and shows a fixed banner instead of letting transactions fail.
+The Rust program had never been compiled anywhere when this work started, and
+three separate failures had to be diagnosed before `anchor test` ran for real.
+Each is recorded because each one had a way of looking fine:
+
+| Failure | Why it happened |
+|---------|-----------------|
+| `anchor-syn 0.30.1` could not compile (`no method named source_file`) | `proc-macro2` ≥ 1.0.95 removed `Span::source_file`. Anchor 0.30.1 can no longer build against any 2025+ toolchain. Fixed by upgrading to **anchor-lang 0.31.2** (which removed the call) rather than pinning `proc-macro2`, which failed the other way inside `proc-macro2`'s own nightly span path |
+| CI reported **success while testing nothing** | The npm `@coral-xyz/anchor-cli` wrapper printed `Expected "anchor-cli 0.31.2", found "anchor-cli 0.31.0"` → `Could not find globally installed anchor` and **exited 0**. The job took 32s and contained zero `Compiling` lines. Fixed by installing the real CLI with `cargo install anchor-cli --version 0.31.2` |
+| `Run program tests` reported 100 passing but never ran the on-chain suite | `tests/**/*.ts` in a shell without `globstar` expands to *subdirectory* files only, silently skipping `tests/equxi.test.ts`. Fixed by listing both patterns |
+| All 13 on-chain tests failed, 12 of them cascading from the first | `anchor test` on localnet loaded the program with the 2-argument `--bpf-program <id> <so>` form, which does **not** give the test wallet the program's upgrade authority, so `initialize` was correctly rejected. Fixed with `[test] upgradeable = true`, which makes anchor pass `--upgradeable-program <id> <so> <wallet>` — the local validator then matches a real `anchor deploy` |
+
+### Frontend ABI dispatch against live devnet (executed)
+
+The v0.2 frontend had to talk to a v0.1 program until the redeploy, and a
+warnings banner that disabled the write buttons is not a product. So `app.js`
+now **speaks both dialects**: it detects the deployed version and builds either
+the v0.1 or the v0.2 transaction for Register / Lock Bond / Add Rule / Slash,
+including both `initialize` shapes. Nothing is disabled for the visitor.
+
+Detection asks the chain what actually exists instead of guessing from a size
+that turned out not to differ between versions:
+
+* v0.2 is detected by the existence of the `["vault"]` PDA, which v0.1 never
+  created
+* v0.1 is the fallback when the vault PDA is absent
+* an RPC error fails open, so a transient outage can never brick the UI
 
 Verified in a browser (dev server, `app.html`) against live devnet:
 
 ```
-bannerPresent: true
-bannerText: "This deployment is still the v0.1 program — the v0.2 upgrade
-(escrow vault, owner-signed bonds, multi-constraint) is not live on devnet yet."
+bannerPresent: false
+detectedVersion: "v0.1"
+writeButtonsDisabled: false
 ```
-
-Detection is cached per page load and fails open (writes stay enabled) if the
-RPC check itself errors, so a transient RPC outage can never brick the UI.
 
 ## Live devnet read (v0.1 program, executed)
 
@@ -263,7 +283,13 @@ the source rather than trusting a number in this document.
 > (`AuthorityRequired`, `AlreadyDeactivated`, `ConstraintExists`) were never thrown.
 > `AuthorityRequired` and `AlreadyDeactivated` have been removed.
 
-## Test Coverage (v0.2 suite, not yet executed)
+## Test Coverage (v0.2 suite, executed)
+
+`anchor test` ran this suite against a local validator: **113 passing, 0 failing**
+(13 on-chain + 100 unit). The first execution failed exactly one assertion — the
+test's own, which compared the fixed-width `[u8; 32]` `Agent.name` to a JS
+string; it now asserts the stored bytes and their NUL padding, which is the
+contract every decoder depends on.
 
 `tests/equxi.test.ts` covers:
 
