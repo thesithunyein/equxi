@@ -12,9 +12,14 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#9945FF" />
   <meta property="og:title" content="Equxi Trust Explorer" />
   <meta property="og:description" content="Does this agent have collateral at risk, and has it ever been slashed? Read it from Solana." />
+  <meta property="og:image" content="https://equxi.sithunyein.com/assets/logo.webp" />
+  <meta property="og:url" content="https://equxi.sithunyein.com/explorer.html" />
   <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://equxi.sithunyein.com/explorer.html" />
 
   <style>
@@ -235,6 +240,14 @@
         <a href="https://github.com/thesithunyein/equxi/blob/main/lib/equxi-layout.js" target="_blank">lib/equxi-layout.js</a>,
         with the scoring rules pinned by tests in
         <a href="https://github.com/thesithunyein/equxi/blob/main/tests/unit/api.test.ts" target="_blank">tests/unit/api.test.ts</a>.
+      </p>
+
+      <p class="x-foot">
+        <strong>Get an agent listed.</strong> A registry entry is not something you apply for, and
+        nothing on this page is self-reported: connect a wallet in the
+        <a href="app.html">dashboard</a>, register the agent, then lock a bond. The bond is the
+        collateral that gives the grade something to be about — an agent with no bond still appears
+        here, marked <em>ungraded</em>, because presence is not a claim of trustworthiness.
       </p>
     </main>
   </div>
