@@ -53,7 +53,13 @@ var GRADE_COLORS = {
 var LABEL_COLOR = "#2b2b2b";
 var MAX_LABEL = 24;
 
-/** Cached briefly: a badge in a README is fetched often and changes rarely. */
+/**
+ * Sent as `s-maxage`, for platforms that cache function responses. Vercel does
+ * not: it rewrites this to `public, max-age=0, must-revalidate` (verified on the
+ * live deployment), so a badge is re-read from chain on every request. That is
+ * the behaviour the README promises anyway — a badge is a live view, not a
+ * certificate — so the header is kept rather than fought.
+ */
 var CACHE_SECONDS = 60;
 
 /** Strip control characters, which are illegal in XML 1.0 and can break parsers. */
