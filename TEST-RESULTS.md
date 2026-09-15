@@ -25,6 +25,7 @@
 | `tsc --noEmit` (SDK) | ✅ **0 errors** | |
 | `tsc --noEmit` (elizaOS plugin) | ✅ **0 errors** | Was **16 errors** before the rewrite |
 | `node --check` (app, explorer, api, lib, dev-server) | ✅ **parses** | |
+| Frontend v0.1/v0.2 version guard | ✅ **verified in a browser against live devnet** | Banner rendered, writes disabled — see below |
 | Read API against live devnet | ✅ **returned real data** | See “Live devnet read” below |
 | Trust Explorer rendered | ✅ **verified in a browser** | Screenshot reproduced below in prose; served by `dev-server.js` |
 | `anchor build` | ⬜ **Not run** | No Rust linker on the authoring machine |
@@ -46,6 +47,24 @@ These were live defects, not hypotheticals. Each was caught by running the suite
 | The SDK's IDL was in the Anchor ≤0.29 shape (no `address`, `publicKey`, `{defined: "X"}`) | `new EquxiClient(provider)` **threw on construction** |
 | The SDK's IDL instructions had no `discriminator` array | Anchor 0.30 does **not** recompute it — `new Program(...)` threw `Expected Buffer` |
 | `decodeBond` / `decodeSlashRecord` asserted the wrong minimum length (107/267 vs 106/259) | Valid accounts would have been rejected as malformed |
+
+### Frontend version guard against live devnet (executed)
+
+Because the v0.2 frontend talks to a v0.1 program until redeploy, `app.js`
+checks the live Config account size on load (v0.1 = 65 bytes, v0.2 = 73 after
+the two vault counters) and, on v0.1, disables the Register/Lock/Rule/Slash
+writes and shows a fixed banner instead of letting transactions fail.
+
+Verified in a browser (dev server, `app.html`) against live devnet:
+
+```
+bannerPresent: true
+bannerText: "This deployment is still the v0.1 program — the v0.2 upgrade
+(escrow vault, owner-signed bonds, multi-constraint) is not live on devnet yet."
+```
+
+Detection is cached per page load and fails open (writes stay enabled) if the
+RPC check itself errors, so a transient RPC outage can never brick the UI.
 
 ## Live devnet read (v0.1 program, executed)
 

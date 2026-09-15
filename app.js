@@ -202,6 +202,7 @@
 
   async function refreshData() {
     if (!walletConnected) return;
+    checkProgramVersion();
     showStatus("Loading on-chain data...");
     var result = await fetchAllProgramAccounts();
     cachedAgents = result.agents.filter(function (a) { return a.owner === walletAddress; });
@@ -409,6 +410,70 @@
   }
 
   /* ── Init IX builder ──────────────────────────────────────────────── */
+  // ------------------------------------------------------------------
+  // Program version guard.
+  //
+  // The v0.2 instructions (signed owner on create_bond, vault on slash)
+  // are rejected by the currently deployed v0.1 program. Detect which
+  // version is live by checking the Config account size: v0.2 grew Config
+  // by 8 bytes (two new u64 vault counters), so live sizes are 65 (v0.1)
+  // vs 73 (v0.2). Cached after the first check so repeated refreshes stay
+  // free. null = unknown (e.g. RPC hiccup) — never block on unknown.
+  // ------------------------------------------------------------------
+  var programSupportsV2 = null;
+
+  function setWriteUi(enabled, msg) {
+    var ids = ["regSubmit", "bondSubmit", "conSubmit", "slashSubmit"];
+    for (var i = 0; i < ids.length; i++) {
+      var b = document.getElementById(ids[i]);
+      if (b) {
+        b.disabled = !enabled;
+        b.title = enabled ? "" : (msg || "Program upgrade pending");
+      }
+    }
+    var old = document.getElementById("vGuard");
+    if (old) old.parentNode.removeChild(old);
+    if (!enabled && msg) {
+      var tx = document.getElementById("txStatus");
+      var banner = document.createElement("div");
+      banner.id = "vGuard";
+      banner.style.cssText = "position:fixed;left:50%;transform:translateX(-50%);bottom:20px;z-index:9999;max-width:640px;" +
+        "background:#2b1a00;border:1px solid #b8860b;color:#ffd700;padding:12px 16px;border-radius:10px;font-size:13px;line-height:1.5;" +
+        "box-shadow:0 6px 24px rgba(0,0,0,.45);";
+      banner.textContent = msg;
+      if (tx && tx.parentNode) tx.parentNode.insertBefore(banner, tx); else document.body.appendChild(banner);
+    }
+  }
+
+  async function checkProgramVersion() {
+    if (programSupportsV2 !== null) return programSupportsV2;
+    if (typeof solanaWeb3 === "undefined") return null;
+    // Read-only check must work before any wallet connects, so make our own
+    // connection if the wallet flow has not created one yet.
+    if (!connection) connection = new solanaWeb3.Connection(SOLANA_RPC, "confirmed");
+    try {
+      var configPDA = solanaWeb3.PublicKey.findProgramAddressSync([bytes("config")], PROGRAM_ID)[0];
+      var info = await connection.getAccountInfo(configPDA);
+      if (!info || !info.data || info.data.length === 0) {
+        // No config on-chain: nothing has been initialized, writes of any
+        // version would fail — but that is a different message. Leave unknown.
+        return programSupportsV2;
+      }
+      programSupportsV2 = info.data.length >= 73;
+      if (!programSupportsV2) {
+        var m = "This deployment is still the v0.1 program — the v0.2 upgrade (escrow vault, owner-signed bonds, multi-constraint) is not live on devnet yet. " +
+          "Bonds, rules and slashes are disabled so transactions don't fail; browsing still works.";
+        setWriteUi(false, m);
+        console.warn("[equxi] v0.1 program detected (Config " + info.data.length + " bytes). Writes disabled until v0.2 is deployed.");
+      } else {
+        setWriteUi(true);
+      }
+    } catch (e) {
+      console.warn("[equxi] version check failed (writes left enabled):", e);
+    }
+    return programSupportsV2;
+  }
+
   async function getOrBuildInitIx() {
     if (!connection) return null;
     try {
@@ -563,6 +628,16 @@
   function openModal(title, html) {
     document.getElementById("modalTitle").textContent = title;
     document.getElementById("modalBody").innerHTML = html;
+    // Apply the version guard to whatever submit buttons this modal just
+    // rendered (they only exist inside the overlay). Handlers re-check
+    // programSupportsV2 too, so this is belt and braces.
+    if (programSupportsV2 === false) {
+      var btns = document.getElementById("modalBody").querySelectorAll(".btn-primary, .btn-danger");
+      for (var i = 0; i < btns.length; i++) {
+        btns[i].disabled = true;
+        btns[i].title = "Program upgrade pending — writes are disabled until v0.2 is deployed";
+      }
+    }
     document.getElementById("modalOverlay").classList.add("open");
   }
   function closeModal() { document.getElementById("modalOverlay").classList.remove("open"); }
@@ -621,6 +696,7 @@
 
   /* ── TX Handlers (skipPreflight for real errors) ───────────────────── */
   async function handleRegister() {
+    if (programSupportsV2 === false) { showToast("Program upgrade pending — writes are disabled until v0.2 is deployed"); return; }
     var name = document.getElementById("regName") ? document.getElementById("regName").value.trim() : "";
     var typeIdx = parseInt(document.getElementById("regType") ? document.getElementById("regType").value : "0");
     if (!name) { showToast("Enter a name"); return; }
@@ -672,6 +748,7 @@
   }
 
   async function handleBond() {
+    if (programSupportsV2 === false) { showToast("Program upgrade pending — writes are disabled until v0.2 is deployed"); return; }
     var agentPubkey = document.getElementById("bondAgent") ? document.getElementById("bondAgent").value : "";
     var amountSol = parseFloat(document.getElementById("bondAmount") ? document.getElementById("bondAmount").value : "");
     var lockDuration = parseInt(document.getElementById("bondDuration") ? document.getElementById("bondDuration").value : "2592000");
@@ -714,6 +791,7 @@
   }
 
   async function handleConstraint() {
+    if (programSupportsV2 === false) { showToast("Program upgrade pending — writes are disabled until v0.2 is deployed"); return; }
     var agentPubkey = document.getElementById("conAgent") ? document.getElementById("conAgent").value : "";
     var typeIdx = parseInt(document.getElementById("conType") ? document.getElementById("conType").value : "0");
     var maxAmountSol = parseFloat(document.getElementById("conMaxAmount") ? document.getElementById("conMaxAmount").value : "1");
@@ -812,6 +890,7 @@
   };
 
   async function handleSlash(bondPubkey, agentPubkey) {
+    if (programSupportsV2 === false) { showToast("Program upgrade pending — writes are disabled until v0.2 is deployed"); return; }
     var amountSol = parseFloat(document.getElementById("slashAmount") ? document.getElementById("slashAmount").value : "");
     var reason = document.getElementById("slashReason") ? document.getElementById("slashReason").value.trim() : "";
     if (!amountSol || amountSol < 0.01) { showToast("Enter a valid amount"); return; }
@@ -875,6 +954,7 @@
     }
     getAccountDiscriminators().then(function () {
       initNav(); initModals(); renderAll();
+      checkProgramVersion();
       var walletBtn = document.getElementById("connectWallet");
       if (walletBtn) {
         walletBtn.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); connectWallet(); });
