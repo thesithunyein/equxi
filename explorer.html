@@ -36,6 +36,9 @@
     }
     .x-search button:hover { background: var(--purple-hover); }
     .x-search button.ghost { background: transparent; border: 1px solid #2a2a2a; color: var(--muted); }
+    /* The buttons wrap as one unit. Left as siblings, the growing input absorbs
+       all the free space and pushes the last button onto its own line. */
+    .x-search-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
     .x-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin: 26px 0; }
     .x-tile { border: 1px solid #1e1e1e; border-radius: 14px; padding: 16px 18px; background: #080808; }
@@ -192,12 +195,15 @@
         <input
           id="agentInput"
           type="text"
-          placeholder="Agent name, agent address, or owner wallet — or leave empty to list every agent"
+          placeholder="Name, agent address, or owner wallet"
           spellcheck="false"
+          aria-label="Agent name, agent address, or owner wallet"
         />
-        <button type="submit" id="lookupBtn">Look up</button>
-        <button type="button" class="ghost" id="allBtn">All agents</button>
-        <button type="button" class="ghost" id="refreshBtn">Refresh</button>
+        <div class="x-search-actions">
+          <button type="submit" id="lookupBtn">Look up</button>
+          <button type="button" class="ghost" id="allBtn">All agents</button>
+          <button type="button" class="ghost" id="refreshBtn">Refresh</button>
+        </div>
       </form>
 
       <div id="status" aria-live="polite"></div>
