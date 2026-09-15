@@ -13,9 +13,13 @@ declare_id!("D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc");
 pub mod equxi {
     use super::*;
 
-    /// Initialize the program with an admin authority
-    pub fn initialize(ctx: Context<Initialize>, admin: Pubkey) -> Result<()> {
-        instructions::initialize::handler(ctx, admin)
+    /// Initialize the program and its escrow vault.
+    ///
+    /// Must be signed by the program's upgrade authority, which becomes the
+    /// slash/compensation admin. This removes the arbitrary `admin` argument so
+    /// the config can never be initialized with a stranger as admin.
+    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
+        instructions::initialize::handler(ctx)
     }
 
     /// Register a new AI agent

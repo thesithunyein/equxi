@@ -22,11 +22,11 @@ export const slashBondAction: Action = {
   examples: [
     [
       {
-        user: "{{user1}}",
+        name: "{{user1}}",
         content: { text: "Slash 0.1 SOL from my agent for exceeding spend limit" },
       },
       {
-        user: "{{agent}}",
+        name: "{{agent}}",
         content: { text: "Slashing bond..." },
       },
     ],

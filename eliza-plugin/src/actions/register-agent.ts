@@ -22,11 +22,11 @@ export const registerAgentAction: Action = {
   examples: [
     [
       {
-        user: "{{user1}}",
+        name: "{{user1}}",
         content: { text: "Register my trading bot as an agent on Equxi" },
       },
       {
-        user: "{{agent}}",
+        name: "{{agent}}",
         content: { text: "Registering your agent on Equxi..." },
       },
     ],
@@ -40,9 +40,22 @@ export const registerAgentAction: Action = {
     },
     {
       name: "agentType",
-      description: "Agent type: Trader, Executor, Analyst, Custom",
+      description:
+        "Agent type: Trader, Oracle, DeFi, Payment, NFT, Governance, Bridge, Custom",
       required: false,
-      schema: { type: "string", enum: ["Trader", "Executor", "Analyst", "Custom"] },
+      schema: {
+        type: "string",
+        enum: [
+          "Trader",
+          "Oracle",
+          "DeFi",
+          "Payment",
+          "NFT",
+          "Governance",
+          "Bridge",
+          "Custom",
+        ],
+      },
     },
   ],
   validate: async (_runtime: IAgentRuntime): Promise<boolean> => {

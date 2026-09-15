@@ -1,5 +1,8 @@
 use anchor_lang::prelude::*;
 
+/// Maximum number of behavioral constraints that may be attached to one agent.
+pub const MAX_CONSTRAINTS: u16 = 16;
+
 /// Global config with admin authority
 #[account]
 #[derive(InitSpace)]
@@ -11,6 +14,29 @@ pub struct Config {
     pub bumped: u8,
 }
 
+/// Program-owned escrow that holds slashed collateral until it is paid out.
+///
+/// Slashed lamports move `bond -> vault` and compensation moves `vault -> victim`.
+/// The admin never takes custody of slashed funds.
+///
+/// Invariant: `vault.lamports() == rent_exempt_min + vault.available()`
+#[account]
+#[derive(InitSpace)]
+pub struct Vault {
+    /// Cumulative lamports moved into the vault by `execute_slash`.
+    pub total_slashed: u64,
+    /// Cumulative lamports paid out of the vault by `compensate_victim`.
+    pub total_compensated: u64,
+    pub bumped: u8,
+}
+
+impl Vault {
+    /// Lamports currently available to compensate victims.
+    pub fn available(&self) -> u64 {
+        self.total_slashed.saturating_sub(self.total_compensated)
+    }
+}
+
 #[account]
 #[derive(InitSpace)]
 pub struct Agent {
@@ -20,6 +46,9 @@ pub struct Agent {
     pub trust_score: u8,
     pub status: AgentStatus,
     pub bond_address: Pubkey,
+    /// Number of constraints created for this agent. Used as a PDA seed so an
+    /// agent can hold many constraints instead of exactly one.
+    pub constraint_count: u16,
     pub created_at: i64,
     pub bumped: u8,
 }

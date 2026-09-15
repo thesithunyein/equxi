@@ -1,7 +1,7 @@
 /**
  * EQUXI_ADD_CONSTRAINT — Add on-chain behavioral rule for an agent.
  *
- * Supports: SpendLimit, ProgramAllowlist, TimeLock, VelocityLimit.
+ * Supports: SpendLimit, ProgramAllowlist, Timelock, Velocity, Custom.
  */
 import {
   type Action,
@@ -12,7 +12,7 @@ import {
   type State,
 } from "@elizaos/core";
 import { PublicKey } from "@solana/web3.js";
-import { EquxiService, ConstraintType } from "../services/equxi-service.js";
+import { EquxiService, ConstraintType, MAX_CONSTRAINTS } from "../services/equxi-service.js";
 
 export const addConstraintAction: Action = {
   name: "EQUXI_ADD_CONSTRAINT",
@@ -22,11 +22,11 @@ export const addConstraintAction: Action = {
   examples: [
     [
       {
-        user: "{{user1}}",
+        name: "{{user1}}",
         content: { text: "Set a 1 SOL daily spend limit for my agent" },
       },
       {
-        user: "{{agent}}",
+        name: "{{agent}}",
         content: { text: "Adding spend limit constraint..." },
       },
     ],
@@ -40,9 +40,13 @@ export const addConstraintAction: Action = {
     },
     {
       name: "constraintType",
-      description: "Type: SpendLimit, ProgramAllowlist, TimeLock, VelocityLimit",
+      description:
+        "Type: SpendLimit, ProgramAllowlist, Timelock, Velocity, Custom",
       required: true,
-      schema: { type: "string", enum: ["SpendLimit", "ProgramAllowlist", "TimeLock", "VelocityLimit"] },
+      schema: {
+        type: "string",
+        enum: ["SpendLimit", "ProgramAllowlist", "Timelock", "Velocity", "Custom"],
+      },
     },
     {
       name: "maxAmount",
@@ -99,18 +103,33 @@ export const addConstraintAction: Action = {
 
       const lockDuration = (message.content as any)?.lockDuration || 0;
 
-      // Get config for nonce
-      const config = await service.getConfig();
-      const totalBonds = config?.totalBonds || 0;
+      // The constraint PDA is seeded on the agent's own constraint counter, so
+      // read the agent to find the next free index. Each agent may hold up to 16.
+      const agent = await service.getAgent(owner, agentName);
+      if (agent && agent.constraintCount >= MAX_CONSTRAINTS) {
+        const text = `"${agentName}" already has the maximum of ${MAX_CONSTRAINTS} rules.`;
+        await callback?.({ text });
+        return { success: false, text };
+      }
+      const constraintIndex = agent ? agent.constraintCount : 0;
+
+      const periodSeconds =
+        (message.content as any)?.periodSeconds || 86400;
+      const allowedPrograms: string[] =
+        (message.content as any)?.allowedPrograms || [];
 
       const ix = await service.buildAddConstraint(
         owner,
         agentName,
-        totalBonds,
+        constraintIndex,
         constraintType,
-        maxAmount,
-        [],
-        lockDuration
+        {
+          maxAmount,
+          maxPerPeriod: maxAmount * 5,
+          periodSeconds,
+          timelockSeconds: lockDuration,
+          allowedPrograms: allowedPrograms.map((p) => new PublicKey(p)),
+        }
       );
 
       const text = `${typeStr} constraint built for "${agentName}". Sign and send to enforce on-chain.`;

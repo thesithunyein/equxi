@@ -2,6 +2,11 @@ use anchor_lang::prelude::*;
 use crate::state::*;
 use crate::error::EquxiError;
 
+/// Seizes collateral from a bond and moves it into the program-owned escrow vault.
+///
+/// The slashed lamports are **not** sent to the admin. They land in the `vault`
+/// PDA, where `compensate_victim` can pay them to the injured party. This is what
+/// makes the protocol non-custodial with respect to slashed funds.
 #[derive(Accounts)]
 pub struct ExecuteSlash<'info> {
     #[account(
@@ -10,6 +15,13 @@ pub struct ExecuteSlash<'info> {
         bump = config.bumped,
     )]
     pub config: Account<'info, Config>,
+
+    #[account(
+        mut,
+        seeds = [b"vault"],
+        bump = vault.bumped,
+    )]
+    pub vault: Account<'info, Vault>,
 
     #[account(
         mut,
@@ -40,45 +52,63 @@ pub struct ExecuteSlash<'info> {
 }
 
 pub fn handler(ctx: Context<ExecuteSlash>, reason: String, slash_amount: u64) -> Result<()> {
-    let config = &mut ctx.accounts.config;
-    let bond = &mut ctx.accounts.bond;
-    let agent = &mut ctx.accounts.agent;
-    let slash_record = &mut ctx.accounts.slash_record;
     let clock = Clock::get()?;
 
-    require!(bond.amount >= slash_amount, EquxiError::InsufficientBond);
+    require!(slash_amount > 0, EquxiError::InvalidAmount);
+    require!(
+        ctx.accounts.bond.amount >= slash_amount,
+        EquxiError::InsufficientBond
+    );
 
-    // Execute slash
-    bond.amount = bond.amount.checked_sub(slash_amount)
-        .ok_or(EquxiError::Overflow)?;
+    let nonce = ctx.accounts.config.total_slashed;
 
-    if bond.amount == 0 {
-        agent.status = AgentStatus::Slashed;
-        bond.is_active = false;
-    }
+    // Move slashed collateral: bond -> escrow vault. The admin takes no custody.
+    **ctx.accounts.vault.to_account_info().try_borrow_mut_lamports()? += slash_amount;
+    **ctx.accounts.bond.to_account_info().try_borrow_mut_lamports()? -= slash_amount;
 
-    // Record with nonce
+    // Record the slash
     let reason_bytes = reason.as_bytes();
     let mut reason_fixed = [0u8; 128];
     let copy_len = reason_bytes.len().min(128);
     reason_fixed[..copy_len].copy_from_slice(&reason_bytes[..copy_len]);
 
-    slash_record.agent = agent.key();
+    let slash_record = &mut ctx.accounts.slash_record;
+    slash_record.agent = ctx.accounts.agent.key();
     slash_record.authority = ctx.accounts.authority.key();
     slash_record.amount = slash_amount;
     slash_record.reason = reason_fixed;
-    slash_record.nonce = config.total_slashed;
+    slash_record.nonce = nonce;
     slash_record.timestamp = clock.unix_timestamp;
     slash_record.victim = None;
     slash_record.compensated = false;
     slash_record.bumped = ctx.bumps.slash_record;
 
-    // Transfer to admin (treasury)
-    **ctx.accounts.authority.to_account_info().try_borrow_mut_lamports()? += slash_amount;
-    **bond.to_account_info().try_borrow_mut_lamports()? -= slash_amount;
+    // Reduce the recorded collateral and update status if fully drained.
+    let bond = &mut ctx.accounts.bond;
+    bond.amount = bond
+        .amount
+        .checked_sub(slash_amount)
+        .ok_or(EquxiError::Overflow)?;
 
-    config.total_slashed += 1;
+    let agent = &mut ctx.accounts.agent;
+    if bond.amount == 0 {
+        agent.status = AgentStatus::Slashed;
+        bond.is_active = false;
+    }
 
-    msg!("Slashed {} lamports from bond (record #{})", slash_amount, config.total_slashed - 1);
+    // Track escrow totals so the vault can never be over-drawn.
+    let vault = &mut ctx.accounts.vault;
+    vault.total_slashed = vault
+        .total_slashed
+        .checked_add(slash_amount)
+        .ok_or(EquxiError::Overflow)?;
+
+    ctx.accounts.config.total_slashed = nonce.checked_add(1).ok_or(EquxiError::Overflow)?;
+
+    msg!(
+        "Slashed {} lamports into escrow (record #{})",
+        slash_amount,
+        nonce
+    );
     Ok(())
 }

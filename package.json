@@ -1,0 +1,26 @@
+{
+  "name": "equxi",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Solana-native accountability layer for AI agents",
+  "license": "MIT",
+  "scripts": {
+    "test": "ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts",
+    "test:unit": "ts-mocha -p ./tsconfig.json -t 60000 tests/unit/*.test.ts",
+    "build:sdk": "cd sdk && npm install && npm run build",
+    "lint:program": "cargo clippy --manifest-path programs/equxi/Cargo.toml --all-targets -- -D warnings"
+  },
+  "devDependencies": {
+    "@coral-xyz/anchor": "0.30.1",
+    "@solana/web3.js": "^1.95.8",
+    "@types/bn.js": "^5.1.6",
+    "@types/chai": "^4.3.20",
+    "@types/mocha": "^10.0.10",
+    "bn.js": "^5.2.1",
+    "chai": "^4.5.0",
+    "mocha": "^10.8.2",
+    "ts-mocha": "^10.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
+  }
+}
