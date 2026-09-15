@@ -21,16 +21,13 @@ jobs:
         with:
           node-version: 20
 
-      # Pinned, not stable — two constraints squeeze the choice:
-      #   1. anchor-syn 0.30.1's IDL build selects proc-macro2's
-      #      proc_macro_span code path, which only compiles against the
-      #      pre-1.88 proc_macro API shape (rustc 1.88 removed those APIs).
-      #   2. block-buffer 0.12.1 in the graph declares edition 2024, which
-      #      needs cargo >= 1.85.
-      # The only window satisfying both is 1.85-1.87; use the newest.
-      # Bump together with proc-macro2 (programs/equxi/Cargo.toml).
+      # Anchor 0.31.x is maintained against current toolchains, so stable
+      # rustc is fine. (With anchor 0.30.1 the build needed anchor 0.30-era
+      # pins and still failed inside platform-tools' bundled rustc; the
+      # upgrade in programs/equxi/Cargo.toml is what fixed the toolchain
+      # mismatch, so keep these two in mind together.)
       - name: Setup Rust
-        uses: dtolnay/rust-toolchain@1.87.0
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Cache Rust
         uses: Swatinem/rust-cache@v2
@@ -43,7 +40,7 @@ jobs:
           echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
 
       - name: Install Anchor CLI
-        run: npm install -g @coral-xyz/anchor-cli@0.30.1
+        run: npm install -g @coral-xyz/anchor-cli@0.31.2
 
       - name: Install JS dependencies
         run: npm install
