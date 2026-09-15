@@ -151,7 +151,20 @@ describe("equxi", () => {
     }
 
     const agent = await program.account.agent.fetch(agentAPDA);
-    expect(agent.name).to.equal(agentAName);
+
+    // The name is stored on-chain as a fixed `[u8; 32]`, not a JS string, and
+    // every decoder in this repo (coder.ts `decodeName`, lib/equxi-layout.js
+    // `fixedString`) reads it by trimming at the first NUL. Assert that stored
+    // contract, not a decoded convenience value: the bytes AND their padding.
+    const nameBytes = agent.name as unknown as number[];
+    expect(nameBytes).to.have.length(32);
+    expect(
+      Buffer.from(nameBytes).subarray(0, nameBytes.indexOf(0)).toString("utf8")
+    ).to.equal(agentAName);
+    expect(nameBytes.slice(agentAName.length)).to.deep.equal(
+      new Array(32 - agentAName.length).fill(0)
+    );
+
     expect(agent.trustScore).to.equal(50);
     expect(agent.status).to.deep.equal({ active: {} });
     expect(agent.constraintCount).to.equal(0);
@@ -313,6 +326,18 @@ describe("equxi", () => {
     const record = await program.account.slashRecord.fetch(link(agentAPDA, new BN(0)));
     expect(record.compensated).to.be.true;
     expect(record.victim.toString()).to.equal(victim.publicKey.toString());
+
+    // SlashRecord.reason is a fixed `[u8; 128]` zero-padded by the program.
+    // The decoders assume exactly that padding, so check the stored bytes: a
+    // missing pad would leak NULs into every decoded report of this slash.
+    const reasonBytes = record.reason as unknown as number[];
+    expect(reasonBytes).to.have.length(128);
+    expect(
+      Buffer.from(reasonBytes).subarray(0, reasonBytes.indexOf(0)).toString("utf8")
+    ).to.equal("Violated spend limit");
+    expect(reasonBytes.slice("Violated spend limit".length)).to.deep.equal(
+      new Array(128 - "Violated spend limit".length).fill(0)
+    );
 
     const agent = await program.account.agent.fetch(agentAPDA);
     expect(agent.trustScore).to.equal(40);
