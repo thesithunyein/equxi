@@ -21,8 +21,13 @@ jobs:
         with:
           node-version: 20
 
+      # Pinned, not stable: Anchor 0.30.1's IDL build selects proc-macro2's
+      # proc_macro_span code path, which only compiles against the pre-1.88
+      # proc_macro API shape (rustc 1.88 reshaped/stabilized those APIs). The
+      # era-correct combination is anchor 0.30.1 + proc-macro2 1.0.94 (see
+      # programs/equxi/Cargo.toml) + rustc 1.83. Bump all three together.
       - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@1.83.0
 
       - name: Cache Rust
         uses: Swatinem/rust-cache@v2

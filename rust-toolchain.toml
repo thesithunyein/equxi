@@ -1,0 +1,5 @@
+# Kept in lockstep with CI (.github/workflows/ci.yml) and the proc-macro2 pin
+# in programs/equxi/Cargo.toml: anchor 0.30.1 needs the pre-1.88 proc_macro
+# span API shape. Bump all three together.
+[toolchain]
+channel = "1.83.0"
