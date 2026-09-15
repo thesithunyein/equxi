@@ -22,6 +22,7 @@ import { PublicKey } from "@solana/web3.js";
 // require` is not erasable syntax, so it cannot be used here — the test runner
 // strips types rather than transpiling.
 import L from "../../lib/equxi-layout";
+import badge from "../../api/badge";
 import trust from "../../api/trust";
 
 /** Local aliases, because a default import does not bind the namespace types. */
@@ -585,6 +586,177 @@ describe("read API (api/trust.js)", () => {
       } finally {
         (globalThis as { fetch: unknown }).fetch = originalFetch;
       }
+    });
+  });
+});
+
+/**
+ * `GET /api/badge` — the embeddable SVG.
+ *
+ * A badge is read by people who never open this repository, so the two things
+ * worth pinning are: it can never disagree with `GET /api/trust` about the same
+ * agent, and it can never pass off an unknown address as a clean one.
+ */
+describe("badge API (api/badge.js)", () => {
+  describe("renderBadge", () => {
+    it("draws the label and value with the grade colour", () => {
+      const svg = badge.renderBadge({ label: "equxi", value: "D 48", grade: "D" });
+      expect(svg).to.match(/^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg"/);
+      expect(svg).to.include(">equxi<");
+      expect(svg).to.include(">D 48<");
+      expect(svg).to.include("#ff5454"); // D/F are red
+      expect(svg).to.include('aria-label="equxi: D 48"');
+    });
+
+    it("renders ungraded and unknown grey, never green", () => {
+      for (const grade of ["ungraded", "unknown"]) {
+        const svg = badge.renderBadge({ label: "equxi", value: grade, grade });
+        expect(svg, grade).to.include("#6b6b6b");
+        expect(svg, grade).to.not.include("#14f195");
+      }
+    });
+
+    it("escapes a hostile value instead of emitting markup", () => {
+      const svg = badge.renderBadge({
+        label: 'x"><script>alert(1)</script>',
+        value: "&#<b>",
+        grade: "A",
+      });
+      expect(svg).to.not.include("<script");
+      expect(svg).to.not.include("<b>");
+      expect(svg).to.include("&lt;script&gt;");
+      expect(svg).to.include("&amp;");
+    });
+
+    it("grows with the value, so the text cannot clip", () => {
+      const narrow = badge.renderBadge({ label: "equxi", value: "A 100", grade: "A" });
+      const wide = badge.renderBadge({
+        label: "equxi",
+        value: "ungraded because there is nothing at stake",
+        grade: "ungraded",
+      });
+      const widthOf = (svg: string) => Number(svg.match(/width="(\d+)"/)?.[1]);
+      expect(widthOf(wide)).to.be.greaterThan(widthOf(narrow));
+    });
+  });
+
+  describe("buildBadge", () => {
+    const deps = () => ({ fetchImpl: fullStub().fetchImpl, now: NOW });
+
+    it("cannot disagree with GET /api/trust about the same agent", async () => {
+      const stub = fullStub();
+      const payload = await trust.buildResponse({ agent: AGENT_ADDR }, {
+        fetchImpl: stub.fetchImpl,
+        now: NOW,
+      });
+      const result = await badge.buildBadge({ agent: AGENT_ADDR }, deps());
+      const profile = payload.agents[0].profile;
+
+      expect(result.status).to.equal("graded");
+      expect(result.grade).to.equal(profile.grade);
+      expect(result.agent?.score).to.equal(profile.score);
+      expect(result.agent?.grade).to.equal(profile.grade);
+      expect(result.agent?.bondSol).to.equal(profile.bond?.amountSol);
+      expect(result.agent?.slashCount).to.equal(profile.stats.slashCount);
+    });
+
+    it("reports an unknown address as unknown, not as a pass", async () => {
+      const result = await badge.buildBadge(
+        { agent: new PublicKey("SysvarRent111111111111111111111111111111111").toBase58() },
+        deps()
+      );
+      expect(result.status).to.equal("unknown");
+      expect(result.grade).to.equal("unknown");
+      expect(result.value).to.equal("not found");
+      expect(result.agent).to.equal(null);
+    });
+
+    it("rejects a missing or malformed agent address", async () => {
+      async function fails(query: Record<string, string>) {
+        try {
+          await badge.buildBadge(query, deps());
+          return null;
+        } catch (error) {
+          return error as Error & { status?: number };
+        }
+      }
+
+      const missing = await fails({});
+      expect(missing && missing.message).to.match(/agent/i);
+      expect(missing && missing.status).to.equal(400);
+
+      const malformed = await fails({ agent: "not-a-pubkey" });
+      expect(malformed && malformed.message).to.match(/base58/i);
+      expect(malformed && malformed.status).to.equal(400);
+    });
+  });
+
+  describe("HTTP handler", () => {
+    function makeRes() {
+      const headers: Record<string, string> = {};
+      let body = "";
+      return {
+        res: {
+          statusCode: 0,
+          setHeader(name: string, value: string) {
+            headers[name] = value;
+          },
+          end(chunk?: string) {
+            body = chunk || "";
+          },
+        },
+        headers,
+        bodyText: () => body,
+      };
+    }
+
+    /** Run the handler against a stubbed RPC, restoring the real fetch after. */
+    async function handle(query: Record<string, string>, method = "GET") {
+      const originalFetch = globalThis.fetch;
+      (globalThis as { fetch: unknown }).fetch = fullStub().fetchImpl;
+      try {
+        const { res, headers, bodyText } = makeRes();
+        await badge({ method, query }, res);
+        return { statusCode: res.statusCode, headers, body: bodyText() };
+      } finally {
+        (globalThis as { fetch: unknown }).fetch = originalFetch;
+      }
+    }
+
+    it("serves an SVG with the outcome in headers", async () => {
+      const out = await handle({ agent: AGENT_ADDR });
+      expect(out.statusCode).to.equal(200);
+      expect(out.headers["content-type"]).to.match(/image\/svg\+xml/);
+      expect(out.headers["x-equxi-status"]).to.equal("graded");
+      expect(out.body).to.include("<svg");
+      expect(out.headers["access-control-allow-origin"]).to.equal("*");
+    });
+
+    it("serves JSON when asked", async () => {
+      const out = await handle({ agent: AGENT_ADDR, format: "json" });
+      expect(out.headers["content-type"]).to.match(/application\/json/);
+      const parsed = JSON.parse(out.body);
+      expect(parsed.status).to.equal("graded");
+      expect(parsed.agent.explorer).to.include(AGENT_ADDR);
+    });
+
+    it("marks an unknown address in the headers", async () => {
+      const out = await handle({ agent: new PublicKey("SysvarRent111111111111111111111111111111111").toBase58() });
+      expect(out.statusCode).to.equal(200);
+      expect(out.headers["x-equxi-status"]).to.equal("unknown");
+    });
+
+    it("answers preflight with 204 and rejects other methods with 405", async () => {
+      const preflight = await handle({}, "OPTIONS");
+      expect(preflight.statusCode).to.equal(204);
+
+      const posted = await handle({ agent: AGENT_ADDR }, "POST");
+      expect(posted.statusCode).to.equal(405);
+    });
+
+    it("returns a 400 for a missing agent parameter", async () => {
+      const out = await handle({});
+      expect(out.statusCode).to.equal(400);
     });
   });
 });

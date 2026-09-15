@@ -384,7 +384,7 @@ console.log("Trust score:", agent.trustScore);</code></pre>
 
       <!-- Instructions -->
       <h2 id="instructions">Program Instructions</h2>
-      <p>The Equxi program exposes 8 instructions:</p>
+      <p>The Equxi program exposes 9 instructions. The devnet deployment currently runs the 8 in v0.1; <code>create_vault</code> ships with v0.2.</p>
 
       <div class="table-wrap">
         <table>
@@ -400,6 +400,7 @@ console.log("Trust score:", agent.trustScore);</code></pre>
             <tr><td>execute_slash</td><td>Seize collateral into the escrow vault</td><td>Admin</td></tr>
             <tr><td>compensate_victim</td><td>Pay the victim out of the escrow vault</td><td>Admin</td></tr>
             <tr><td>update_trust_score</td><td>Update an agent's trust score</td><td>Admin</td></tr>
+            <tr><td>create_vault <span class="x-mono">(v0.2)</span></td><td>One-time migration: create the escrow vault on a deployment initialized before it existed</td><td>Upgrade authority &amp; admin</td></tr>
           </tbody>
         </table>
       </div>

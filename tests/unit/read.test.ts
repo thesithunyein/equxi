@@ -28,6 +28,7 @@ import {
   listSlashRecords,
   pubkeyFilter,
 } from "../../sdk/src/read";
+import L from "../../lib/equxi-layout";
 import {
   ACCOUNT_DISCRIMINATORS,
   AgentStatus,
@@ -474,3 +475,167 @@ function slashFixture(opts: {
     nonce: opts.nonce,
   };
 }
+
+/**
+ * Two implementations compute this score: `sdk/src/read.ts` (TypeScript, for
+ * programmatic consumers) and `lib/equxi-layout.js` (plain JavaScript, behind
+ * `GET /api/trust`, `/api/badge` and the Explorer). They were written separately
+ * and nothing pinned them to each other, so a change to one could have made the
+ * badge disagree with the SDK about the same agent.
+ *
+ * The score is a product claim, so the two are now asserted to agree across a
+ * matrix of inputs — including the awkward ones (zero-lamport bond, floored
+ * score, capped slash penalties).
+ */
+describe("scoring implementations agree", () => {
+  const now = 1_800_000_000;
+
+  /** Complete decoded accounts, because the JS scorers read decoded accounts. */
+  function jsAgent(statusCode: number) {
+    return {
+      layout: "v2" as const,
+      owner: OWNER.toBase58(),
+      name: "atlas",
+      agentType: "trader",
+      trustScore: 50,
+      status: "active",
+      statusCode,
+      bondAddress: PublicKey.default.toBase58(),
+      constraintCount: 0,
+      createdAt: 1_700_000_000,
+    };
+  }
+
+  function jsBond(amountLamports: string, isActive: boolean) {
+    return {
+      agent: AGENT.toBase58(),
+      operator: OWNER.toBase58(),
+      amountLamports,
+      amountSol: Number(amountLamports) / 1e9,
+      lockDuration: 86_400,
+      lockedAt: now,
+      expiresAt: now + 86_400,
+      isActive,
+    };
+  }
+
+  function jsSlash(nonce: string, compensated: boolean) {
+    return {
+      agent: AGENT.toBase58(),
+      authority: OWNER.toBase58(),
+      amountLamports: "1000000000",
+      amountSol: 1,
+      reason: "test",
+      nonce,
+      timestamp: 1_700_000_000,
+      victim: null,
+      compensated,
+    };
+  }
+
+  /** One scenario, expressed once and fed to both implementations. */
+  interface Scenario {
+    label: string;
+    sdkBond: Parameters<typeof buildTrustProfile>[0]["bond"];
+    jsBond: { amountLamports: string; isActive: boolean } | null;
+    slashCount: number;
+    openSlashes: number;
+    status: number;
+  }
+
+  const scenarios: Scenario[] = [
+    { label: "no bond", sdkBond: null, jsBond: null, slashCount: 0, openSlashes: 0, status: 0 },
+    {
+      label: "zero-lamport bond",
+      sdkBond: { address: PublicKey.default, amount: 0n, lockedAt: now, expiresAt: now + 1, isActive: true },
+      jsBond: { amountLamports: "0", isActive: true },
+      slashCount: 0,
+      openSlashes: 0,
+      status: 0,
+    },
+    {
+      label: "5 SOL, clean",
+      sdkBond: { address: PublicKey.default, amount: 5_000_000_000n, lockedAt: now, expiresAt: now + 86_400, isActive: true },
+      jsBond: { amountLamports: "5000000000", isActive: true },
+      slashCount: 0,
+      openSlashes: 0,
+      status: 0,
+    },
+    {
+      label: "inactive bond, slashed status",
+      sdkBond: { address: PublicKey.default, amount: 2_000_000_000n, lockedAt: now, expiresAt: now + 86_400, isActive: false },
+      jsBond: { amountLamports: "2000000000", isActive: false },
+      slashCount: 1,
+      openSlashes: 1,
+      status: 2,
+    },
+    {
+      label: "thin bond, all slashes settled",
+      sdkBond: { address: PublicKey.default, amount: 300_000_000n, lockedAt: now, expiresAt: now + 86_400, isActive: true },
+      jsBond: { amountLamports: "300000000", isActive: true },
+      slashCount: 2,
+      openSlashes: 0,
+      status: 0,
+    },
+    {
+      label: "every deduction at once (floors at 0)",
+      sdkBond: { address: PublicKey.default, amount: 100_000n, lockedAt: now, expiresAt: now + 86_400, isActive: false },
+      jsBond: { amountLamports: "100000", isActive: false },
+      slashCount: 9,
+      openSlashes: 9,
+      status: 2,
+    },
+  ];
+
+  scenarios.forEach((scenario) => {
+    it(`agrees on "${scenario.label}"`, () => {
+      const slashes = Array.from({ length: scenario.slashCount }, (_, i) =>
+        slashFixture({ nonce: BigInt(i), compensated: i >= scenario.openSlashes })
+      );
+
+      const sdk = buildTrustProfile({
+        agent: { address: AGENT, owner: OWNER, name: "atlas", trustScore: 50, status: scenario.status },
+        bond: scenario.sdkBond,
+        slashes,
+        now,
+      });
+
+      const js = L.buildTrustProfile({
+        agent: jsAgent(scenario.status),
+        bond: scenario.jsBond
+          ? jsBond(scenario.jsBond.amountLamports, scenario.jsBond.isActive)
+          : null,
+        slashes: slashes.map((s) => jsSlash(s.nonce.toString(), s.compensated)),
+        now,
+      });
+
+      expect(js.score).to.equal(sdk.score);
+      expect(js.grade).to.equal(sdk.grade);
+      expect(js.stats.openSlashes).to.equal(sdk.stats.openSlashes);
+      expect(js.stats.slashCount).to.equal(sdk.stats.slashCount);
+      expect(js.stats.uncompensatedLamports).to.equal(sdk.stats.uncompensatedLamports.toString());
+    });
+  });
+
+  /**
+   * A ledger that does not add up would be worse than no ledger: the whole claim
+   * of the Explorer is that the grade can be checked instead of trusted.
+   */
+  it("keeps the JS ledger summing to its own score, including when it floors", () => {
+    const slashes = Array.from({ length: 9 }, (_, i) => jsSlash(String(i), false));
+
+    const cases: Array<Parameters<typeof L.buildTrustProfile>[0]> = [
+      { agent: jsAgent(0), bond: null, slashes: [], now },
+      { agent: jsAgent(0), bond: jsBond("100000", false), slashes, now },
+      { agent: jsAgent(2), bond: jsBond("5000000000", true), slashes: slashes.slice(0, 3), now },
+    ];
+
+    cases.forEach((input, index) => {
+      const p = L.buildTrustProfile(input);
+      const sum = p.breakdown.reduce((total, entry) => total + entry.points, 0);
+      expect(sum, `case ${index} ledger must sum to the score`).to.equal(p.score);
+      expect(p.breakdown[0].points).to.equal(100);
+      expect(p.breakdown.length).to.be.greaterThan(1);
+    });
+  });
+});

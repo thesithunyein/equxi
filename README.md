@@ -70,16 +70,18 @@ The program executes 8 instructions on devnet. All transactions confirmed.
 git clone https://github.com/thesithunyein/equxi.git
 cd equxi
 
-# Serves the site AND /api/trust locally (no Vercel CLI, no build step).
+# Serves the site AND the api/ functions locally (no Vercel CLI, no build step).
 node dev-server.js
 
 #   Dashboard    http://localhost:4321/app.html
 #   Explorer     http://localhost:4321/explorer.html
 #   Read API     http://localhost:4321/api/trust
+#   Badge        http://localhost:4321/api/badge?agent=<pda>
 ```
 
 Plain `npx serve .` also works for the dashboard, but the Trust Explorer needs
-`/api/trust`, which `dev-server.js` provides and a static server does not.
+`/api/trust` and `/api/badge`, which `dev-server.js` provides and a static server
+does not.
 
 ### Program
 
@@ -113,12 +115,12 @@ layout change that is not mirrored in every client fails immediately.
 |------|--------------|
 | `tests/unit/layout.test.ts` | Discriminators, PDAs, Borsh encoding |
 | `tests/unit/sdk.test.ts` | The IDL shipped in `sdk/src/idl/equxi.json` |
-| `tests/unit/read.test.ts` | Query filters, decoding, and the trust-scoring rules |
-| `tests/unit/api.test.ts` | `api/trust.js` end to end, against a stubbed RPC |
+| `tests/unit/read.test.ts` | Query filters, decoding, the trust-scoring rules, and that the SDK scorer and the API scorer agree |
+| `tests/unit/api.test.ts` | `api/trust.js` and `api/badge.js` end to end, against a stubbed RPC |
 
-> **Honest status:** the unit tests and all TypeScript typechecks have been run
-> and pass. `anchor build` and `anchor test` have **not** been run — the machine
-> they were written on has no Rust linker installed. See
+> **Honest status:** the unit tests and all TypeScript typechecks pass, and CI
+> compiles the Rust program and runs `anchor test` on a local validator. What has
+> **not** happened is a **devnet redeploy**: the live program is still v0.1. See
 > [`TEST-RESULTS.md`](TEST-RESULTS.md).
 
 ## Architecture
@@ -127,7 +129,7 @@ layout change that is not mirrored in every client fails immediately.
 equxi/
 ├── programs/equxi/           Solana program (Rust/Anchor)
 │   └── src/
-│       ├── lib.rs            8 instructions
+│       ├── lib.rs            9 instructions (8 on devnet: create_vault is v0.2)
 │       ├── state.rs          Account structs
 │       ├── error.rs          Error codes
 │       └── instructions/     Instruction handlers
@@ -135,7 +137,8 @@ equxi/
 │   └── src/read.ts           Query layer: list agents, bonds, slash history
 ├── eliza-plugin/             elizaOS plugin (IDL-free; encodes from coder.ts)
 ├── api/trust.js              GET /api/trust — public read API (Vercel function)
-├── lib/equxi-layout.js       Account layouts for the API (no dependencies)
+├── api/badge.js              GET /api/badge — embeddable SVG trust badge
+├── lib/equxi-layout.js       Account layouts + scoring for the API (no deps)
 ├── dev-server.js             Static server + read API for local development
 ├── tests/unit/               Validator-free wire-format + SDK + read tests
 ├── SPEC.md                   Agent Accountability Standard (AAS-1)
@@ -262,6 +265,11 @@ curl "https://equxi.sithunyein.com/api/trust?owner=<wallet>"
       "address": "…", "name": "augur", "owner": "…", "status": "active", "layout": "v2",
       "profile": {
         "grade": "B", "score": 80, "onChainTrustScore": 50,
+        "breakdown": [
+          { "label": "Base score", "points": 100 },
+          { "label": "1 slash recorded (10 each)", "points": -10 },
+          { "label": "1 slash not yet compensated (12 each)", "points": -12 }
+        ],
         "bond": { "amountSol": 3, "locked": true, "expired": false },
         "slashes": [{ "reason": "exceeded spend limit", "compensated": false }],
         "stats": { "slashCount": 1, "openSlashes": 1, "uncompensatedLamports": "…" },
@@ -277,6 +285,33 @@ observable on-chain evidence — whether a bond is posted, how large it is, and
 whether each recorded violation was actually compensated. The on-chain
 `trust_score` field is admin-set, so it is reported separately and never used as
 an input. An agent with no bond is `ungraded`, not trustworthy.
+
+**The score is auditable, not asserted.** `profile.breakdown` is the ledger that
+produced the score: a `+100` base entry followed by one negative entry per
+deduction, summing exactly to `score` (including the floor, which is recorded as
+its own entry so the arithmetic still closes). A counterparty can therefore check
+the number instead of trusting it, and `tests/unit/read.test.ts` pins the
+invariant.
+
+## Embeddable trust badge
+
+The registry is only useful where agents are already shown, so any agent can wear
+its own grade:
+
+```bash
+curl "https://equxi.sithunyein.com/api/badge?agent=<pda>"                 # SVG
+curl "https://equxi.sithunyein.com/api/badge?agent=<pda>&format=json"    # numbers
+```
+
+```markdown
+[![Equxi trust](https://equxi.sithunyein.com/api/badge?agent=<pda>)](https://equxi.sithunyein.com/explorer.html?agent=<pda>)
+```
+
+The badge re-reads the chain on **every** request, so it cannot silently go
+stale, and it refuses to flatter: an address with no agent account renders grey
+`not found`, not green, and `x-equxi-status: unknown` says so in the headers. It
+is a live view, not a certificate. Agent names and slash reasons are
+attacker-controlled, so everything is XML-escaped before it reaches the markup.
 
 **Which layout it read is part of the response.** The devnet deployment is v0.1,
 whose `Agent` accounts are 116 bytes with no `constraint_count` and which has no
@@ -295,10 +330,29 @@ in `eliza-plugin/src/coder.ts`.
 ## Trust Explorer
 
 [`explorer.html`](explorer.html) is the human-readable view of the same data —
-the page you can hand to someone who will not run `curl`. Look up any agent by
-address (`explorer.html?agent=<pda>`), or list the whole registry, and see its
-collateral, grade, and settlement history. It is read-only and has no wallet
-connection.
+the page you can hand to someone who will not run `curl`. It is read-only and has
+no wallet connection.
+
+It answers the question a counterparty has, not the one a developer has:
+
+* **Search the way people know an agent** — by name, by agent address, or by the
+  owner wallet that controls it. A pubkey is tried as an agent account first and
+  then as an owner, so the reader does not have to know which they pasted.
+* **Sort and filter the registry** by collateral, weakest score, slash count or
+  age, and narrow by grade or to agents with unpaid slashes.
+* **Audit the grade.** Each agent's panel renders the score ledger
+  (`profile.breakdown`) so the deduction behind every point is visible, next to
+  the on-chain `trust_score` it deliberately ignores.
+* **Count rules the honest way.** The on-chain constraint *counter* does not exist
+  on v0.1 accounts, so rule counts are read from the Constraint accounts
+  themselves and labelled `found (counter n/a)` — never a confident `0` that
+  contradicts the rules listed beside it.
+* **Embed it.** Every agent panel generates the Markdown, HTML and JSON URLs for
+  that agent's live badge.
+
+Deep links work for all three lookups: `?agent=<pda>`, `?owner=<wallet>` and
+`?q=<name>`. A failed lookup is reported as a failure — the page never presents an
+RPC error as “no agents found”.
 
 ## SDK
 
