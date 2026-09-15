@@ -318,13 +318,17 @@ console.log("Trust score:", agent.trustScore);</code></pre>
       </div>
 
       <h3>Bond Lifecycle</h3>
-      <pre><code>create_bond → [active] → [lock expires] → withdraw_bond
-     ↓                      ↓
-  slashed by admin    operator reclaims funds</code></pre>
+      <pre><code>create_bond → [active] → [lock expires] → withdraw_bond (closes account)
+     ↓
+  execute_slash → escrow vault → compensate_victim → victim</code></pre>
 
       <!-- Rules -->
       <h2 id="rules-section">Rules (Constraints)</h2>
-      <p><strong>Rules</strong> define what an agent is allowed to do. They are enforced on-chain: violations trigger automatic slashing.</p>
+      <p><strong>Rules</strong> define what an agent is allowed to do. They are stored on-chain and are the criteria a slash is judged against. An agent may hold many rules.</p>
+      <div class="callout warn">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <div>Detection is currently off-chain: an authority records the violation, then the program moves the money. This version does not yet reject violating transactions in-flight. See SPEC.md for the roadmap.</div>
+      </div>
 
       <h3>Constraint Types</h3>
       <div class="table-wrap">
@@ -367,15 +371,16 @@ console.log("Trust score:", agent.trustScore);</code></pre>
 
       <!-- Slashing -->
       <h2 id="slashing">Slashing</h2>
-      <p>When an agent violates its constraints, the program admin (config authority) can execute a <strong>slash</strong>:</p>
+      <p>When an agent violates its constraints, the configured authority executes a <strong>slash</strong>:</p>
       <ol>
-        <li><strong>Detection</strong>: Off-chain monitor detects violation (or operator self-reports)</li>
-        <li><strong>execute_slash</strong>: Admin calls this instruction with the agent and bond accounts</li>
-        <li><strong>Bond reduction</strong>: The slashed amount is deducted from the bond</li>
-        <li><strong>compensate_victim</strong>: Slashed funds are transferred to the victim's wallet</li>
-        <li><strong>Trust score update</strong>: Agent's trust score is decreased via <code>update_trust_score</code></li>
+        <li><strong>Detection</strong>: An off-chain monitor detects a violation (operators may also self-report)</li>
+        <li><strong>execute_slash</strong>: The authority calls this instruction with the agent, bond and vault accounts</li>
+        <li><strong>Escrow</strong>: The slashed lamports move from the bond into the program-owned <code>vault</code> PDA. They are never sent to the admin.</li>
+        <li><strong>compensate_victim</strong>: The victim is paid out of the vault. This does not modify the bond's recorded amount.</li>
+        <li><strong>Trust score</strong>: The agent's trust score is reduced</li>
       </ol>
-      <p>The config authority (admin) is set during <code>initialize</code> and can only be changed by the current authority. This prevents unauthorized slashing.</p>
+      <p>Slashing is non-custodial: the admin can trigger a seizure but can never receive the funds. A payout can never exceed its slash amount, a slash can only be compensated once, and payouts are bounded by the vault balance.</p>
+      <p>The config authority is the program's <strong>upgrade authority</strong>. <code>initialize</code> takes no admin argument and verifies the signer against the program's <code>ProgramData</code> account, so the config can never be initialized with a stranger as admin.</p>
 
       <!-- Instructions -->
       <h2 id="instructions">Program Instructions</h2>
@@ -387,13 +392,13 @@ console.log("Trust score:", agent.trustScore);</code></pre>
             <tr><th>Instruction</th><th>Description</th><th>Authority</th></tr>
           </thead>
           <tbody>
-            <tr><td>initialize</td><td>Set up the program with admin config authority</td><td>Deployer</td></tr>
+            <tr><td>initialize</td><td>Create config + escrow vault; admin is bound to the upgrade authority</td><td>Upgrade authority</td></tr>
             <tr><td>register_agent</td><td>Register a new AI agent on-chain (PDA account)</td><td>Operator</td></tr>
-            <tr><td>create_bond</td><td>Lock SOL as collateral for an agent</td><td>Operator</td></tr>
-            <tr><td>withdraw_bond</td><td>Withdraw bond after lock period expires</td><td>Operator</td></tr>
-            <tr><td>add_constraint</td><td>Add a behavioral rule to an agent</td><td>Operator</td></tr>
-            <tr><td>execute_slash</td><td>Penalize a bond for rule violations</td><td>Admin</td></tr>
-            <tr><td>compensate_victim</td><td>Transfer slashed funds to the victim</td><td>Admin</td></tr>
+            <tr><td>create_bond</td><td>Lock SOL as collateral — the agent owner must sign</td><td>Agent owner</td></tr>
+            <tr><td>withdraw_bond</td><td>Return and close the bond after the lock period expires</td><td>Agent owner</td></tr>
+            <tr><td>add_constraint</td><td>Add a behavioral rule to an agent (many allowed)</td><td>Agent owner</td></tr>
+            <tr><td>execute_slash</td><td>Seize collateral into the escrow vault</td><td>Admin</td></tr>
+            <tr><td>compensate_victim</td><td>Pay the victim out of the escrow vault</td><td>Admin</td></tr>
             <tr><td>update_trust_score</td><td>Update an agent's trust score</td><td>Admin</td></tr>
           </tbody>
         </table>

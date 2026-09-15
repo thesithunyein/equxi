@@ -169,7 +169,8 @@
             trustScore: d[73],
             status: d[74] === 0 ? "active" : d[74] === 2 ? "slashed" : d[74] === 3 ? "deactivated" : "pending",
             bondAddress: new solanaWeb3.PublicKey(d.slice(75, 107)).toString(),
-            createdAt: Number(new DataView(d.buffer, d.byteOffset + 107).getBigInt64(0, true)),
+            constraintCount: new DataView(d.buffer, d.byteOffset + 107).getUint16(0, true),
+            createdAt: Number(new DataView(d.buffer, d.byteOffset + 109).getBigInt64(0, true)),
           });
         } else if (matchesDisc(d, accountDiscriminators.Bond)) {
           bonds.push({
@@ -422,15 +423,25 @@
       console.warn("Config check error:", e);
     }
     try {
-      var operator = new solanaWeb3.PublicKey(walletAddress);
+      var payer = new solanaWeb3.PublicKey(walletAddress);
       var disc = await instrDiscriminator("initialize");
-      var data = concat(disc, operator.toBuffer());
+      // initialize() takes no arguments. The signer must be the program's
+      // upgrade authority, which becomes the slash/compensation admin.
+      var data = disc;
       var configPDA2 = solanaWeb3.PublicKey.findProgramAddressSync([bytes("config")], PROGRAM_ID)[0];
+      var vaultPDA = solanaWeb3.PublicKey.findProgramAddressSync([bytes("vault")], PROGRAM_ID)[0];
+      var BPF_LOADER_UPGRADEABLE = new solanaWeb3.PublicKey("BPFLoaderUpgradeab1e11111111111111111111111");
+      var programDataPDA = solanaWeb3.PublicKey.findProgramAddressSync(
+        [PROGRAM_ID.toBuffer()], BPF_LOADER_UPGRADEABLE
+      )[0];
       console.log("Building init IX, data:", Array.from(data).map(function(b){return b.toString(16).padStart(2,'0');}).join(''));
       return new solanaWeb3.TransactionInstruction({
         keys: [
           { pubkey: configPDA2, isSigner: false, isWritable: true },
-          { pubkey: operator, isSigner: true, isWritable: true },
+          { pubkey: vaultPDA, isSigner: false, isWritable: true },
+          { pubkey: payer, isSigner: true, isWritable: true },
+          { pubkey: PROGRAM_ID, isSigner: false, isWritable: false },
+          { pubkey: programDataPDA, isSigner: false, isWritable: false },
           { pubkey: solanaWeb3.SystemProgram.programId, isSigner: false, isWritable: false },
         ],
         programId: PROGRAM_ID, data: data,
@@ -675,14 +686,15 @@
       var disc = await instrDiscriminator("create_bond");
       var data = concat(disc, u64le(Math.floor(amountSol * 1e9)), i64le(lockDuration));
 
-      // Anchor #[account(init)] creates the bond PDA — no SystemProgram.createAccount needed
+      // Anchor #[account(init)] creates the bond PDA — no SystemProgram.createAccount needed.
+      // The owner must SIGN: the program enforces has_one = owner, so a third party
+      // can no longer occupy an agent's bond PDA.
       var bondDataIx = new solanaWeb3.TransactionInstruction({
         keys: [
           { pubkey: solanaWeb3.PublicKey.findProgramAddressSync([bytes("config")], PROGRAM_ID)[0], isSigner: false, isWritable: true },
           { pubkey: bondPDA, isSigner: false, isWritable: true },
           { pubkey: new solanaWeb3.PublicKey(agentPubkey), isSigner: false, isWritable: true },
           { pubkey: operator, isSigner: true, isWritable: true },
-          { pubkey: operator, isSigner: false, isWritable: false },  // owner = agent.owner
           { pubkey: solanaWeb3.SystemProgram.programId, isSigner: false, isWritable: false },
         ],
         programId: PROGRAM_ID, data: data,
@@ -711,23 +723,25 @@
     closeModal(); showTxPending("Adding rule...");
     try {
       var operator = new solanaWeb3.PublicKey(walletAddress);
-      var configPDA = solanaWeb3.PublicKey.findProgramAddressSync([bytes("config")], PROGRAM_ID)[0];
-      // The Rust seed uses (config.total_bonds + 1) as the nonce — but for first constraint
-      // we need to read the on-chain config to get total_bonds. Use 1 as initial guess.
-      var configPDAForSeed = solanaWeb3.PublicKey.findProgramAddressSync([bytes("config")], PROGRAM_ID)[0];
-      var nonce = 1; // First constraint after init = total_bonds(0) + 1 = 1
+      var agentKey = new solanaWeb3.PublicKey(agentPubkey);
+      // The constraint PDA is seeded on the agent's own constraint counter (u16),
+      // so one agent can hold many rules. The old seed used config.total_bonds,
+      // which limited every agent to a single constraint.
+      var constraintIndex = 0;
       try {
-        var configInfo = await connection.getAccountInfo(configPDAForSeed);
-        if (configInfo && configInfo.data) {
-          // Config layout: discriminator(8) + admin(32) + total_agents(8) + total_bonds(8) + total_slashed(8) + bumped(1)
-          // total_bonds is at offset 8+32+8 = 48, length 8
-          var totalBonds = Number(new DataView(configInfo.data.buffer, configInfo.data.byteOffset + 48).getBigUint64(0, true));
-          nonce = totalBonds + 1;
-          console.log("Config total_bonds:", totalBonds, "-> constraint nonce:", nonce);
+        var agentInfo = await connection.getAccountInfo(agentKey);
+        if (agentInfo && agentInfo.data) {
+          // Agent layout: disc(8) + owner(32) + name(32) + type(1) + trust(1)
+          //               + status(1) + bond_address(32) = 107, then constraint_count: u16
+          var agentDv = new DataView(agentInfo.data.buffer, agentInfo.data.byteOffset);
+          constraintIndex = agentDv.getUint16(107, true);
+          console.log("Agent constraint_count:", constraintIndex);
         }
-      } catch (e) { console.warn("Could not read config for nonce:", e); }
+      } catch (e) { console.warn("Could not read agent for constraint index:", e); }
+      var constraintIndexBytes = new Uint8Array(2);
+      new DataView(constraintIndexBytes.buffer).setUint16(0, constraintIndex, true);
       var constraintPDA = solanaWeb3.PublicKey.findProgramAddressSync(
-        [bytes("constraint"), new solanaWeb3.PublicKey(agentPubkey).toBuffer(), u64le(nonce)], PROGRAM_ID
+        [bytes("constraint"), agentKey.toBuffer(), constraintIndexBytes], PROGRAM_ID
       )[0];
       var disc = await instrDiscriminator("add_constraint");
       var maxAmt = u64le(Math.floor(maxAmountSol * 1e9));
@@ -739,9 +753,8 @@
 
       var constraintIx = new solanaWeb3.TransactionInstruction({
         keys: [
-          { pubkey: configPDA, isSigner: false, isWritable: false },
           { pubkey: constraintPDA, isSigner: false, isWritable: true },
-          { pubkey: new solanaWeb3.PublicKey(agentPubkey), isSigner: false, isWritable: true },
+          { pubkey: agentKey, isSigner: false, isWritable: true },
           { pubkey: operator, isSigner: true, isWritable: true },
           { pubkey: solanaWeb3.SystemProgram.programId, isSigner: false, isWritable: false },
         ],
@@ -767,12 +780,12 @@
     try {
       var operator = new solanaWeb3.PublicKey(walletAddress);
       var disc = await instrDiscriminator("withdraw_bond");
+      // withdraw_bond closes the bond account, so no system program is needed.
       var ix = new solanaWeb3.TransactionInstruction({
         keys: [
           { pubkey: new solanaWeb3.PublicKey(bondPubkey), isSigner: false, isWritable: true },
           { pubkey: new solanaWeb3.PublicKey(agentPubkey), isSigner: false, isWritable: true },
           { pubkey: operator, isSigner: true, isWritable: true },
-          { pubkey: solanaWeb3.SystemProgram.programId, isSigner: false, isWritable: false },
         ],
         programId: PROGRAM_ID, data: disc,
       });
@@ -790,7 +803,7 @@
 
   window._openSlash = function (bondPubkey, agentPubkey, bondAmount, agentName) {
     openModal("Slash Bond",
-      '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">Slash <strong>' + agentName + '</strong>\'s bond. The specified amount transfers from the bond to the admin treasury.</p>' +
+      '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">Slash <strong>' + agentName + '</strong>\'s bond. The amount moves from the bond into the program-owned escrow vault, where it can be paid to a victim.</p>' +
       '<div class="form-group"><label>Slash Amount (SOL)</label><input type="number" id="slashAmount" placeholder="e.g. 0.1" min="0.01" step="0.01" max="' + lamportsToSol(bondAmount) + '" /><p class="hint">Max: ' + lamportsToSol(bondAmount) + ' SOL</p></div>' +
       '<div class="form-group"><label>Reason</label><input type="text" id="slashReason" placeholder="e.g. Rule violation: exceeded spending limit" maxlength="128" /></div>' +
       '<div class="form-actions"><button class="btn-ghost" onclick="closeModal()">Cancel</button><button class="btn-danger" id="slashSubmit">Slash Bond</button></div>'
@@ -825,9 +838,11 @@
       var disc = await instrDiscriminator("execute_slash");
       var data = concat(disc, strWithLen(reason), u64le(Math.floor(amountSol * 1e9)));
 
+      var vaultPDA = solanaWeb3.PublicKey.findProgramAddressSync([bytes("vault")], PROGRAM_ID)[0];
       var slashIx = new solanaWeb3.TransactionInstruction({
         keys: [
           { pubkey: configPDA, isSigner: false, isWritable: true },
+          { pubkey: vaultPDA, isSigner: false, isWritable: true },
           { pubkey: agentKey, isSigner: false, isWritable: true },
           { pubkey: new solanaWeb3.PublicKey(bondPubkey), isSigner: false, isWritable: true },
           { pubkey: slashRecordPDA, isSigner: false, isWritable: true },

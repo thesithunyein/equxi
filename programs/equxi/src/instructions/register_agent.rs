@@ -42,6 +42,7 @@ pub fn handler(ctx: Context<RegisterAgent>, name: String, agent_type: AgentType)
     agent.trust_score = 50;
     agent.status = AgentStatus::Active;
     agent.bond_address = Pubkey::default();
+    agent.constraint_count = 0;
     agent.created_at = Clock::get()?.unix_timestamp;
     agent.bumped = ctx.bumps.agent;
 

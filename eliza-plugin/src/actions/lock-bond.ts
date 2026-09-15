@@ -22,11 +22,11 @@ export const lockBondAction: Action = {
   examples: [
     [
       {
-        user: "{{user1}}",
+        name: "{{user1}}",
         content: { text: "Lock 0.5 SOL as bond for my trading bot" },
       },
       {
-        user: "{{agent}}",
+        name: "{{agent}}",
         content: { text: "Locking 0.5 SOL bond for your agent..." },
       },
     ],

@@ -1,146 +1,50 @@
+import * as anchor from "@coral-xyz/anchor";
 import { Program, AnchorProvider, BN } from "@coral-xyz/anchor";
 import { Connection, PublicKey, SystemProgram } from "@solana/web3.js";
 
-const PROGRAM_ID = new PublicKey("D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc");
+import {
+  AccountFetcher,
+  Located,
+  TrustProfile,
+  buildTrustProfile,
+  listAgents,
+  listBonds,
+  listConstraints,
+  listSlashRecords,
+} from "./read";
 
-// IDL placeholder - replace with actual IDL after `anchor build`
-const IDL: any = {
-  version: "0.1.0",
-  name: "equxi",
-  instructions: [
-    { name: "initialize", accounts: [
-      { name: "config", isMut: true, isSigner: false },
-      { name: "payer", isMut: true, isSigner: true },
-      { name: "systemProgram", isMut: false, isSigner: false },
-    ], args: [{ name: "admin", type: "publicKey" }] },
-    { name: "registerAgent", accounts: [
-      { name: "config", isMut: false, isSigner: false },
-      { name: "agent", isMut: true, isSigner: false },
-      { name: "operator", isMut: true, isSigner: true },
-      { name: "systemProgram", isMut: false, isSigner: false },
-    ], args: [
-      { name: "name", type: "string" },
-      { name: "agentType", type: { defined: "AgentType" } },
-    ] },
-    { name: "createBond", accounts: [
-      { name: "config", isMut: false, isSigner: false },
-      { name: "bond", isMut: true, isSigner: false },
-      { name: "agent", isMut: true, isSigner: false },
-      { name: "operator", isMut: true, isSigner: true },
-      { name: "owner", isMut: false, isSigner: false },
-      { name: "systemProgram", isMut: false, isSigner: false },
-    ], args: [
-      { name: "amount", type: "u64" },
-      { name: "lockDuration", type: "i64" },
-    ] },
-    { name: "withdrawBond", accounts: [
-      { name: "bond", isMut: true, isSigner: false },
-      { name: "agent", isMut: true, isSigner: false },
-      { name: "operator", isMut: true, isSigner: true },
-      { name: "systemProgram", isMut: false, isSigner: false },
-    ], args: [] },
-    { name: "addConstraint", accounts: [
-      { name: "config", isMut: false, isSigner: false },
-      { name: "constraint", isMut: true, isSigner: false },
-      { name: "agent", isMut: true, isSigner: false },
-      { name: "owner", isMut: true, isSigner: true },
-      { name: "systemProgram", isMut: false, isSigner: false },
-    ], args: [
-      { name: "constraintType", type: { defined: "ConstraintType" } },
-      { name: "params", type: { defined: "ConstraintParams" } },
-    ] },
-    { name: "executeSlash", accounts: [
-      { name: "config", isMut: false, isSigner: false },
-      { name: "agent", isMut: true, isSigner: false },
-      { name: "bond", isMut: true, isSigner: false },
-      { name: "slashRecord", isMut: true, isSigner: false },
-      { name: "owner", isMut: false, isSigner: false },
-      { name: "authority", isMut: false, isSigner: true },
-      { name: "systemProgram", isMut: false, isSigner: false },
-    ], args: [
-      { name: "reason", type: "string" },
-      { name: "slashAmount", type: "u64" },
-    ] },
-    { name: "compensateVictim", accounts: [
-      { name: "config", isMut: false, isSigner: false },
-      { name: "slashRecord", isMut: true, isSigner: false },
-      { name: "bond", isMut: true, isSigner: false },
-      { name: "agent", isMut: true, isSigner: false },
-      { name: "victim", isMut: true, isSigner: false },
-      { name: "authority", isMut: true, isSigner: true },
-      { name: "systemProgram", isMut: false, isSigner: false },
-    ], args: [{ name: "amount", type: "u64" }] },
-  ],
-  accounts: [
-    // Config account: 8 (disc) + 32 + 8 + 8 + 8 + 1 = 65 bytes
-    { name: "Config", type: { kind: "struct", fields: [
-      { name: "admin", type: "publicKey" },
-      { name: "totalAgents", type: "u64" },
-      { name: "totalBonds", type: "u64" },
-      { name: "totalSlashed", type: "u64" },
-      { name: "bumped", type: "u8" },
-    ]}},
-    { name: "Agent", type: { kind: "struct", fields: [
-      { name: "owner", type: "publicKey" },
-      { name: "name", type: { array: ["u8", 32] } },
-      { name: "agentType", type: { defined: "AgentType" } },
-      { name: "trustScore", type: "u8" },
-      { name: "status", type: { defined: "AgentStatus" } },
-      { name: "bondAddress", type: "publicKey" },
-      { name: "createdAt", type: "i64" },
-      { name: "bumped", type: "u8" },
-    ]}},
-    // Bond account: 8 (disc) + 32 + 32 + 8 + 8 + 8 + 8 + 1 + 1 = 106 bytes
-    { name: "Bond", type: { kind: "struct", fields: [
-      { name: "agent", type: "publicKey" },
-      { name: "operator", type: "publicKey" },
-      { name: "amount", type: "u64" },
-      { name: "lockDuration", type: "i64" },
-      { name: "lockedAt", type: "i64" },
-      { name: "expiresAt", type: "i64" },
-      { name: "isActive", type: "bool" },
-      { name: "bumped", type: "u8" },
-    ]}},
-    { name: "SlashRecord", type: { kind: "struct", fields: [
-      { name: "agent", type: "publicKey" },
-      { name: "authority", type: "publicKey" },
-      { name: "amount", type: "u64" },
-      { name: "reason", type: { array: ["u8", 128] } },
-      { name: "nonce", type: "u64" },
-      { name: "timestamp", type: "i64" },
-      { name: "victim", type: { option: "publicKey" } },
-      { name: "compensated", type: "bool" },
-      { name: "bumped", type: "u8" },
-    ]}},
-    // Constraint account: 8 (disc) + 32 + 1 + 288 + 1 + 8 + 1 = 339 bytes
-    { name: "Constraint", type: { kind: "struct", fields: [
-      { name: "agent", type: "publicKey" },
-      { name: "constraintType", type: { defined: "ConstraintType" } },
-      { name: "params", type: { defined: "ConstraintParams" } },
-      { name: "isEnforced", type: "bool" },
-      { name: "createdAt", type: "i64" },
-      { name: "bumped", type: "u8" },
-    ]}},
-  ],
-  types: [
-    { name: "AgentType", type: { kind: "enum", variants: [
-      "Trader", "Oracle", "DeFi", "Payment", "NFT", "Governance", "Bridge", "Custom"
-    ]}},
-    { name: "AgentStatus", type: { kind: "enum", variants: [
-      "Active", "Pending", "Slashed", "Deactivated"
-    ]}},
-    { name: "ConstraintType", type: { kind: "enum", variants: [
-      "SpendLimit", "ProgramAllowlist", "Timelock", "Velocity", "Custom"
-    ]}},
-    { name: "ConstraintParams", type: { kind: "struct", fields: [
-      { name: "maxAmount", type: "u64" },
-      { name: "maxPerPeriod", type: "u64" },
-      { name: "periodSeconds", type: "i64" },
-      { name: "timelockSeconds", type: "i64" },
-      { name: "allowedPrograms", type: { array: ["publicKey", 8] } },
-    ]}},
-  ],
-};
+export * from "./read";
+
+const PROGRAM_ID = new PublicKey("D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc");
+const BPF_LOADER_UPGRADEABLE = new PublicKey(
+  "BPFLoaderUpgradeab1e11111111111111111111111"
+);
+
+/** Maximum number of constraints the program allows per agent. */
+export const MAX_CONSTRAINTS = 16;
+
+/**
+ * The IDL is a standalone, reviewable artifact in `./idl/equxi.json`.
+ *
+ * It was previously inlined here in the Anchor <= 0.29 shape, which silently
+ * made every `new EquxiClient(provider)` throw against Anchor 0.30. Three
+ * separate breaking changes were involved:
+ *
+ *   1. `address` is now required on the IDL — the program id used to be passed
+ *      to `new Program(idl, programId, provider)`, but 0.30 reads `idl.address`.
+ *   2. the `publicKey` type string was renamed to `pubkey`;
+ *   3. `{ defined: "Name" }` became `{ defined: { name: "Name" } }`, and account
+ *      structs moved out of `accounts` into `types` (accounts now carry only a
+ *      `discriminator`).
+ *
+ * `anchor build` regenerates an equivalent file at `target/idl/equxi.json`;
+ * copying that over `./idl/equxi.json` is the supported way to refresh this.
+ * `tests/unit/sdk.test.ts` constructs a client from this file and decodes real
+ * account bytes with it, so a bad IDL fails the test suite rather than a user.
+ */
+import RAW_IDL from "./idl/equxi.json";
+
+const IDL = RAW_IDL as unknown as anchor.Idl;
 
 export class EquxiClient {
   private program: Program;
@@ -159,6 +63,19 @@ export class EquxiClient {
     return PublicKey.findProgramAddressSync([Buffer.from("config")], this.program.programId);
   }
 
+  /** Derive the escrow vault PDA */
+  findVaultPDA(): [PublicKey, number] {
+    return PublicKey.findProgramAddressSync([Buffer.from("vault")], this.program.programId);
+  }
+
+  /** Derive this program's ProgramData PDA (needed by `initialize`) */
+  findProgramDataPDA(): [PublicKey, number] {
+    return PublicKey.findProgramAddressSync(
+      [this.program.programId.toBuffer()],
+      BPF_LOADER_UPGRADEABLE
+    );
+  }
+
   /** Derive agent PDA */
   findAgentPDA(operator: PublicKey, name: string): [PublicKey, number] {
     return PublicKey.findProgramAddressSync(
@@ -173,6 +90,41 @@ export class EquxiClient {
       [Buffer.from("bond"), agentPDA.toBuffer()],
       this.program.programId
     );
+  }
+
+  /** Derive a constraint PDA from the agent's current constraint index */
+  findConstraintPDA(agentPDA: PublicKey, index: number): [PublicKey, number] {
+    const idx = Buffer.alloc(2);
+    idx.writeUInt16LE(index, 0);
+    return PublicKey.findProgramAddressSync(
+      [Buffer.from("constraint"), agentPDA.toBuffer(), idx],
+      this.program.programId
+    );
+  }
+
+  /**
+   * Initialize the program. Must be signed by the program's upgrade authority,
+   * which becomes the slash/compensation admin.
+   */
+  async initialize() {
+    const payer = this.program.provider.publicKey!;
+    const [configPDA] = this.findConfigPDA();
+    const [vaultPDA] = this.findVaultPDA();
+    const [programDataPDA] = this.findProgramDataPDA();
+
+    const tx = await this.program.methods
+      .initialize()
+      .accounts({
+        config: configPDA,
+        vault: vaultPDA,
+        payer,
+        program: this.program.programId,
+        programData: programDataPDA,
+        systemProgram: SystemProgram.programId,
+      })
+      .rpc();
+
+    return { configPDA, vaultPDA, tx };
   }
 
   /** Register a new agent */
@@ -194,12 +146,22 @@ export class EquxiClient {
     return { agentPDA, tx };
   }
 
-  /** Create a bond */
+  /**
+   * Create a bond. The agent's owner must sign and fund it — this is what stops
+   * a third party from squatting an agent's bond PDA.
+   */
   async createBond(agentPDA: PublicKey, amount: BN, lockDuration: BN) {
-    const operator = this.program.provider.publicKey!;
+    const owner = this.program.provider.publicKey!;
+    const agent = await this.accounts.agent.fetch(agentPDA);
+
+    if (agent.owner.toString() !== owner.toString()) {
+      throw new Error(
+        `Only the agent owner (${agent.owner.toString()}) can create this bond`
+      );
+    }
+
     const [configPDA] = this.findConfigPDA();
     const [bondPDA] = this.findBondPDA(agentPDA);
-    const agent = await this.accounts.agent.fetch(agentPDA);
 
     const tx = await this.program.methods
       .createBond(amount, lockDuration)
@@ -207,8 +169,7 @@ export class EquxiClient {
         config: configPDA,
         bond: bondPDA,
         agent: agentPDA,
-        operator,
-        owner: agent.owner,
+        owner,
         systemProgram: SystemProgram.programId,
       })
       .rpc();
@@ -216,7 +177,7 @@ export class EquxiClient {
     return { bondPDA, tx };
   }
 
-  /** Withdraw bond after lock expires */
+  /** Withdraw (and close) the bond after the lock expires */
   async withdrawBond(agentPDA: PublicKey) {
     const operator = this.program.provider.publicKey!;
     const [bondPDA] = this.findBondPDA(agentPDA);
@@ -227,27 +188,26 @@ export class EquxiClient {
         bond: bondPDA,
         agent: agentPDA,
         operator,
-        systemProgram: SystemProgram.programId,
       })
       .rpc();
 
     return { tx };
   }
 
-  /** Add a constraint */
+  /** Add a constraint. Multiple constraints per agent are supported. */
   async addConstraint(agentPDA: PublicKey, constraintType: any, params: any) {
     const owner = this.program.provider.publicKey!;
-    const [configPDA] = this.findConfigPDA();
-    const config = await this.accounts.config.fetch(configPDA);
-    const [constraintPDA] = PublicKey.findProgramAddressSync(
-      [Buffer.from("constraint"), agentPDA.toBuffer(), config.totalBonds.add(new BN(1)).toArrayLike(Buffer, "le", 8)],
-      this.program.programId
-    );
+    const agent = await this.accounts.agent.fetch(agentPDA);
+
+    if (agent.constraintCount >= MAX_CONSTRAINTS) {
+      throw new Error(`Agent already has the maximum ${MAX_CONSTRAINTS} constraints`);
+    }
+
+    const [constraintPDA] = this.findConstraintPDA(agentPDA, agent.constraintCount);
 
     const tx = await this.program.methods
       .addConstraint(constraintType, params)
       .accounts({
-        config: configPDA,
         constraint: constraintPDA,
         agent: agentPDA,
         owner,
@@ -258,26 +218,26 @@ export class EquxiClient {
     return { constraintPDA, tx };
   }
 
-  /** Execute slashing (admin only) */
+  /** Execute slashing (admin only). Funds move into the escrow vault. */
   async executeSlash(agentPDA: PublicKey, reason: string, slashAmount: BN) {
     const authority = this.program.provider.publicKey!;
     const [configPDA] = this.findConfigPDA();
-    const config = await this.accounts.config.fetch(configPDA);
+    const [vaultPDA] = this.findVaultPDA();
     const [bondPDA] = this.findBondPDA(agentPDA);
+    const config = await this.accounts.config.fetch(configPDA);
     const [slashPDA] = PublicKey.findProgramAddressSync(
       [Buffer.from("slash"), agentPDA.toBuffer(), config.totalSlashed.toArrayLike(Buffer, "le", 8)],
       this.program.programId
     );
-    const agent = await this.accounts.agent.fetch(agentPDA);
 
     const tx = await this.program.methods
       .executeSlash(reason, slashAmount)
       .accounts({
         config: configPDA,
+        vault: vaultPDA,
         agent: agentPDA,
         bond: bondPDA,
         slashRecord: slashPDA,
-        owner: agent.owner,
         authority,
         systemProgram: SystemProgram.programId,
       })
@@ -286,26 +246,25 @@ export class EquxiClient {
     return { slashPDA, tx };
   }
 
-  /** Compensate victim */
+  /** Pay a victim out of the escrow vault (admin only) */
   async compensateVictim(agentPDA: PublicKey, slashNonce: BN, victim: PublicKey, amount: BN) {
     const authority = this.program.provider.publicKey!;
     const [configPDA] = this.findConfigPDA();
+    const [vaultPDA] = this.findVaultPDA();
     const [slashPDA] = PublicKey.findProgramAddressSync(
       [Buffer.from("slash"), agentPDA.toBuffer(), slashNonce.toArrayLike(Buffer, "le", 8)],
       this.program.programId
     );
-    const [bondPDA] = this.findBondPDA(agentPDA);
 
     const tx = await this.program.methods
       .compensateVictim(amount)
       .accounts({
         config: configPDA,
+        vault: vaultPDA,
         slashRecord: slashPDA,
-        bond: bondPDA,
         agent: agentPDA,
         victim,
         authority,
-        systemProgram: SystemProgram.programId,
       })
       .rpc();
 
@@ -326,5 +285,160 @@ export class EquxiClient {
   async getConfig() {
     const [configPDA] = this.findConfigPDA();
     return this.accounts.config.fetch(configPDA);
+  }
+
+  /** Fetch the escrow vault, including how much is available to victims */
+  async getVault() {
+    const [vaultPDA] = this.findVaultPDA();
+    const vault = await this.accounts.vault.fetch(vaultPDA);
+    return {
+      ...vault,
+      available: vault.totalSlashed.sub(vault.totalCompensated),
+    };
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* Read layer                                                             */
+  /*                                                                        */
+  /* The write path above is only useful if a counterparty can ask "does    */
+  /* this agent have collateral at risk, and has it ever been slashed?"     */
+  /* These methods answer exactly that, over plain `getProgramAccounts`.    */
+  /* ---------------------------------------------------------------------- */
+
+  /** Public RPC connection this client queries. */
+  getConnection(): Connection {
+    return this.connection;
+  }
+
+  /** This program's on-chain address. */
+  getProgramId(): PublicKey {
+    return this.program.programId;
+  }
+
+  /**
+   * Build a `Program`-free `AccountFetcher` backed by this client's connection.
+   * Returning the interface (rather than fetching inline) is what lets the
+   * read layer be unit tested against a fake.
+   */
+  getAccountFetcher(): AccountFetcher {
+    return {
+      getProgramAccounts: (programId, config) =>
+        this.connection.getProgramAccounts(programId, config) as never,
+    };
+  }
+
+  /**
+   * Account discriminators come from the IDL rather than being recomputed here.
+   * `tests/unit/sdk.test.ts` pins the IDL's values to `sha256("account:" + Name)`,
+   * so a stale IDL fails the suite instead of silently returning zero accounts.
+   */
+  private accountDiscriminator(name: string): Buffer {
+    const accounts =
+      (IDL as unknown as { accounts?: Array<{ name: string; discriminator: number[] }> })
+        .accounts ?? [];
+    const found = accounts.find((a) => a.name === name);
+    if (!found) throw new Error(`IDL does not declare an account named "${name}"`);
+    return Buffer.from(found.discriminator);
+  }
+
+  /** Decoders backed by Anchor's own account coder, so layouts come from the IDL. */
+  private get decoders() {
+    return {
+      agent: (d: Buffer) => this.program.coder.accounts.decode("agent", d),
+      bond: (d: Buffer) => this.program.coder.accounts.decode("bond", d),
+      constraint: (d: Buffer) => this.program.coder.accounts.decode("constraint", d),
+      slashRecord: (d: Buffer) => this.program.coder.accounts.decode("slashRecord", d),
+    };
+  }
+
+  /** Every agent this program has registered. */
+  async listAgents(): Promise<Located<Record<string, unknown>>[]> {
+    return listAgents(
+      this.getAccountFetcher(),
+      this.getProgramId(),
+      this.decoders as never,
+      { Agent: this.accountDiscriminator("Agent") }
+    );
+  }
+
+  /** Every bond in existence. */
+  async listBonds(): Promise<Located<Record<string, unknown>>[]> {
+    return listBonds(
+      this.getAccountFetcher(),
+      this.getProgramId(),
+      this.decoders as never,
+      { Bond: this.accountDiscriminator("Bond") }
+    );
+  }
+
+  /** Slash history for one agent (or the whole program when `agent` is omitted). */
+  async listSlashRecords(agent?: PublicKey): Promise<Located<Record<string, unknown>>[]> {
+    return listSlashRecords(
+      this.getAccountFetcher(),
+      this.getProgramId(),
+      this.decoders as never,
+      { SlashRecord: this.accountDiscriminator("SlashRecord") },
+      agent
+    );
+  }
+
+  /** Constraints attached to one agent (or the whole program when omitted). */
+  async listConstraints(agent?: PublicKey): Promise<Located<Record<string, unknown>>[]> {
+    return listConstraints(
+      this.getAccountFetcher(),
+      this.getProgramId(),
+      this.decoders as never,
+      { Constraint: this.accountDiscriminator("Constraint") },
+      agent
+    );
+  }
+
+  /**
+   * The public trust profile for one agent: bond, slash history, derived grade.
+   * This is the single call a counterparty or a judge needs.
+   */
+  async getTrustProfile(agentPDA: PublicKey, now = Math.floor(Date.now() / 1000)): Promise<TrustProfile> {
+    const agent = await this.getAgent(agentPDA);
+
+    // A bond PDA is derived from the agent, so this is a point read, not a scan.
+    const [bondPDA] = this.findBondPDA(agentPDA);
+    let bond: Awaited<ReturnType<EquxiClient["getBond"]>> | null = null;
+    try {
+      bond = await this.getBond(bondPDA);
+    } catch {
+      // Anchor throws when the account does not exist. No bond is a valid state.
+      bond = null;
+    }
+
+    const slashes = await this.listSlashRecords(agentPDA);
+
+    return buildTrustProfile({
+      agent: {
+        address: agentPDA,
+        owner: agent.owner as PublicKey,
+        name: agent.name as string,
+        trustScore: agent.trustScore as number,
+        status: agent.status as unknown as number,
+      },
+      bond: bond
+        ? {
+            address: bondPDA,
+            amount: BigInt((bond.amount as BN).toString()),
+            lockedAt: Number((bond.lockedAt as BN).toString()),
+            expiresAt: Number((bond.expiresAt as BN).toString()),
+            isActive: bond.isActive as boolean,
+          }
+        : null,
+      slashes: slashes.map(({ address, data }) => ({
+        address,
+        amount: BigInt((data.amount as BN).toString()),
+        reason: data.reason as string,
+        timestamp: Number((data.timestamp as BN).toString()),
+        victim: (data.victim as PublicKey | null)?.toBase58() ?? null,
+        compensated: data.compensated as boolean,
+        nonce: BigInt((data.nonce as BN).toString()),
+      })),
+      now,
+    });
   }
 }

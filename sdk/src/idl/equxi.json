@@ -1,0 +1,277 @@
+{
+  "address": "D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc",
+  "metadata": {
+    "name": "equxi",
+    "version": "0.2.0",
+    "spec": "0.1.0"
+  },
+  "instructions": [
+    {
+      "name": "initialize",
+      "discriminator": [175, 175, 109, 31, 13, 152, 155, 237],
+      "accounts": [
+        { "name": "config", "isMut": true, "isSigner": false },
+        { "name": "vault", "isMut": true, "isSigner": false },
+        { "name": "payer", "isMut": true, "isSigner": true },
+        { "name": "program", "isMut": false, "isSigner": false },
+        { "name": "programData", "isMut": false, "isSigner": false },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": []
+    },
+    {
+      "name": "registerAgent",
+      "discriminator": [135, 157, 66, 195, 2, 113, 175, 30],
+      "accounts": [
+        { "name": "config", "isMut": true, "isSigner": false },
+        { "name": "agent", "isMut": true, "isSigner": false },
+        { "name": "operator", "isMut": true, "isSigner": true },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "name", "type": "string" },
+        { "name": "agentType", "type": { "defined": { "name": "AgentType" } } }
+      ]
+    },
+    {
+      "name": "createBond",
+      "discriminator": [96, 81, 70, 166, 111, 33, 61, 50],
+      "accounts": [
+        { "name": "config", "isMut": true, "isSigner": false },
+        { "name": "bond", "isMut": true, "isSigner": false },
+        { "name": "agent", "isMut": true, "isSigner": false },
+        { "name": "owner", "isMut": true, "isSigner": true },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "amount", "type": "u64" },
+        { "name": "lockDuration", "type": "i64" }
+      ]
+    },
+    {
+      "name": "withdrawBond",
+      "discriminator": [222, 199, 141, 31, 188, 93, 155, 40],
+      "accounts": [
+        { "name": "bond", "isMut": true, "isSigner": false },
+        { "name": "agent", "isMut": true, "isSigner": false },
+        { "name": "operator", "isMut": true, "isSigner": true }
+      ],
+      "args": []
+    },
+    {
+      "name": "addConstraint",
+      "discriminator": [82, 172, 46, 153, 183, 222, 112, 252],
+      "accounts": [
+        { "name": "constraint", "isMut": true, "isSigner": false },
+        { "name": "agent", "isMut": true, "isSigner": false },
+        { "name": "owner", "isMut": true, "isSigner": true },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        {
+          "name": "constraintType",
+          "type": { "defined": { "name": "ConstraintType" } }
+        },
+        {
+          "name": "params",
+          "type": { "defined": { "name": "ConstraintParams" } }
+        }
+      ]
+    },
+    {
+      "name": "executeSlash",
+      "discriminator": [15, 240, 38, 73, 175, 55, 88, 55],
+      "accounts": [
+        { "name": "config", "isMut": true, "isSigner": false },
+        { "name": "vault", "isMut": true, "isSigner": false },
+        { "name": "agent", "isMut": true, "isSigner": false },
+        { "name": "bond", "isMut": true, "isSigner": false },
+        { "name": "slashRecord", "isMut": true, "isSigner": false },
+        { "name": "authority", "isMut": true, "isSigner": true },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "reason", "type": "string" },
+        { "name": "slashAmount", "type": "u64" }
+      ]
+    },
+    {
+      "name": "compensateVictim",
+      "discriminator": [14, 129, 23, 168, 61, 50, 218, 69],
+      "accounts": [
+        { "name": "config", "isMut": false, "isSigner": false },
+        { "name": "vault", "isMut": true, "isSigner": false },
+        { "name": "slashRecord", "isMut": true, "isSigner": false },
+        { "name": "agent", "isMut": true, "isSigner": false },
+        { "name": "victim", "isMut": true, "isSigner": false },
+        { "name": "authority", "isMut": false, "isSigner": true }
+      ],
+      "args": [{ "name": "amount", "type": "u64" }]
+    },
+    {
+      "name": "updateTrustScore",
+      "discriminator": [100, 231, 130, 250, 180, 196, 20, 248],
+      "accounts": [
+        { "name": "config", "isMut": false, "isSigner": false },
+        { "name": "agent", "isMut": true, "isSigner": false },
+        { "name": "authority", "isMut": false, "isSigner": true }
+      ],
+      "args": [{ "name": "score", "type": "u8" }]
+    }
+  ],
+  "accounts": [
+    { "name": "Config", "discriminator": [155, 12, 170, 224, 30, 250, 204, 130] },
+    { "name": "Vault", "discriminator": [211, 8, 232, 43, 2, 152, 117, 119] },
+    { "name": "Agent", "discriminator": [47, 166, 112, 147, 155, 197, 86, 7] },
+    { "name": "Bond", "discriminator": [224, 128, 48, 251, 182, 246, 111, 196] },
+    { "name": "Constraint", "discriminator": [39, 48, 250, 220, 53, 120, 62, 128] },
+    { "name": "SlashRecord", "discriminator": [107, 134, 175, 65, 150, 130, 94, 68] }
+  ],
+  "types": [
+    {
+      "name": "AgentType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          { "name": "Trader" },
+          { "name": "Oracle" },
+          { "name": "DeFi" },
+          { "name": "Payment" },
+          { "name": "NFT" },
+          { "name": "Governance" },
+          { "name": "Bridge" },
+          { "name": "Custom" }
+        ]
+      }
+    },
+    {
+      "name": "AgentStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          { "name": "Active" },
+          { "name": "Pending" },
+          { "name": "Slashed" },
+          { "name": "Deactivated" }
+        ]
+      }
+    },
+    {
+      "name": "ConstraintType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          { "name": "SpendLimit" },
+          { "name": "ProgramAllowlist" },
+          { "name": "Timelock" },
+          { "name": "Velocity" },
+          { "name": "Custom" }
+        ]
+      }
+    },
+    {
+      "name": "ConstraintParams",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "maxAmount", "type": "u64" },
+          { "name": "maxPerPeriod", "type": "u64" },
+          { "name": "periodSeconds", "type": "i64" },
+          { "name": "timelockSeconds", "type": "i64" },
+          { "name": "allowedPrograms", "type": { "array": ["pubkey", 8] } }
+        ]
+      }
+    },
+    {
+      "name": "Config",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "admin", "type": "pubkey" },
+          { "name": "totalAgents", "type": "u64" },
+          { "name": "totalBonds", "type": "u64" },
+          { "name": "totalSlashed", "type": "u64" },
+          { "name": "bumped", "type": "u8" }
+        ]
+      }
+    },
+    {
+      "name": "Vault",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "totalSlashed", "type": "u64" },
+          { "name": "totalCompensated", "type": "u64" },
+          { "name": "bumped", "type": "u8" }
+        ]
+      }
+    },
+    {
+      "name": "Agent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "owner", "type": "pubkey" },
+          { "name": "name", "type": { "array": ["u8", 32] } },
+          { "name": "agentType", "type": { "defined": { "name": "AgentType" } } },
+          { "name": "trustScore", "type": "u8" },
+          { "name": "status", "type": { "defined": { "name": "AgentStatus" } } },
+          { "name": "bondAddress", "type": "pubkey" },
+          { "name": "constraintCount", "type": "u16" },
+          { "name": "createdAt", "type": "i64" },
+          { "name": "bumped", "type": "u8" }
+        ]
+      }
+    },
+    {
+      "name": "Bond",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "agent", "type": "pubkey" },
+          { "name": "operator", "type": "pubkey" },
+          { "name": "amount", "type": "u64" },
+          { "name": "lockDuration", "type": "i64" },
+          { "name": "lockedAt", "type": "i64" },
+          { "name": "expiresAt", "type": "i64" },
+          { "name": "isActive", "type": "bool" },
+          { "name": "bumped", "type": "u8" }
+        ]
+      }
+    },
+    {
+      "name": "Constraint",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "agent", "type": "pubkey" },
+          {
+            "name": "constraintType",
+            "type": { "defined": { "name": "ConstraintType" } }
+          },
+          { "name": "params", "type": { "defined": { "name": "ConstraintParams" } } },
+          { "name": "isEnforced", "type": "bool" },
+          { "name": "createdAt", "type": "i64" },
+          { "name": "bumped", "type": "u8" }
+        ]
+      }
+    },
+    {
+      "name": "SlashRecord",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "agent", "type": "pubkey" },
+          { "name": "authority", "type": "pubkey" },
+          { "name": "amount", "type": "u64" },
+          { "name": "reason", "type": { "array": ["u8", 128] } },
+          { "name": "nonce", "type": "u64" },
+          { "name": "timestamp", "type": "i64" },
+          { "name": "victim", "type": { "option": "pubkey" } },
+          { "name": "compensated", "type": "bool" },
+          { "name": "bumped", "type": "u8" }
+        ]
+      }
+    }
+  ]
+}

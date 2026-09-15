@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Equxi | Trust Explorer</title>
+  <meta name="description" content="Look up any Equxi agent: is collateral posted, and has it ever been slashed? Every number is read from Solana." />
+  <link rel="icon" type="image/webp" href="assets/logo.webp" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="manifest" href="manifest.json" />
+  <meta property="og:title" content="Equxi Trust Explorer" />
+  <meta property="og:description" content="Does this agent have collateral at risk, and has it ever been slashed? Read it from Solana." />
+  <meta property="og:type" content="website" />
+  <link rel="canonical" href="https://equxi.sithunyein.com/explorer.html" />
+
+  <style>
+    .x-wrap { max-width: 1120px; margin: 0 auto; padding: 24px 20px 96px; }
+    .x-h1 { font-size: clamp(28px, 4vw, 44px); font-weight: 600; letter-spacing: -0.02em; }
+    .x-lede { color: var(--muted); margin-top: 10px; max-width: 680px; line-height: 1.6; }
+
+    .x-search { display: flex; gap: 10px; margin: 28px 0 8px; flex-wrap: wrap; }
+    .x-search input {
+      flex: 1 1 340px; min-width: 0; padding: 13px 15px; border-radius: 10px;
+      border: 1px solid #262626; background: #0c0c0c; color: var(--text);
+      font-family: var(--font); font-size: 14px;
+    }
+    .x-search input:focus { outline: none; border-color: var(--purple); }
+    .x-search button {
+      padding: 13px 22px; border-radius: 10px; border: none; cursor: pointer;
+      background: var(--purple); color: #fff; font-weight: 600; font-size: 14px;
+      font-family: var(--font);
+    }
+    .x-search button:hover { background: var(--purple-hover); }
+    .x-search button.ghost { background: transparent; border: 1px solid #2a2a2a; color: var(--muted); }
+
+    .x-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin: 26px 0; }
+    .x-tile { border: 1px solid #1e1e1e; border-radius: 14px; padding: 16px 18px; background: #080808; }
+    .x-tile .k { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .x-tile .v { font-size: 26px; font-weight: 600; margin-top: 8px; }
+    .x-tile .s { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    .x-card { border: 1px solid #1e1e1e; border-radius: 16px; background: #070707; padding: 22px; margin-bottom: 18px; }
+    .x-card h2 { font-size: 18px; font-weight: 600; }
+    .x-sub { color: var(--muted); font-size: 13px; margin-top: 6px; line-height: 1.6; }
+
+    table.x-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    table.x-table th {
+      text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em;
+      color: var(--muted); font-weight: 600; padding: 10px 12px; border-bottom: 1px solid #1e1e1e;
+    }
+    table.x-table td { padding: 12px; border-bottom: 1px solid #141414; vertical-align: middle; }
+    table.x-table tr:last-child td { border-bottom: none; }
+    table.x-table tbody tr { cursor: pointer; }
+    table.x-table tbody tr:hover { background: #0d0d0d; }
+    .x-mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; color: var(--muted); }
+    .x-link { color: var(--purple); text-decoration: none; }
+    .x-link:hover { text-decoration: underline; }
+
+    .x-grade {
+      display: inline-block; min-width: 34px; text-align: center; padding: 4px 9px;
+      border-radius: 8px; font-weight: 700; font-size: 13px;
+    }
+    .g-A, .g-B { background: rgba(20, 241, 149, 0.14); color: var(--green); }
+    .g-C { background: rgba(240, 180, 41, 0.14); color: #f0b429; }
+    .g-D, .g-F { background: rgba(255, 84, 84, 0.14); color: #ff5454; }
+    .g-ungraded { background: #171717; color: var(--muted); }
+
+    .x-warn {
+      border-left: 3px solid #f0b429; background: rgba(240, 180, 41, 0.06);
+      padding: 10px 14px; border-radius: 0 10px 10px 0; font-size: 13px;
+      color: #e7c98a; margin-top: 10px; line-height: 1.55;
+    }
+    .x-note {
+      border-left: 3px solid var(--purple); background: rgba(153, 69, 255, 0.07);
+      padding: 10px 14px; border-radius: 0 10px 10px 0; font-size: 13px;
+      color: #cfc0ee; margin-top: 10px; line-height: 1.55;
+    }
+    .x-error { border-left: 3px solid #ff5454; background: rgba(255, 84, 84, 0.07); }
+    .x-error code { color: #ffb3b3; font-size: 12.5px; }
+
+    .x-empty { text-align: center; padding: 44px 20px; color: var(--muted); font-size: 14px; }
+    .x-spinner { display: inline-block; width: 15px; height: 15px; border: 2px solid #333; border-top-color: var(--purple); border-radius: 50%; animation: xspin 0.8s linear infinite; vertical-align: -2px; margin-right: 8px; }
+    @keyframes xspin { to { transform: rotate(360deg); } }
+    .x-slashes { margin-top: 6px; }
+    .x-slash-row { display: flex; justify-content: space-between; gap: 14px; padding: 10px 0; border-bottom: 1px solid #141414; font-size: 13.5px; }
+    .x-slash-row:last-child { border-bottom: none; }
+    .x-pill { font-size: 11px; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+    .x-pill.paid { background: rgba(20, 241, 149, 0.13); color: var(--green); }
+    .x-pill.owed { background: rgba(255, 84, 84, 0.13); color: #ff5454; }
+    .x-foot { color: var(--muted); font-size: 12.5px; line-height: 1.7; margin-top: 28px; }
+    .x-foot a { color: var(--purple); }
+    .x-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .x-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .x-actions a, .x-actions button {
+      font-size: 12.5px; padding: 8px 13px; border-radius: 9px; border: 1px solid #262626;
+      background: #0c0c0c; color: var(--text); cursor: pointer; font-family: var(--font);
+    }
+    .x-actions a:hover, .x-actions button:hover { border-color: var(--purple); }
+  </style>
+</head>
+<body>
+  <div class="bg"><div class="bg-overlay"></div></div>
+
+  <div class="page">
+    <header class="header">
+      <a href="index.html" class="logo">
+        <img src="assets/logo.webp" alt="Equxi" width="40" height="40" />
+        <span class="logo-text">Equxi</span>
+      </a>
+      <nav class="nav" id="desktopNav">
+        <a href="docs.html" class="nav-link">Docs</a>
+        <a href="app.html" class="nav-link">Dashboard</a>
+        <a href="explorer.html" class="nav-link">Explorer</a>
+        <a href="https://github.com/thesithunyein/equxi" class="nav-link" target="_blank">GitHub</a>
+        <a href="https://x.com/equxi_ai" class="nav-link" target="_blank"><i class="fa-brands fa-x-twitter"></i></a>
+      </nav>
+      <a href="app.html" class="btn-primary desktop-only">Open App</a>
+      <button class="menu-toggle" id="menuToggle" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </header>
+    <div class="mobile-nav" id="mobileNav">
+      <a href="docs.html" class="mobile-nav-link">Docs</a>
+      <a href="app.html" class="mobile-nav-link">Dashboard</a>
+      <a href="explorer.html" class="mobile-nav-link">Explorer</a>
+      <a href="https://github.com/thesithunyein/equxi" class="mobile-nav-link" target="_blank">GitHub</a>
+      <a href="app.html" class="btn-primary" style="width:100%;margin-top:12px;">Open App</a>
+    </div>
+
+    <main class="x-wrap">
+      <h1 class="x-h1">Trust Explorer</h1>
+      <p class="x-lede">
+        One question matters when an autonomous agent holds your money:
+        <strong>does it have collateral at risk, and has it ever been slashed?</strong>
+        Every number on this page is read from the Equxi program on Solana — nothing here is
+        self-reported by the agent.
+      </p>
+
+      <form class="x-search" id="searchForm" autocomplete="off">
+        <input
+          id="agentInput"
+          type="text"
+          placeholder="Paste an agent PDA address, or leave empty to list all agents"
+          spellcheck="false"
+        />
+        <button type="submit" id="lookupBtn">Look up</button>
+        <button type="button" class="ghost" id="allBtn">All agents</button>
+      </form>
+
+      <div id="status" aria-live="polite"></div>
+      <div id="summary"></div>
+      <div id="detail"></div>
+      <div id="registry"></div>
+
+      <p class="x-foot">
+        <strong>How the grade is computed.</strong> The score is derived from observable on-chain
+        evidence only: whether a bond is posted and how large it is, and whether each recorded
+        violation has actually been compensated to a victim. It deliberately ignores the on-chain
+        <span class="x-mono">trust_score</span> field, which is set by the program admin and is
+        therefore an assertion rather than evidence. An agent with no bond is reported as
+        <em>ungraded</em> — not as trustworthy.
+        <br />
+        Data comes from <span class="x-mono">GET /api/trust</span> over the
+        <span id="clusterName" class="x-mono">devnet</span> cluster. The source for this page is
+        <a href="https://github.com/thesithunyein/equxi/blob/main/api/trust.js" target="_blank">api/trust.js</a>
+        and
+        <a href="https://github.com/thesithunyein/equxi/blob/main/lib/equxi-layout.js" target="_blank">lib/equxi-layout.js</a>,
+        with the scoring rules pinned by tests in
+        <a href="https://github.com/thesithunyein/equxi/blob/main/tests/unit/api.test.ts" target="_blank">tests/unit/api.test.ts</a>.
+      </p>
+    </main>
+  </div>
+
+  <script src="explorer.js"></script>
+</body>
+</html>

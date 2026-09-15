@@ -8,7 +8,19 @@ export interface Agent {
   trustScore: number;
   status: AgentStatus;
   bondAddress: PublicKey;
+  /** Number of constraints attached; also the next constraint PDA index. */
+  constraintCount: number;
   createdAt: BN;
+  bumped: number;
+}
+
+/**
+ * Program-owned escrow holding slashed collateral until it is paid to a victim.
+ * `totalSlashed - totalCompensated` is the amount available to compensate.
+ */
+export interface Vault {
+  totalSlashed: BN;
+  totalCompensated: BN;
   bumped: number;
 }
 
