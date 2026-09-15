@@ -18,4 +18,7 @@ cluster = "Localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
-test = "npx ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+# Two patterns, not "tests/**/*.ts": bash expands ** without globstar to
+# subdirectory files only, which silently skipped the on-chain suite in
+# tests/*.ts while CI stayed green.
+test = "npx ts-mocha -p ./tsconfig.json -t 1000000 tests/*.ts tests/**/*.ts"
