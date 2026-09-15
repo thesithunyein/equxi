@@ -37,14 +37,15 @@ pub struct Initialize<'info> {
     pub program: Program<'info, crate::program::Equxi>,
 
     #[account(
-        // Normally-deployed programs (devnet/mainnet): the deployer is the
-        // upgrade authority and only they may initialize. Programs loaded at
-        // genesis by `solana-test-validator --bpf-program` (what `anchor
-        // test` does on localnet) and deliberately frozen programs have no
-        // upgrade authority (None); in that case the first signer claims the
-        // admin role — there is no deployer to verify against.
+        // The deployer is the upgrade authority and only they may initialize;
+        // anyone else could otherwise claim the admin role (which can slash
+        // other agents' bonds) before the real operator ever runs initialize.
+        //
+        // Local tests satisfy this too: Anchor.toml sets [test] upgradeable =
+        // true, which makes `anchor test` load the program on the validator
+        // with this same wallet as the upgrade authority, exactly like a real
+        // `anchor deploy`.
         constraint = program_data.upgrade_authority_address == Some(payer.key())
-            || program_data.upgrade_authority_address.is_none()
             @ EquxiError::InvalidAdminAuthority
     )]
     pub program_data: Account<'info, ProgramData>,

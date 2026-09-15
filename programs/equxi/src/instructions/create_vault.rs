@@ -40,11 +40,9 @@ pub struct CreateVault<'info> {
     pub program: Program<'info, crate::program::Equxi>,
 
     #[account(
-        // Same rule as initialize: strict on a live deployment, but a
-        // genesis-loaded or frozen program has no upgrade authority (None),
-        // in which case the config admin (already verified above) proceeds.
+        // Same rule as initialize: only the upgrade authority may run this.
+        // See initialize.rs for why local tests satisfy it.
         constraint = program_data.upgrade_authority_address == Some(payer.key())
-            || program_data.upgrade_authority_address.is_none()
             @ EquxiError::InvalidAdminAuthority
     )]
     pub program_data: Account<'info, ProgramData>,
