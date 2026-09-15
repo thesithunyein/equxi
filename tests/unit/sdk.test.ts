@@ -116,6 +116,7 @@ describe("equxi SDK", () => {
       // recompute it, so a missing entry makes `new Program(...)` throw.
       const rustNames: Record<string, string> = {
         initialize: "initialize",
+        createVault: "create_vault",
         registerAgent: "register_agent",
         createBond: "create_bond",
         withdrawBond: "withdraw_bond",

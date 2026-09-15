@@ -1,4 +1,5 @@
 pub mod initialize;
+pub mod create_vault;
 pub mod register_agent;
 pub mod create_bond;
 pub mod withdraw_bond;
@@ -8,6 +9,7 @@ pub mod compensate_victim;
 pub mod update_trust_score;
 
 pub use initialize::*;
+pub use create_vault::*;
 pub use register_agent::*;
 pub use create_bond::*;
 pub use withdraw_bond::*;
