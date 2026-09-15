@@ -39,8 +39,14 @@ jobs:
           sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
 
+      # Install the real CLI via cargo, not the npm @coral-xyz/anchor-cli
+      # wrapper: on 0.31.2 that wrapper detects a version-mismatched binary,
+      # prints "Trying globally installed anchor / Could not find globally
+      # installed anchor" and exits 0 WITHOUT building or testing anything —
+      # a step marked success while doing nothing. cargo install puts the
+      # actual `anchor` binary in ~/.cargo/bin, which rust-cache persists.
       - name: Install Anchor CLI
-        run: npm install -g @coral-xyz/anchor-cli@0.31.2
+        run: cargo install --locked anchor-cli --version 0.31.2
 
       - name: Install JS dependencies
         run: npm install
