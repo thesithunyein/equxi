@@ -166,6 +166,7 @@ jobs:
           test -f lib/equxi-layout.js || exit 1
           test -f explorer.html || exit 1
           test -f explorer.js || exit 1
+          test -f landing.js || exit 1
           test -f dev-server.js || exit 1
           # The upgrade path: a broken migration tool is worse than none, and it
           # only ever runs against a live deployment, so check it here instead.
@@ -186,6 +187,7 @@ jobs:
           test -f tests/unit/sdk.test.ts || exit 1
           test -f tests/unit/read.test.ts || exit 1
           test -f tests/unit/api.test.ts || exit 1
+          test -f tests/unit/landing.test.ts || exit 1
           test -f Anchor.toml || exit 1
           test -f setup.sh || exit 1
           echo "All files present"
@@ -229,11 +231,17 @@ jobs:
           node --check api/badge.js || exit 1
           node --check lib/equxi-layout.js || exit 1
           node --check explorer.js || exit 1
+          node --check landing.js || exit 1
           node --check dev-server.js || exit 1
           grep -q 'module.exports' api/trust.js || exit 1
           grep -q 'module.exports' api/badge.js || exit 1
           # The badge must escape the agent-controlled values it prints.
           grep -q 'function xml(' api/badge.js || exit 1
+          # The landing page reads this API, so it must escape too: agent names
+          # are attacker controlled, and it renders them straight into the page.
+          grep -q 'function esc(' landing.js || exit 1
+          grep -q '/api/trust' landing.js || exit 1
+          grep -q 'src="landing.js"' index.html || exit 1
           # Every api/*.js file is a route; dev-server.js must serve the same set
           # or the Explorer cannot be developed locally.
           for route in trust badge; do
