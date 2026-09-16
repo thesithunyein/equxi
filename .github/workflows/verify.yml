@@ -1,0 +1,46 @@
+name: Verify Live Site
+
+# Production deploys happen in Vercel now: the project's Git link points at
+# this repository, so every push to main builds and ships on their side.
+# Nothing here deploys anything — that would race Vercel and double-ship.
+#
+# What this adds is the check that a finished build is not the same thing as
+# a working site. The deploy pipeline reports success on upload; only a real
+# request tells you the pages a judge opens actually serve.
+#
+# Timing: Vercel's build is short (seconds for a static site) but not instant.
+# The retry loop polls for up to four minutes before concluding the site is
+# actually broken, so a slow build does not page a red X.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  verify:
+    name: Smoke check production
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check the pages a judge opens
+        run: |
+          BASE=https://equxi.sithunyein.com
+          attempts=0
+          until curl -s -o /dev/null --max-time 20 --retry 2 "$BASE/api/trust?probe=$(date +%s)"; do
+            attempts=$((attempts+1))
+            [ $attempts -ge 24 ] && break
+            sleep 10
+          done
+          fail=0
+          for path in "" explorer.html app.html docs.html deck.html api/trust; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 --retry 4 --retry-delay 5 "$BASE/$path")
+            printf '%-16s %s\n' "/${path:-}" "$code"
+            [ "$code" = "200" ] || fail=1
+          done
+          title=$(curl -s --max-time 20 "$BASE/" | grep -o '<title>[^<]*</title>' || true)
+          echo "Live title: $title"
+          case "$title" in
+            *"Slashable collateral"*) : ;;
+            *) echo "::warning title=Stale content?::The live title does not match the expected hero. If this push changed the landing page, production may be serving an older build."; fail=1 ;;
+          esac
+          exit $fail
