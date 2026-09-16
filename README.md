@@ -93,6 +93,32 @@ cargo build-sbf
 solana program deploy target/deploy/equxi.so
 ```
 
+### Upgrading a live deployment
+
+Shipping new program code is only half an upgrade, and the other half is the
+part that bites. v0.2 added `constraint_count` to `Agent`, growing that account
+from 116 to 118 bytes. Anchor refuses to deserialize a shorter account, so once
+the new code is deployed the program cannot read its own pre-existing agents —
+and nothing looks wrong from outside, because the website decodes accounts
+directly and keeps working.
+
+```bash
+node migrate.js --dry-run   # report what would change; sends nothing
+bash deploy-v2.sh           # upgrade, migrate, create the vault, verify
+```
+
+`deploy-v2.sh` refuses to start unless three things hold: the on-chain program
+still matches the v0.1 build kept for rollback, the artifact declares *this*
+deployment's program id (an `anchor build` run after `anchor keys sync`
+produces one that would deploy cleanly and then reject every instruction), and
+the authority holds the rent the upgrade buffer needs.
+
+`migrate.js` creates the escrow vault that v0.1 never had, grows every agent
+still on the v0.1 layout, and then re-decodes each account to prove that owner,
+name, score, status, bond address and `created_at` are byte-for-byte unchanged.
+A migration that quietly rewrote a reputation record would be worse than no
+migration at all, so it checks rather than assumes.
+
 ### Tests
 
 ```bash
@@ -119,8 +145,10 @@ layout change that is not mirrored in every client fails immediately.
 | `tests/unit/api.test.ts` | `api/trust.js` and `api/badge.js` end to end, against a stubbed RPC |
 
 > **Honest status:** the unit tests and all TypeScript typechecks pass, and CI
-> compiles the Rust program and runs `anchor test` on a local validator. What has
-> **not** happened is a **devnet redeploy**: the live program is still v0.1. See
+> compiles the Rust program and runs `anchor test` on a local validator, and the
+> 116 → 118 byte agent migration has its own Rust unit tests. What has **not**
+> happened is a **devnet redeploy**: the live program is still v0.1, and the
+> upgrade is written and pre-flight verified but not yet run. See
 > [`TEST-RESULTS.md`](TEST-RESULTS.md).
 
 ## Architecture
