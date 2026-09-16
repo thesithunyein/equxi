@@ -104,4 +104,42 @@ describe("page copy stays short", () => {
       .filter((p) => words(p) > 45);
     expect(offenders, `README paragraphs too long:\n${offenders.join("\n")}`).to.deep.equal([]);
   });
+
+  it("gives every dashboard section one plain line of orientation", () => {
+    const dashboard = prose(read("app.html"));
+    const descriptions = blocks(dashboard, ["p"]).filter((b) => /class="section-desc"/.test(b));
+    expect(descriptions.length, "no section descriptions found").to.be.at.least(3);
+    descriptions.forEach((d) => {
+      const count = words(text(d));
+      expect(count, `section description is ${count} words: ${text(d)}`).to.be.at.most(20);
+    });
+  });
+
+  it("calls a slash a slash on every page a person reads", () => {
+    // One idea, one word. The dashboard used to call the same on-chain event a
+    // "violation" while the landing page and the Explorer called it a slash,
+    // which read as two different things. The docs are the one place the
+    // distinction between breaking a rule and the penalty is worth spelling
+    // out, so they are out of scope here.
+    ["index.html", "app.html", "explorer.html"].forEach((file) => {
+      const body = text(prose(read(file))).toLowerCase();
+      expect(body, `${file} says "violation" where the rest of the site says slash`).to.not.include(
+        "violation"
+      );
+      expect(body, `${file} never mentions slashing`).to.include("slash");
+    });
+  });
+
+  it("does not invent a second name for the collateral", () => {
+    // The dashboard called the locked SOL a "stake", a "safety deposit" and
+    // "Total Locked" in three different places; the landing page calls it
+    // collateral, and so does everything else now.
+    const retired = [/safety deposit/i, /Total Locked/i, /Lock funds/i];
+    ["index.html", "app.html", "explorer.html", "app.js"].forEach((file) => {
+      const body = read(file);
+      retired.forEach((pattern) => {
+        expect(body, `${file} still uses ${pattern}`).to.not.match(pattern);
+      });
+    });
+  });
 });

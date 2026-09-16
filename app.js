@@ -566,7 +566,7 @@
     var target = document.getElementById("activityList");
     var fullTarget = document.getElementById("activityFullList");
     var items = cachedActivity.length > 0 ? cachedActivity : [
-      { type: "bond", title: "No activity yet", desc: "Connect wallet and register an agent to get started" },
+      { type: "bond", title: "Nothing yet", desc: "Register an agent and lock SOL behind it, and it all shows up here" },
     ];
     var iconMap = { bond: "fa-shield-halved", slash: "fa-bolt", constraint: "fa-list-check", tx: "fa-arrow-right-arrow-left" };
     target.innerHTML = items.slice(0, 8).map(function (a) {
@@ -580,16 +580,32 @@
   }
   function renderAgents() {
     var target = document.getElementById("agentsGrid");
-    if (!walletConnected) { target.innerHTML = emptyState("fa-wallet", "Connect wallet to see agents"); return; }
-    if (cachedAgents.length === 0) { target.innerHTML = emptyState("fa-robot", "No agents registered yet", "Click Register to create one"); return; }
+    if (!walletConnected) {
+      target.innerHTML = emptyState("fa-wallet", "Connect your wallet to see your agents", "An agent belongs to the wallet that registered it.", "Connect wallet", "connectWallet");
+      wireEmptyAction("connectWallet");
+      return;
+    }
+    if (cachedAgents.length === 0) {
+      target.innerHTML = emptyState("fa-robot", "No agents yet", "An agent is a program that acts with your money.", "Register your agent", "registerAgent");
+      wireEmptyAction("registerAgent");
+      return;
+    }
     target.innerHTML = cachedAgents.map(function (a) {
       return '<div class="agent-card"><div class="agent-card-header"><div class="agent-card-avatar"><i class="fa-solid fa-robot"></i></div><div class="agent-card-info"><h3>' + a.name + '</h3><p>' + short(a.pubkey) + '</p></div><span class="status-badge ' + a.status + '">' + a.status + '</span></div><div class="agent-card-stats"><div class="agent-stat"><div class="value">' + a.trustScore + '</div><div class="label">Trust</div></div><div class="agent-stat"><div class="value"><a href="' + explorerAddr(a.pubkey) + '" target="_blank" style="color:var(--purple);">View \u2197</a></div><div class="label">On-chain</div></div></div></div>';
     }).join("");
   }
   function renderBonds() {
     var target = document.getElementById("bondsList");
-    if (!walletConnected) { target.innerHTML = emptyState("fa-wallet", "Connect wallet to see bonds"); return; }
-    if (cachedBonds.length === 0) { target.innerHTML = emptyState("fa-shield-halved", "No bonds yet", "Lock funds to create a safety deposit"); return; }
+    if (!walletConnected) {
+      target.innerHTML = emptyState("fa-wallet", "Connect your wallet to see your bonds", "A bond is SOL you locked behind an agent.", "Connect wallet", "connectWallet");
+      wireEmptyAction("connectWallet");
+      return;
+    }
+    if (cachedBonds.length === 0) {
+      target.innerHTML = emptyState("fa-shield-halved", "No bond yet", "Without a bond there is nothing to pay a victim with.", "Lock SOL behind an agent", "createBond");
+      wireEmptyAction("createBond");
+      return;
+    }
     target.innerHTML = cachedBonds.map(function (b) {
       var expired = b.expiresAt && Date.now() / 1000 > b.expiresAt;
       var agentObj = cachedAgents.find(function (a) { return a.pubkey === b.agent; });
@@ -604,15 +620,36 @@
   }
   function renderConstraints() {
     var target = document.getElementById("constraintsGrid");
-    if (!walletConnected) { target.innerHTML = emptyState("fa-wallet", "Connect wallet to see rules"); return; }
-    if (cachedConstraints.length === 0) { target.innerHTML = emptyState("fa-list-check", "No rules configured", "Add rules to control agent behavior"); return; }
+    if (!walletConnected) {
+      target.innerHTML = emptyState("fa-wallet", "Connect your wallet to see your rules", "Rules are attached to an agent you own.", "Connect wallet", "connectWallet");
+      wireEmptyAction("connectWallet");
+      return;
+    }
+    if (cachedConstraints.length === 0) {
+      target.innerHTML = emptyState("fa-list-check", "No rules yet", "A rule is what turns a broken promise into a payout.", "Add a rule", "addConstraint");
+      wireEmptyAction("addConstraint");
+      return;
+    }
     target.innerHTML = cachedConstraints.map(function (c) {
       var iconClass = c.type === "spend" ? "fa-coins" : c.type === "program" ? "fa-cube" : c.type === "timelock" ? "fa-clock" : "fa-gauge-high";
       return '<div class="constraint-card"><div class="constraint-header"><div class="constraint-icon ' + c.type + '"><i class="fa-solid ' + iconClass + '"></i></div><h3>' + c.title + '</h3></div><div class="constraint-row"><span class="label">Status</span><span class="value">' + (c.enforced ? "Active" : "Pending") + '</span></div><div class="constraint-status"><span class="dot"></span>' + (c.enforced ? "Enforced" : "Pending") + '</div></div>';
     }).join("");
   }
-  function emptyState(icon, text, sub) {
-    return '<div class="empty-state"><i class="fa-solid ' + icon + '" style="font-size:28px;color:var(--text-muted);"></i><p>' + text + '</p>' + (sub ? '<p style="font-size:12px;color:var(--text-muted);margin-top:4px;">' + sub + '</p>' : "") + '</div>';
+  /**
+   * An empty state that only reports emptiness leaves the reader stuck, so each
+   * one carries the button that fixes it, wired to the same section button a
+   * reader would otherwise have to go and find.
+   */
+  function emptyState(icon, text, sub, action, actionTarget) {
+    return '<div class="empty-state"><i class="fa-solid ' + icon + '" style="font-size:28px;color:var(--text-muted);"></i><p>' + text + '</p>' + (sub ? '<p style="font-size:12px;color:var(--text-muted);margin-top:4px;">' + sub + '</p>' : "") + (action ? '<button class="btn-primary" id="emptyAction" style="margin-top:16px;">' + action + '</button>' : "") + '</div>';
+  }
+
+  function wireEmptyAction(actionTarget) {
+    var button = document.getElementById("emptyAction");
+    var sectionButton = document.getElementById(actionTarget);
+    if (button && sectionButton) {
+      button.addEventListener("click", function () { sectionButton.click(); });
+    }
   }
 
   /* ── Modals ─────────────────────────────────────────────────────────── */
@@ -627,10 +664,22 @@
     document.getElementById("modalClose").addEventListener("click", closeModal);
     document.getElementById("modalOverlay").addEventListener("click", function (e) { if (e.target.id === "modalOverlay") closeModal(); });
 
+    // The three quick-start steps on the Overview open the same flows as the
+    // buttons in their sections, so there is one implementation of each action
+    // and each step inherits its guards ("Connect wallet first").
+    [["quickRegister", "registerAgent"], ["quickBond", "createBond"], ["quickRule", "addConstraint"]].forEach(function (pair) {
+      var step = document.getElementById(pair[0]);
+      if (!step) return;
+      step.addEventListener("click", function () {
+        var sectionButton = document.getElementById(pair[1]);
+        if (sectionButton) sectionButton.click();
+      });
+    });
+
     document.getElementById("registerAgent").addEventListener("click", function () {
       if (!walletConnected) { showToast("Connect wallet first"); return; }
       openModal("Register Agent",
-        '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">Register an AI agent on Solana. It becomes accountable \u2014 if it breaks rules, its operator\'s bond compensates victims.</p>' +
+        '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">Give the agent a name. It is owned by the wallet you connect.</p>' +
         '<div class="form-group"><label>Agent Name</label><input type="text" id="regName" placeholder="e.g. Trading Bot" maxlength="32" /></div>' +
         '<div class="form-group"><label>Type</label><select id="regType"><option value="0">Trader</option><option value="1">Oracle</option><option value="2">DeFi</option><option value="3">Payment</option><option value="4">NFT</option><option value="5">Governance</option><option value="6">Bridge</option><option value="7">Custom</option></select></div>' +
         '<div class="form-actions"><button class="btn-ghost" onclick="closeModal()">Cancel</button><button class="btn-primary" id="regSubmit">Register</button></div>'
@@ -642,8 +691,8 @@
       if (!walletConnected) { showToast("Connect wallet first"); return; }
       if (cachedAgents.length === 0) { showToast("Register an agent first"); return; }
       var opts = cachedAgents.filter(function (a) { return a.status === "active"; }).map(function (a) { return '<option value="' + a.pubkey + '">' + a.name + '</option>'; }).join("");
-      openModal("Lock Bond",
-        '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">Lock SOL as collateral. If your agent breaks rules, these funds compensate the affected party.</p>' +
+      openModal("Lock SOL behind an agent",
+        '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">This SOL is the collateral: if the agent breaks a rule, it pays the victim. Only you can withdraw it.</p>' +
         '<div class="form-group"><label>Agent</label><select id="bondAgent">' + opts + '</select></div>' +
         '<div class="form-group"><label>Amount (SOL)</label><input type="number" id="bondAmount" placeholder="e.g. 5" min="0.1" step="0.1" /><p class="hint">Minimum 0.1 SOL</p></div>' +
         '<div class="form-group"><label>Lock Period</label><select id="bondDuration"><option value="2592000">30 days</option><option value="7776000">90 days</option><option value="15552000">180 days</option></select></div>' +
@@ -656,12 +705,14 @@
       if (!walletConnected) { showToast("Connect wallet first"); return; }
       if (cachedAgents.length === 0) { showToast("Register an agent first"); return; }
       var opts = cachedAgents.filter(function (a) { return a.status === "active"; }).map(function (a) { return '<option value="' + a.pubkey + '">' + a.name + '</option>'; }).join("");
-      openModal("Add Rule",
-        '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">Rules control what your agent can do. Breaking a rule triggers compensation.</p>' +
+      openModal("Add a rule",
+        '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">A rule names what the agent may do. Breaking it moves collateral to the victim.</p>' +
         '<div class="form-group"><label>Agent</label><select id="conAgent">' + opts + '</select></div>' +
-        '<div class="form-group"><label>Rule Type</label><select id="conType"><option value="0">Spending Limit</option><option value="1">Allowed Programs</option><option value="2">Timelock</option><option value="3">Speed Limit</option></select></div>' +
-        '<div class="form-group"><label>Max Amount (SOL)</label><input type="number" id="conMaxAmount" placeholder="e.g. 5" min="0.01" step="0.01" /></div>' +
-        '<div class="form-group"><label>Period (seconds)</label><input type="number" id="conPeriod" placeholder="e.g. 86400 (1 day)" min="0" /></div>' +
+        '<div class="form-group"><label>Rule</label><select id="conType"><option value="0">Spending Limit</option><option value="1">Allowed Programs</option><option value="2">Timelock</option><option value="3">Speed Limit</option></select></div>' +
+        '<div class="form-group"><label>Max spend (SOL)</label><input type="number" id="conMaxAmount" placeholder="e.g. 5" min="0.01" step="0.01" /></div>' +
+        // Asked in days, not seconds. "Period (seconds): 86400" is a puzzle for
+        // the person actually filling the form.
+        '<div class="form-group"><label>Per</label><select id="conPeriod"><option value="3600">Hour</option><option value="86400" selected>Day</option><option value="604800">Week</option></select><p class="hint">The limit resets each time this period ends.</p></div>' +
         '<div class="form-actions"><button class="btn-ghost" onclick="closeModal()">Cancel</button><button class="btn-primary" id="conSubmit">Add Rule</button></div>'
       );
       document.getElementById("conSubmit").onclick = handleConstraint;

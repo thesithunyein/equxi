@@ -86,66 +86,66 @@
           <div class="stat-icon green"><i class="fa-solid fa-shield-halved"></i></div>
           <div class="stat-body">
             <div class="stat-value" id="totalBonds">0</div>
-            <div class="stat-label">Active Bonds</div>
+            <div class="stat-label">Your active bonds</div>
           </div>
         </div>
         <div class="stat-card">
           <div class="stat-icon purple"><i class="fa-solid fa-robot"></i></div>
           <div class="stat-body">
             <div class="stat-value" id="totalAgents">0</div>
-            <div class="stat-label">Registered Agents</div>
+            <div class="stat-label">Your agents</div>
           </div>
         </div>
         <div class="stat-card">
           <div class="stat-icon yellow"><i class="fa-solid fa-coins"></i></div>
           <div class="stat-body">
             <div class="stat-value" id="totalStaked">0</div>
-            <div class="stat-label">Total Locked (SOL)</div>
+            <div class="stat-label">Collateral locked (SOL)</div>
           </div>
         </div>
         <div class="stat-card">
           <div class="stat-icon red"><i class="fa-solid fa-bolt"></i></div>
           <div class="stat-body">
             <div class="stat-value" id="totalSlashes">0</div>
-            <div class="stat-label">Violations</div>
+            <div class="stat-label">Your agents slashed</div>
           </div>
         </div>
       </div>
 
-      <!-- Quick Start -->
+      <!-- Quick Start. Every step is a button: a three-step guide you cannot
+           click is decoration, and it was the most confusing thing on the page. -->
       <div class="card" id="quickStartCard">
         <div class="card-header">
-          <h2>Quick Start</h2>
-          <button class="btn-ghost" onclick="document.getElementById('quickStartCard').style.display='none'">Dismiss</button>
+          <h2>Do it in three steps</h2>
+          <button class="btn-ghost" onclick="document.getElementById('quickStartCard').style.display='none'">Hide</button>
         </div>
         <div class="quick-steps">
-          <div class="qstep">
+          <button class="qstep" id="quickRegister">
             <div class="qstep-num">1</div>
             <div class="qstep-text">
-              <strong>Register an agent</strong>
-              <span>Create your first AI agent on Solana</span>
+              <strong>Register your agent</strong>
+              <span>Give it a name and pick what it does</span>
             </div>
-          </div>
-          <div class="qstep">
+          </button>
+          <button class="qstep" id="quickBond">
             <div class="qstep-num">2</div>
             <div class="qstep-text">
-              <strong>Lock a bond</strong>
-              <span>Deposit SOL as collateral for accountability</span>
+              <strong>Lock SOL behind it</strong>
+              <span>This is the collateral that pays a victim</span>
             </div>
-          </div>
-          <div class="qstep">
+          </button>
+          <button class="qstep" id="quickRule">
             <div class="qstep-num">3</div>
             <div class="qstep-text">
-              <strong>Add rules</strong>
-              <span>Set spending limits, allowed programs, or timelocks</span>
+              <strong>Add a rule</strong>
+              <span>Spend cap, allowed programs, or a timelock</span>
             </div>
-          </div>
+          </button>
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-header">
-          <h2>Recent Activity</h2>
+      <div class="card">          <div class="card-header">
+          <h2>What happened recently</h2>
           <button class="btn-ghost" onclick="navigateTo('activity')">View All</button>
         </div>
         <div class="activity-list" id="activityList"></div>
@@ -158,7 +158,7 @@
         <h2>Agents</h2>
         <button class="btn-primary" id="registerAgent"><i class="fa-solid fa-plus"></i> Register</button>
       </div>
-      <p class="section-desc">AI programs that act on your behalf. Each agent is accountable — if it breaks rules, its operator's bond compensates victims.</p>
+      <p class="section-desc">An agent is a program that acts with your money. Each one you register is owned by this wallet.</p>
       <div class="agents-grid" id="agentsGrid"></div>
     </section>
 
@@ -166,9 +166,9 @@
     <section class="content-section" id="section-bonds">
       <div class="section-header">
         <h2>Bonds</h2>
-        <button class="btn-primary" id="createBond"><i class="fa-solid fa-plus"></i> Lock Funds</button>
+        <button class="btn-primary" id="createBond"><i class="fa-solid fa-plus"></i> Lock SOL</button>
       </div>
-      <p class="section-desc">Lock SOL as collateral. If your agent misbehaves, these funds compensate the affected party.</p>
+      <p class="section-desc">Locked SOL is the promise that backs your agent. If it breaks a rule, this pays the victim.</p>
       <div class="bonds-list" id="bondsList"></div>
     </section>
 
@@ -178,7 +178,7 @@
         <h2>Rules</h2>
         <button class="btn-primary" id="addConstraint"><i class="fa-solid fa-plus"></i> Add Rule</button>
       </div>
-      <p class="section-desc">Control what your agent can do. Breaking a rule triggers automatic compensation from the bond.</p>
+      <p class="section-desc">A rule names what the agent may do. Breaking one moves collateral to the victim.</p>
       <div class="constraints-grid" id="constraintsGrid"></div>
     </section>
 
@@ -189,7 +189,7 @@
         <select class="filter-select" id="activityFilter">
           <option value="all">All</option>
           <option value="bond">Bonds</option>
-          <option value="slash">Violations</option>
+          <option value="slash">Slashes</option>
         </select>
       </div>
       <div class="activity-full-list" id="activityFullList"></div>
