@@ -238,9 +238,14 @@ jobs:
           grep -q 'module.exports' api/badge.js || exit 1
           # The badge must escape the agent-controlled values it prints.
           grep -q 'function xml(' api/badge.js || exit 1
-          # The landing page reads this API, so it must escape too: agent names
-          # are attacker controlled, and it renders them straight into the page.
-          grep -q 'function esc(' landing.js || exit 1
+          # The landing page reads this API, and agent names are attacker
+          # controlled. It writes every value with textContent, so nothing from
+          # the chain can become markup — assert that, rather than asserting an
+          # escape helper the page no longer needs.
+          grep -q 'textContent' landing.js || exit 1
+          if grep -nE 'innerHTML[[:space:]]*=' landing.js; then
+            echo "landing.js assigns innerHTML; chain values must go in as text" && exit 1
+          fi
           grep -q '/api/trust' landing.js || exit 1
           grep -q 'src="landing.js"' index.html || exit 1
           # Every api/*.js file is a route; dev-server.js must serve the same set
