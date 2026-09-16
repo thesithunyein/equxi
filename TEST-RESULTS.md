@@ -12,8 +12,9 @@
 >   They could not run on the authoring machine (no Rust linker at all: no `gcc`,
 >   no `ld`, no MSVC `link.exe`, no Windows SDK), so they run on GitHub Actions
 >   instead, and the results are recorded below. Everything Rust in this
->   repository is now compile- and test-verified — except a **devnet redeploy**,
->   which still has not happened (the live program is still v0.1).
+>   repository is now compile- and test-verified, and the **devnet redeploy has
+>   since happened**, together with the on-chain migration that had to follow it
+>   — see “v0.2 on devnet” below.
 >
 > The records marked **(v0.1)** are historical results for the original deployment.
 
@@ -36,7 +37,7 @@
 | Explorer: search, sort, filter, ledger, embed | ✅ **verified in a browser against live devnet** | See below |
 | SDK scorer vs. API scorer agreement | ✅ **119 passing** | Both implementations asserted equal across six scenarios, including the floored one |
 | CI (Build & Test Program) | ✅ **green** | Compiles the program and runs the on-chain suite |
-| Devnet redeploy of v0.2 | ⬜ **Not deployed** | The live program is still v0.1; the frontend speaks both ABIs |
+| Devnet redeploy of v0.2 | ✅ **Deployed and migrated** | Program replaced at `D7akK…` (slot 499249941), vault created, live agent grown 116 → 118 bytes with all 8 preserved fields verified identical — see below |
 
 Update this table as each check passes, with the actual command output.
 
@@ -133,7 +134,48 @@ detectedVersion: "v0.1"
 writeButtonsDisabled: false
 ```
 
-## Live devnet read (v0.1 program, executed)
+## v0.2 on devnet (executed 2026-09-16)
+
+The redeploy is done, and so is the state migration that has to follow it. A
+program upgrade alone would have left the live agent unreadable by its own
+program, so the two ran as one command, seconds apart.
+
+| Step | Evidence |
+|------|----------|
+| Upgrade | `solana program deploy` at `D7akK…`, tx `3TMuqHj8GNMJ8bJ8ppJmCKHmMevAx4Z9sRJT1VpT9UiKGJfCazuHTKE94UnnzU4JRfgmoURy6UNCBLh2KeJheCFk`, slot 499249941, artifact 388,672 bytes |
+| Escrow vault | created at `AyKhu8hC9WNnysxLGSK4MQ7L73PdYeMqXp1u671XEnGg`, tx `2zQgC7187n1Q9HRhLZqbfgWmMNmHHk5oLSkCCCY1T5DXaqrDspVS7EsZmqrwqJzD1SMeaTHYC3mkfC888a1Vq8Jk` |
+| Agent migration | grown 116 → 118 bytes in place; `constraintCount=1`; **8 preserved fields verified byte-identical** |
+| Re-run | reports `Nothing to migrate.` — the migration is idempotent |
+
+Measured over RPC after the migration, every account type now matches what the
+code expects: Agent **118**, Bond 106, Config 65, Constraint 339, SlashRecord
+259, Vault **25**.
+
+The two warnings the read API was legitimately emitting are gone, and the score
+is unchanged — which is the point, since a layout migration should move the
+counter and nothing else:
+
+```json
+{ "counts": { "agents": 1, "bonds": 1, "slashes": 2, "constraints": 1 },
+  "vault": { "totalSlashedLamports": "0", "availableLamports": "0", "bumped": 253 },
+  "warnings": [],
+  "agents": [{ "name": "Augur", "layout": "v2", "constraintCount": 1,
+               "profile": { "grade": "D", "score": 48 } }] }
+```
+
+Two bugs surfaced only by running it against the real deployment:
+
+* Building the instructions through `@coral-xyz/anchor`'s `Program` against
+  `sdk/src/idl/equxi.json` produced **every account read-only**, including the
+  signer, so the program rejected the vault with *writable privilege escalated*.
+  `migrate.js` now derives each discriminator from its instruction name and
+  states every account flag explicitly. The SDK path still needs the same
+  treatment — see the open questions in `SPEC.md`.
+* `create_vault` declares its config account `mut`, and Anchor enforces that at
+  **deserialization** (`ConstraintMut`), not at write time, so a read-only
+  config fails before the instruction body runs.
+
+## Live devnet read (v0.1 program, executed — historical)
 
 This is the only check in this document that touched a real network. It is
 recorded verbatim because it produced a finding that changed the code.

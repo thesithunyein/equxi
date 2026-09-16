@@ -144,11 +144,11 @@ layout change that is not mirrored in every client fails immediately.
 | `tests/unit/read.test.ts` | Query filters, decoding, the trust-scoring rules, and that the SDK scorer and the API scorer agree |
 | `tests/unit/api.test.ts` | `api/trust.js` and `api/badge.js` end to end, against a stubbed RPC |
 
-> **Honest status:** the unit tests and all TypeScript typechecks pass, and CI
+> **Honest status:** the unit tests and all TypeScript typechecks pass, CI
 > compiles the Rust program and runs `anchor test` on a local validator, and the
-> 116 → 118 byte agent migration has its own Rust unit tests. What has **not**
-> happened is a **devnet redeploy**: the live program is still v0.1, and the
-> upgrade is written and pre-flight verified but not yet run. See
+> 116 → 118 byte agent migration has its own Rust unit tests. **Devnet runs v0.2
+> as of 2026-09-16**, with the live agent migrated in place (all 8 preserved
+> fields verified byte-identical) and the escrow vault created — transactions in
 > [`TEST-RESULTS.md`](TEST-RESULTS.md).
 
 ## Architecture
@@ -341,11 +341,13 @@ stale, and it refuses to flatter: an address with no agent account renders grey
 is a live view, not a certificate. Agent names and slash reasons are
 attacker-controlled, so everything is XML-escaped before it reaches the markup.
 
-**Which layout it read is part of the response.** The devnet deployment is v0.1,
-whose `Agent` accounts are 116 bytes with no `constraint_count` and which has no
-escrow `vault`. Rather than fail, the decoder selects the layout from the account
-length and reports `layout: "v1"` plus a program-level `warnings` entry, so a
-reader can see the numbers are partial instead of assuming they are complete.
+**Which layout it read is part of the response.** Devnet runs v0.2, whose
+`Agent` accounts are 118 bytes and whose slashed collateral is held in an escrow
+`vault` — but the reader still understands the 116-byte v0.1 layout, because a
+pre-migration agent on any deployment must stay readable. The decoder selects the
+layout from the account length and reports `layout: "v1" | "v2"`, adding a
+program-level `warnings` entry when a deployment is v0.1, so a reader can see
+whether the numbers are partial instead of assuming they are complete.
 
 `api/trust.js` is the only JavaScript that restates the account layouts besides
 the TypeScript clients, and the duplication is deliberate: the site is static and
