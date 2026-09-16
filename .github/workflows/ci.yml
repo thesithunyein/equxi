@@ -173,11 +173,15 @@ jobs:
           test -f deploy-v2.sh || exit 1
           node --check migrate.js || exit 1
           bash -n deploy-v2.sh || exit 1
-          # Production ships from deploy.yml now. A workflow with a typo in it
-          # fails silently on the push that needed it, so parse it here.
+          # Production ships from deploy.yml now. A malformed or renamed
+          # workflow fails silently on the one push that needed it. This job
+          # has no node_modules, so assert the parts that must be true rather
+          # than adding a YAML parser as a dependency to check syntax.
           test -f .github/workflows/deploy.yml || exit 1
-          node -e "require('js-yaml').load(require('fs').readFileSync('.github/workflows/deploy.yml','utf8'))" || exit 1
+          grep -q 'branches: \[main\]' .github/workflows/deploy.yml || exit 1
           grep -q 'secrets.VERCEL_TOKEN' .github/workflows/deploy.yml || exit 1
+          grep -q 'vercel@58' .github/workflows/deploy.yml || exit 1
+          grep -q 'api/trust' .github/workflows/deploy.yml || exit 1
           test -f tests/unit/layout.test.ts || exit 1
           test -f tests/unit/sdk.test.ts || exit 1
           test -f tests/unit/read.test.ts || exit 1
