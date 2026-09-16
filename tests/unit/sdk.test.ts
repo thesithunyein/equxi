@@ -150,9 +150,181 @@ describe("equxi SDK", () => {
         (i) => i.name === "createBond"
       )!;
       const signers = createBond.accounts
-        .filter((a) => a.isSigner)
+        .filter((a) => a.signer)
         .map((a) => a.name);
       expect(signers).to.deep.equal(["owner"]);
+    });
+
+    it("uses Anchor 0.30+ account field names, not the retired 0.29 ones", () => {
+      // Anchor's builder reads `acc.writable` / `acc.signer`. The retired
+      // 0.29 spellings are `isMut` / `isSigner`. An IDL carrying the old
+      // names parses fine, passes every JSON-level assertion, and still
+      // builds instructions where every account is read-only and unsigned —
+      // which the program rejects at deserialization with
+      // "writable privilege escalated". That is the failure that shipped in
+      // 0.1.0, and this file passed while it shipped, because these tests
+      // read the JSON directly instead of building through Anchor.
+      expect(JSON.stringify(RAW_IDL)).to.not.contain("" + "isMut");
+      for (const instruction of RAW_IDL.instructions) {
+        for (const account of instruction.accounts) {
+          expect(account, `${instruction.name}.${account.name}`).to.have.property(
+            "writable"
+          );
+          expect(account, `${instruction.name}.${account.name}`).to.have.property(
+            "signer"
+          );
+          expect(
+            account,
+            `${instruction.name}.${account.name}`
+          ).to.not.have.property("isSigner");
+        }
+      }
+    });
+
+    it("builds instructions whose metas match the IDL through a real anchor.Program", async () => {
+      // The test above pins the IDL text. This one pins what Anchor's builder
+      // emits from that text — the layer where the 0.1.0 bug actually lived.
+      // Every instruction is built with fully-resolved accounts and the metas
+      // on the resulting TransactionInstruction are compared field by field.
+      const program = new anchor.Program(
+        RAW_IDL as unknown as anchor.Idl,
+        makeProvider()
+      );
+      const agentPDA = findAgentPDA(OWNER, "AlphaTrader");
+      const bondPDA = findBondPDA(agentPDA);
+      const configPDA = findConfigPDA();
+      const vaultPDA = findVaultPDA();
+      const constraintPDA = findConstraintPDA(agentPDA, 0);
+      const slashPDA = findSlashRecordPDA(agentPDA, 0);
+      const programDataPDA = PublicKey.findProgramAddressSync(
+        [Buffer.from("Anchor"), program.programId.toBuffer()],
+        program.programId
+      )[0];
+      const amount = new (require("bn.js"))(1_000_000);
+      const idx = new (require("bn.js"))(0);
+
+      const cases: Array<[
+        string,
+        () => Promise<anchor.web3.TransactionInstruction>,
+      ]> = [
+        [
+          "initialize",
+          () =>
+            program.methods
+              .initialize()
+              .accounts({
+                config: configPDA,
+                vault: vaultPDA,
+                payer: OWNER,
+                program: program.programId,
+                programData: programDataPDA,
+                systemProgram: anchor.web3.SystemProgram.programId,
+              })
+              .instruction(),
+        ],
+        [
+          "registerAgent",
+          () =>
+            program.methods
+              .registerAgent("AlphaTrader", { trader: {} })
+              .accounts({
+                config: configPDA,
+                agent: agentPDA,
+                operator: OWNER,
+                systemProgram: anchor.web3.SystemProgram.programId,
+              })
+              .instruction(),
+        ],
+        [
+          "createBond",
+          () =>
+            program.methods
+              .createBond(amount, idx)
+              .accounts({
+                config: configPDA,
+                bond: bondPDA,
+                agent: agentPDA,
+                owner: OWNER,
+                systemProgram: anchor.web3.SystemProgram.programId,
+              })
+              .instruction(),
+        ],
+        [
+          "addConstraint",
+          () =>
+            program.methods
+              .addConstraint(
+                { spendLimit: {} },
+                {
+                  maxAmount: amount,
+                  maxPerPeriod: amount,
+                  periodSeconds: new (require("bn.js"))(60),
+                  timelockSeconds: new (require("bn.js"))(0),
+                  allowedPrograms: new Array(8).fill(anchor.web3.SystemProgram.programId),
+                }
+              )
+              .accounts({
+                config: configPDA,
+                agent: agentPDA,
+                constraint: constraintPDA,
+                owner: OWNER,
+                systemProgram: anchor.web3.SystemProgram.programId,
+              })
+              .instruction(),
+        ],
+        [
+          "executeSlash",
+          () =>
+            program.methods
+              .executeSlash("breach", amount)
+              .accounts({
+                config: configPDA,
+                vault: vaultPDA,
+                agent: agentPDA,
+                bond: bondPDA,
+                slashRecord: slashPDA,
+                authority: OWNER,
+                systemProgram: anchor.web3.SystemProgram.programId,
+              })
+              .instruction(),
+        ],
+        [
+          "compensateVictim",
+          () =>
+            program.methods
+              .compensateVictim(amount)
+              .accounts({
+                config: configPDA,
+                vault: vaultPDA,
+                agent: agentPDA,
+                slashRecord: slashPDA,
+                victim: VICTIM,
+                authority: OWNER,
+                systemProgram: anchor.web3.SystemProgram.programId,
+              })
+              .instruction(),
+        ],
+      ];
+
+      for (const [name, build] of cases) {
+        const ix = await build();
+        const declared = RAW_IDL.instructions.find((i) => i.name === name)!
+          .accounts;
+        expect(
+          ix.keys.length,
+          `${name}: key count`
+        ).to.equal(declared.length);
+        declared.forEach((acc, i) => {
+          expect(
+            ix.keys[i].isWritable,
+            `${name}.${acc.name}: isWritable`
+          ).to.equal(Boolean(acc.writable));
+          expect(
+            ix.keys[i].isSigner,
+            `${name}.${acc.name}: isSigner`
+          ).to.equal(Boolean(acc.signer));
+        });
+      }
     });
   });
 
