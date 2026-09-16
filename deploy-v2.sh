@@ -133,6 +133,40 @@ if (wallet < peak) {
 }
 ' "$SO_SIZE" "$AUTH_PUBKEY"
 
+# Before upgrading, prove the migration can actually run here. The Solana CLI
+# and a usable node do not always live in the same environment -- this repo's
+# node_modules were installed for Windows while the toolchain runs under WSL --
+# and between the upgrade and the migration the program cannot read its own
+# agent accounts. Discovering a broken node *after* the upgrade would leave the
+# deployment in the one state that works in neither.
+can_migrate() {
+  command -v node >/dev/null 2>&1 || return 1
+  ( cd "$REPO_DIR" && node -e 'require("@solana/web3.js");require("@coral-xyz/anchor")' >/dev/null 2>&1 )
+}
+
+MIGRATE_HERE=0
+if can_migrate; then
+  MIGRATE_HERE=1
+elif [ "${EQUXI_UPGRADE_ONLY:-}" = "1" ]; then
+  echo ""
+  echo "WARNING: node here cannot load this repo's dependencies, so this run"
+  echo "upgrades the program and stops. The agents stay on the 116-byte v0.1"
+  echo "layout until they are migrated, and until then the program cannot read"
+  echo "them. Migrate immediately afterwards, from the environment where this"
+  echo "repo's dependencies are installed:"   
+  echo ""
+  echo "    node $REPO_DIR/migrate.js"
+  echo ""
+  echo "(EQUXI_UPGRADE_ONLY=1 was set, so continuing.)"
+else
+  echo ""
+  echo "Refusing to upgrade: node here cannot load this repo's dependencies, so"
+  echo "the migration could not follow the upgrade. Run this from an environment"
+  echo "that can do both, or set EQUXI_UPGRADE_ONLY=1 to upgrade now and run"
+  echo "'node migrate.js' yourself immediately afterwards."
+  exit 1
+fi
+
 echo ""
 echo "=== Upgrading the program ==="
 "$EQUXI_SOLANA" program deploy "$EQUXI_SO" \
@@ -140,12 +174,18 @@ echo "=== Upgrading the program ==="
   --upgrade-authority "$EQUXI_KEYPAIR" \
   --url devnet
 
-echo ""
-echo "=== Migrating on-chain state ==="
-# The program is now v0.2 but its agents are still 116 bytes. This grows each
-# one, creating the vault first, and refuses to continue if any preserved field
-# changed.
-( cd "$REPO_DIR" && EQUXI_KEYPAIR="$EQUXI_KEYPAIR" node migrate.js )
+if [ "$MIGRATE_HERE" = "1" ]; then
+  echo ""
+  echo "=== Migrating on-chain state ==="
+  # The program is now v0.2 but its agents are still 116 bytes. This creates the
+  # vault, grows each agent, and refuses to continue if any preserved field
+  # changed.
+  ( cd "$REPO_DIR" && EQUXI_KEYPAIR="$EQUXI_KEYPAIR" node migrate.js )
+else
+  echo ""
+  echo "=== Migration still required (not run here) ==="
+  echo "Run now:  node $REPO_DIR/migrate.js"
+fi
 
 echo ""
 echo "=== Verification ==="
