@@ -126,6 +126,29 @@ describe("landing page", () => {
     expect(landing).to.include('"/api/trust"');
   });
 
+  it("does not offer the same call to action twice on one screen", () => {
+    // The header button and the hero button both said "Check an agent" and both
+    // pointed at the Explorer — two identical buttons a thumb-width apart, with
+    // no way in for the operator the product needs.
+    const header = html.match(/<header[\s\S]*?<\/header>/);
+    const hero = html.match(/<main class="hero">[\s\S]*?<\/main>/);
+    expect(header, "no header").to.not.equal(null);
+    expect(hero, "no hero").to.not.equal(null);
+
+    const labelled = (block: string) =>
+      (block.match(/class="btn-primary[^"]*"[^>]*>([^<]+)</) || [])[1];
+    const headerCta = labelled((header as RegExpMatchArray)[0]);
+    const heroCta = labelled((hero as RegExpMatchArray)[0]);
+    expect(headerCta, "the header has no primary button").to.be.a("string");
+    expect(heroCta, "the hero has no primary button").to.be.a("string");
+    expect((headerCta as string).trim()).to.not.equal((heroCta as string).trim());
+  });
+
+  it("gives the operator a way in, not just the reader", () => {
+    const header = (html.match(/<header[\s\S]*?<\/header>/) as RegExpMatchArray)[0];
+    expect(header, "the header does not link to the dashboard").to.include('href="app.html"');
+  });
+
   it("only reaches for elements the page actually has", () => {
     // A renamed id leaves a control silently dead — the copy button keeps its
     // label and the tiles keep their em dashes, with no error anywhere.
