@@ -99,6 +99,57 @@
       "args": []
     },
     {
+      "name": "migrateAgent",
+      "discriminator": [
+        102,
+        150,
+        249,
+        223,
+        92,
+        169,
+        131,
+        39
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "agent",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "signer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "program",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "programData",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "existingConstraints",
+          "type": "u16"
+        }
+      ]
+    },
+    {
       "name": "registerAgent",
       "discriminator": [
         135,

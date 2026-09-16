@@ -34,6 +34,8 @@ pub enum EquxiError {
     InvalidAdminAuthority,
     #[msg("ProgramData account does not belong to this program")]
     ProgramDataMismatch,
+    #[msg("Agent account is not a v0.1-layout agent (expected 116 bytes, owned by this program)")]
+    InvalidAgentLayout,
     #[msg("Arithmetic overflow")]
     Overflow,
 }

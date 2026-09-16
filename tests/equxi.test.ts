@@ -173,6 +173,65 @@ describe("equxi", () => {
     expect(config.totalAgents.toString()).to.equal("2");
   });
 
+  describe("migrate_agent guards", () => {
+    const migrate = (agent: PublicKey, signer: PublicKey) =>
+      program.methods
+        .migrateAgent(0)
+        .accounts({
+          config: configPDA,
+          agent,
+          signer,
+          program: program.programId,
+          programData: programDataPDA,
+          systemProgram: SystemProgram.programId,
+        })
+        .rpc();
+
+    it("refuses an agent that is already in the v0.2 layout", async () => {
+      // This is the mistake that matters: running the migration twice, or on a
+      // freshly registered agent, must not touch a 118-byte account.
+      try {
+        await migrate(agentAPDA, admin.publicKey);
+        expect.fail("Should have failed");
+      } catch (err) {
+        expect(String(err)).to.include("InvalidAgentLayout");
+      }
+    });
+
+    it("refuses a 116-byte account that is not an agent record", async () => {
+      // A genuine v0.1 agent record cannot be fabricated here: only the owning
+      // program may write account data, and this program no longer writes the
+      // v0.1 layout. So this test exercises the length gate for real, the byte
+      // surgery is covered exhaustively by the Rust unit tests in
+      // `migrate_agent.rs`, and the success path is proven end to end by the
+      // devnet migration of the live agent.
+      const impostor = Keypair.generate();
+      const space = 116;
+      const lamports = await provider.connection.getMinimumBalanceForRentExemption(
+        space
+      );
+      await provider.sendAndConfirm(
+        new anchor.web3.Transaction().add(
+          SystemProgram.createAccount({
+            fromPubkey: admin.publicKey,
+            newAccountPubkey: impostor.publicKey,
+            lamports,
+            space,
+            programId: program.programId,
+          })
+        ),
+        [impostor]
+      );
+
+      try {
+        await migrate(impostor.publicKey, admin.publicKey);
+        expect.fail("Should have failed");
+      } catch (err) {
+        expect(String(err)).to.include("InvalidAgentLayout");
+      }
+    });
+  });
+
   it("Creates bonds", async () => {
     await program.methods
       .createBond(new BN(5_000_000_000), new BN(LONG_LOCK_SECONDS))

@@ -109,6 +109,16 @@ describe("equxi SDK", () => {
         "authority",
         "systemProgram",
       ]);
+      // The migration reads the agent as raw bytes, so it must NOT be typed as
+      // an `Agent` account the client would try to decode.
+      expect(byName.migrateAgent).to.deep.equal([
+        "config",
+        "agent",
+        "signer",
+        "program",
+        "programData",
+        "systemProgram",
+      ]);
     });
 
     it("gives every instruction the discriminator Anchor derives from its name", () => {
@@ -117,6 +127,7 @@ describe("equxi SDK", () => {
       const rustNames: Record<string, string> = {
         initialize: "initialize",
         createVault: "create_vault",
+        migrateAgent: "migrate_agent",
         registerAgent: "register_agent",
         createBond: "create_bond",
         withdrawBond: "withdraw_bond",
