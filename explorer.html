@@ -190,10 +190,9 @@
     <main class="x-wrap">
       <h1 class="x-h1">Trust Explorer</h1>
       <p class="x-lede">
-        One question matters when an autonomous agent holds your money:
+        One question matters when an agent holds your money:
         <strong>does it have collateral at risk, and has it ever been slashed?</strong>
-        Every number on this page is read from the Equxi program on Solana — nothing here is
-        self-reported by the agent, and every grade comes with the deductions that produced it.
+        Read from the program on Solana, never self-reported.
       </p>
 
       <form class="x-search" id="searchForm" autocomplete="off">
@@ -218,36 +217,29 @@
       <div id="registry"></div>
 
       <p class="x-foot">
-        <strong>How the grade is computed.</strong> The score is derived from observable on-chain
-        evidence only: whether a bond is posted and how large it is, and whether each recorded
-        violation has actually been compensated to a victim. Each agent's detail panel lists the
-        deductions as a ledger that sums to the score, so the number can be checked rather than
-        trusted. It deliberately ignores the on-chain
-        <span class="x-mono">trust_score</span> field, which is set by the program admin and is
-        therefore an assertion rather than evidence. An agent with no bond is reported as
-        <em>ungraded</em> — not as trustworthy.
+        <strong>How the grade is computed.</strong> On-chain evidence only: bond posted and how
+        large, and whether each recorded violation was compensated. Admin-set
+        <span class="x-mono">trust_score</span> is ignored. No bond reads as <em>ungraded</em>.
+        Every panel shows the ledger that sums to the score.
         <br />
-        <strong>Embed a live grade.</strong> Any agent can wear its own badge:
-        <span class="x-mono">GET /api/badge?agent=&lt;pda&gt;</span> returns an SVG that re-reads
-        the chain on every request (add <span class="x-mono">&amp;format=json</span> for the
-        numbers). A badge is a live view, not a certificate.
+        <strong>Embed a live grade.</strong>
+        <span class="x-mono">GET /api/badge?agent=&lt;pda&gt;</span> returns an SVG that re-reads the
+        chain on every request — a live view, not a certificate. Add
+        <span class="x-mono">&amp;format=json</span> for the numbers.
         <br />
-        Data comes from <span class="x-mono">GET /api/trust</span> over the
-        <span id="clusterName" class="x-mono">devnet</span> cluster. The source for this page is
+        Data: <span class="x-mono">GET /api/trust</span> on
+        <span id="clusterName" class="x-mono">devnet</span>. Source:
         <a href="https://github.com/thesithunyein/equxi/blob/main/api/trust.js" target="_blank">api/trust.js</a>,
-        <a href="https://github.com/thesithunyein/equxi/blob/main/api/badge.js" target="_blank">api/badge.js</a>
-        and
-        <a href="https://github.com/thesithunyein/equxi/blob/main/lib/equxi-layout.js" target="_blank">lib/equxi-layout.js</a>,
-        with the scoring rules pinned by tests in
+        <a href="https://github.com/thesithunyein/equxi/blob/main/api/badge.js" target="_blank">api/badge.js</a>,
+        <a href="https://github.com/thesithunyein/equxi/blob/main/lib/equxi-layout.js" target="_blank">lib/equxi-layout.js</a>;
+        scoring pinned by
         <a href="https://github.com/thesithunyein/equxi/blob/main/tests/unit/api.test.ts" target="_blank">tests/unit/api.test.ts</a>.
       </p>
 
       <p class="x-foot">
-        <strong>Get an agent listed.</strong> A registry entry is not something you apply for, and
-        nothing on this page is self-reported: connect a wallet in the
-        <a href="app.html">dashboard</a>, register the agent, then lock a bond. The bond is the
-        collateral that gives the grade something to be about — an agent with no bond still appears
-        here, marked <em>ungraded</em>, because presence is not a claim of trustworthiness.
+        <strong>Get an agent listed.</strong> Nothing here is self-reported: connect a wallet in the
+        <a href="app.html">dashboard</a>, register the agent, then lock a bond. An agent with no
+        bond still appears, marked <em>ungraded</em>.
       </p>
     </main>
   </div>

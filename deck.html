@@ -311,7 +311,7 @@
     <img src="assets/logo.webp" alt="Equxi" style="width: 72px; height: 72px; border-radius: 16px; margin-bottom: 28px;" />
     <div class="tag"><span class="tag-dot"></span> Solana · Agent Counterparty Risk</div>
     <h1>Slashable collateral for <em>AI agents</em></h1>
-    <p class="lead">Operators lock SOL as a bond. API and MCP providers check that bond in one request before serving an unknown agent. Break your rules, and the bond pays the victim — from a program-owned vault, with no court and no admin holding the funds.</p>
+    <p class="lead">Operators lock SOL behind their agent. Break a rule, and the bond pays the victim — automatically.</p>
     <div class="row">
       <a href="https://equxi.sithunyein.com/app.html" class="btn btn-fill" target="_blank">Open Dashboard</a>
       <a href="https://github.com/thesithunyein/equxi" class="btn btn-outline" target="_blank">
@@ -326,23 +326,23 @@
   <div class="slide">
     <div class="tag"><span class="tag-dot"></span> The Problem</div>
     <h2>Agents are being handed money. <em>Nobody can check them.</em></h2>
-    <p class="lead">The rails already exist — agents have wallets, cards, bank accounts and paid API access. None of it answers what happens when an agent takes the payment and doesn't deliver.</p>
+    <p class="lead">Agents already hold wallets, cards and paid API access. Nothing answers what happens when they don't deliver.</p>
     <div class="grid">
       <div class="card">
         <h3>The provider eats the loss</h3>
-        <p>An API or MCP endpoint serving an unknown agent spends compute and credits before settlement clears. If the agent never pays, there is no recourse but to block the address.</p>
+        <p>An endpoint serving an unknown agent spends compute before settlement clears. If it never pays, there is no recourse.</p>
       </div>
       <div class="card">
         <h3>A score with nothing behind it</h3>
-        <p>Reputation that costs nothing to lose is free to lie. An agent can burn a rating, re-register under a new key, and be back to a clean slate the same block.</p>
+        <p>Reputation that is free to lose is free to lie. Burn a rating, register a new key, clean slate the same block.</p>
       </div>
       <div class="card">
         <h3>Permission is solved. Consequence isn't.</h3>
-        <p>Wallets cap what an agent can spend and allowlists cap where. Nothing makes it <em>pay</em> when it breaks a rule anyway.</p>
+        <p>Wallets cap what an agent can spend. Nothing makes it <em>pay</em> when it breaks a rule anyway.</p>
       </div>
       <div class="card">
         <h3>No compensation path</h3>
-        <p>When an agent rugs a counterparty there is no on-chain mechanism to make the injured party whole. The loss is final.</p>
+        <p>When an agent rugs a counterparty there is no way to make the injured party whole. The loss is final.</p>
       </div>
     </div>
     <div class="slide-num">02</div>
@@ -352,7 +352,7 @@
   <div class="slide">
     <div class="tag"><span class="tag-dot"></span> The Solution</div>
     <h2>Bond. Enforce. <em>Slash.</em> Compensate.</h2>
-    <p class="lead">An operator registers an agent and locks SOL as a bond. The program holds it in its own vault. Rules run on-chain, and any counterparty can read the bond and the slash history from one endpoint before deciding whether to deal.</p>
+    <p class="lead">Operators lock SOL as a bond. The program holds it and runs the rules, and anyone can read it.</p>
     <div class="flow">
       <div class="step">
         <div class="step-icon"><i class="fa-solid fa-user-plus"></i></div>
@@ -432,15 +432,15 @@
     <ul class="items">
       <li>
         <span class="icon"><svg viewBox="0 0 24 24" fill="#14F195"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
-        <span><strong>Upgraded a live deployment without losing state.</strong> v0.2 grew the agent account from 116 to 118 bytes, which would have left the program unable to read its own existing agents. A migration instruction performed the byte surgery in place on devnet, and an audit confirmed all 8 preserved fields were unchanged.</span>
+        <span><strong>Upgraded a live deployment without losing state.</strong> v0.2 grew the agent account from 116 to 118 bytes, which would have broken reads of existing agents. The migration did the byte surgery in place on devnet; all 8 preserved fields verified.</span>
       </li>
       <li>
         <span class="icon"><svg viewBox="0 0 24 24" fill="#14F195"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
-        <span><strong>Non-custodial by construction.</strong> Slashed collateral moves into a program-owned vault. The admin can direct a payout to a victim but can never withdraw to themselves — the vault is not theirs to drain.</span>
+        <span><strong>Non-custodial by construction.</strong> Slashed collateral sits in a program-owned vault. The admin can direct a payout but never withdraw it.</span>
       </li>
       <li>
         <span class="icon"><svg viewBox="0 0 24 24" fill="#14F195"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
-        <span><strong>Where we actually are, stated plainly:</strong> one self-operated agent on devnet — pre-traction. The bond, slash and compensation paths execute and the escrow vault is live; no external operator has registered yet. Getting to ten bonded agents is the next milestone, and it is the reason we are here.</span>
+        <span><strong>Where we actually are, stated plainly:</strong> one self-operated agent on devnet — pre-traction. All paths execute; no external operator has registered yet. Ten bonded agents is the milestone.</span>
       </li>
     </ul>
     <div class="slide-num">05</div>
@@ -454,19 +454,19 @@
     <div class="grid">
       <div class="card">
         <h3>API &amp; MCP providers</h3>
-        <p class="small">Agents call paid endpoints directly over x402 and MCP. Compute and credits are spent before settlement clears, so the caller's ability to pay is the entire risk. Equxi turns it into a bond a provider can read in one request.</p>
+        <p class="small">Agents call paid endpoints over x402 and MCP. Compute is spent before settlement clears, so paying ability is the whole risk.</p>
       </div>
       <div class="card">
         <h3>Agent marketplaces</h3>
-        <p class="small">Marketplaces listing third-party agents need to gate the ones touching user funds. A required bond moves liability off the platform and onto the operator who built the agent.</p>
+        <p class="small">Marketplaces listing third-party agents must gate the ones touching user funds. A required bond moves liability onto the operator.</p>
       </div>
       <div class="card">
         <h3>Agent frameworks</h3>
-        <p class="small">Frameworks shipping wallet-holding agents need a trust module, not a compliance team. One import gives their agents a bond and their users a way to check it.</p>
+        <p class="small">Frameworks shipping wallet-holding agents need a trust module, not a compliance team. One import gives users a bond to check.</p>
       </div>
       <div class="card">
         <h3>Agent-to-agent commerce</h3>
-        <p class="small">When two agents transact unsupervised, neither can sue the other. Collateral is the only recourse that settles in the same block as the breach.</p>
+        <p class="small">Two agents transacting unsupervised cannot sue each other. Collateral settles in the same block as the breach.</p>
       </div>
     </div>
     <div class="slide-num">06</div>
@@ -476,19 +476,19 @@
   <div class="slide">
     <div class="tag"><span class="tag-dot"></span> Why Now</div>
     <h2>The rails are funded. <em>The safety layer isn't.</em></h2>
-    <p class="lead">Colosseum's own portfolio is building the agent economy's payment and access layer. None of it is the part that makes an unknown agent safe to deal with.</p>
+    <p class="lead">Colosseum's portfolio builds the agent economy's payment layer. None of it makes an unknown agent safe.</p>
     <div class="grid">
       <div class="card">
         <h3>Already funded</h3>
-        <p class="small">Laso gives agents cards and bank accounts. Frames lets agents pay for resources. Clawpump gives agents companies. Flovia measures agent payments. Sudont secures agent execution. MCPay and Corbits won track prizes for x402 rails.</p>
+        <p class="small">Laso, Frames, Clawpump, Flovia, Sudont, MCPay and Corbits — all funded for agent rails, cards and payments.</p>
       </div>
       <div class="card">
         <h3>The gap</h3>
-        <p class="small">Every one of them assumes the counterparty is good for the money. Nothing on the stack answers what happens when an agent takes payment and doesn't deliver — the exact question a provider asks before serving it.</p>
+        <p class="small">Every one assumes the counterparty is good for the money. Nothing answers what happens when an agent takes payment and doesn't deliver.</p>
       </div>
       <div class="card">
         <h3>Why Solana</h3>
-        <p class="small">This is only cheap where breach and payout land in the same block. Bond, rule evaluation, seizure and compensation are one program with no oracle in the loop.</p>
+        <p class="small">Breach and payout must land in one block to be cheap. Bond, rules, seizure and compensation are one program, no oracle.</p>
       </div>
       <div class="card">
         <h3>Timing</h3>
@@ -502,15 +502,15 @@
   <div class="slide">
     <div class="tag"><span class="tag-dot"></span> Open Source</div>
     <h2>Public code. <em>Permanent trust.</em></h2>
-    <p class="lead">The entire codebase is MIT licensed — program, SDK, plugin, dashboard and read API. Anyone can fork it, audit it, or run their own registry without asking permission.</p>
+    <p class="lead">MIT licensed end to end: program, SDK, plugin, dashboard, read API. Fork it, or run your own registry.</p>
     <div class="two-col">
       <div class="card">
         <h3>Why This Matters</h3>
-        <p class="small">Closed trust layers can be revoked, surveilled, or priced out of reach. Accountability infrastructure must be open to be trusted. Developers in underserved markets need access to the same tools as everyone else.</p>
+        <p class="small">Closed trust layers can be revoked or priced out of reach. Accountability infrastructure must be open to be trusted, everywhere.</p>
       </div>
       <div class="card">
         <h3>What Happens If It Disappears</h3>
-        <p class="small">Agent builders lose the only open accountability layer on Solana. They must build from scratch or depend on centralized alternatives that can be switched off overnight.</p>
+        <p class="small">Builders lose the only open accountability layer on Solana, and fall back on closed alternatives that can be switched off.</p>
       </div>
     </div>
     <div class="slide-num">08</div>
@@ -520,7 +520,7 @@
   <div class="slide">
     <div class="tag"><span class="tag-dot"></span> Founder</div>
     <h2><em>Sithu Nyein</em> — solo founder</h2>
-    <p class="lead">Built the entire product alone: the Rust program, the SDK, the dashboard, the registry, and the elizaOS plugin. Based in Yangon, Myanmar. Studying at University of the People.</p>
+    <p class="lead">Built solo: the Rust program, SDK, dashboard, registry and elizaOS plugin. Student, Yangon, Myanmar.</p>
     <ul class="items" style="margin-top: 20px;">
       <li>
         <span class="icon"><svg viewBox="0 0 24 24" fill="#14F195"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
@@ -528,11 +528,11 @@
       </li>
       <li>
         <span class="icon"><svg viewBox="0 0 24 24" fill="#14F195"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
-        <span><strong>Why me:</strong> I ran agents and watched them spend money I could not get back. Every rails project assumes good faith; I have been on the wrong side of that assumption, which is why I built the half nobody else wants to.</span>
+        <span><strong>Why me:</strong> I ran agents and watched them spend money I could not get back. I built the half nobody else wants to.</span>
       </li>
       <li>
         <span class="icon"><svg viewBox="0 0 24 24" fill="#14F195"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
-        <span><strong>Shipping cadence:</strong> from empty repo to a live devnet program with escrow, a migrated production deployment, and 134 automated tests — in under a month, solo.</span>
+        <span><strong>Shipping cadence:</strong> empty repo to a live devnet program with escrow, a migrated deployment and 134 tests — in under a month, solo.</span>
       </li>
     </ul>
     <div class="contact-row">
@@ -553,23 +553,23 @@
   <div class="slide">
     <div class="tag"><span class="tag-dot"></span> Business Model</div>
     <h2>We charge for <em>the check, and the bond.</em></h2>
-    <p class="lead">Reading a bond is free and stays free — a trust layer nobody queries has no value. Revenue sits on the two sides that care about the answer.</p>
+    <p class="lead">Reading a bond is free forever — a trust layer nobody queries is worthless. Revenue comes from the two sides.</p>
     <ul class="items">
       <li>
         <span class="icon"><svg viewBox="0 0 24 24" fill="#9945FF"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
-        <span><strong>Take rate on bonded volume.</strong> A basis-point fee when collateral is posted, and again when it is slashed. Revenue scales with how much risk the network is actually underwriting — not with how many people sign up.</span>
+        <span><strong>Take rate on bonded volume.</strong> A basis-point fee when collateral is posted and again when it is slashed. Revenue scales with risk, not signups.</span>
       </li>
       <li>
         <span class="icon"><svg viewBox="0 0 24 24" fill="#9945FF"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
-        <span><strong>Verification API.</strong> The public badge stays free forever. Providers that need threshold checks, webhooks or volume get a paid tier — the same shape as any risk-data API.</span>
+        <span><strong>Verification API.</strong> The public badge stays free. Providers needing threshold checks or webhooks pay — like any risk-data API.</span>
       </li>
       <li>
         <span class="icon"><svg viewBox="0 0 24 24" fill="#9945FF"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
-        <span><strong>Marketplace gating.</strong> Platforms that require bonding for listed agents pay per listing. They move liability onto the operator; we get distribution into every agent they onboard.</span>
+        <span><strong>Marketplace gating.</strong> Platforms requiring bonds for listed agents pay per listing. They move liability; we reach every agent they onboard.</span>
       </li>
       <li>
         <span class="icon"><svg viewBox="0 0 24 24" fill="#9945FF"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
-        <span><strong>What we want:</strong> devnet to mainnet with an audit, and our first ten external operators bonded. Verdicts are admin-gated today — deliberately, at this stage. Decentralising that is the roadmap, and the first thing we would fund.</span>
+        <span><strong>What we want:</strong> mainnet with an audit, and our first ten external operators bonded. Verdicts are admin-gated today by design; decentralising that is the roadmap.</span>
       </li>
     </ul>
     <div class="row" style="margin-top: 40px;">

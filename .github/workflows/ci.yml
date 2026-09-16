@@ -188,6 +188,7 @@ jobs:
           test -f tests/unit/read.test.ts || exit 1
           test -f tests/unit/api.test.ts || exit 1
           test -f tests/unit/landing.test.ts || exit 1
+          test -f tests/unit/copy.test.ts || exit 1
           test -f Anchor.toml || exit 1
           test -f setup.sh || exit 1
           echo "All files present"
