@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Equxi | Intelligence Designed To Evolve</title>
-  <meta name="description" content="Equxi: AI agents cannot be trusted with real money. Bond operators, enforce rules on-chain, slash misbehaving agents automatically." />
+  <title>Equxi — Slashable collateral for AI agents on Solana</title>
+  <meta name="description" content="Equxi bonds AI agents with slashable SOL collateral. Check any agent's bond and slash history from one endpoint before you transact — every number read from Solana." />
   <link rel="icon" type="image/webp" href="assets/logo.webp" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -12,12 +12,14 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="manifest" href="manifest.json" />
-  <meta property="og:title" content="Equxi | Intelligence Designed To Evolve" />
-  <meta property="og:description" content="Equxi: Bond operators, enforce rules on-chain, slash misbehaving AI agents automatically." />
+  <meta property="og:title" content="Equxi — Slashable collateral for AI agents" />
+  <meta property="og:description" content="Operators lock SOL as a bond. When an agent breaks its rules, the bond pays the victim on-chain — from a program-owned vault, with no court and no admin holding the funds." />
   <meta property="og:image" content="https://equxi.sithunyein.com/assets/logo.webp" />
   <meta property="og:url" content="https://equxi.sithunyein.com" />
   <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Equxi" />
   <meta name="twitter:card" content="summary" />
+  <meta name="twitter:site" content="@equxi_ai" />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://equxi.sithunyein.com" />
 </head>
@@ -42,7 +44,7 @@
         <a href="https://github.com/thesithunyein/equxi" class="nav-link" target="_blank">GitHub</a>
         <a href="https://x.com/equxi_ai" class="nav-link" target="_blank"><i class="fa-brands fa-x-twitter"></i></a>
       </nav>
-      <a href="app.html" class="btn-primary desktop-only">Open App</a>
+      <a href="explorer.html" class="btn-primary desktop-only">Check an agent</a>
       <button class="menu-toggle" id="menuToggle" aria-label="Menu">
         <span></span><span></span><span></span>
       </button>
@@ -53,46 +55,51 @@
       <a href="explorer.html" class="mobile-nav-link">Explorer</a>
       <a href="https://github.com/thesithunyein/equxi" class="mobile-nav-link" target="_blank">GitHub</a>
       <a href="https://x.com/equxi_ai" class="mobile-nav-link" target="_blank"><i class="fa-brands fa-x-twitter"></i></a>
-      <a href="app.html" class="btn-primary" style="width:100%;margin-top:12px;">Open App</a>
+      <a href="explorer.html" class="btn-primary" style="width:100%;margin-top:12px;">Check an agent</a>
     </div>
 
     <main class="hero">
       <div class="badge">
         <span class="badge-dot"></span>
-        Built on Solana
+        Live on Solana devnet
       </div>
 
       <h1 class="headline">
-        Intelligence Designed<br />To Evolve
+        Slashable collateral<br />for AI agents
       </h1>
 
       <p class="subhead">
-        AI agents can’t be trusted with real money . until now.<br />
-        Equxi bonds operators, enforces rules on-chain, and slashes misbehaving agents automatically.
+        Operators register an agent and lock SOL as a bond. API and MCP providers check that
+        bond from one endpoint before serving an unknown agent.<br />
+        Break your rules, and the bond pays the victim — on-chain, automatically,
+        from a vault the operator can't reach.
       </p>
 
       <div class="cta-row">
-        <a href="app.html" class="btn-primary btn-lg">Open Dashboard</a>
+        <a href="explorer.html" class="btn-primary btn-lg">Check an agent</a>
         <a href="#how-it-works" class="btn-outline btn-lg">How It Works →</a>
       </div>
+      <p style="margin-top:18px;font-size:14px;opacity:0.65;">
+        No wallet needed to look one up · <a href="app.html" style="text-decoration:underline;">Register your own agent →</a>
+      </p>
     </main>
 
     <footer class="stats">
       <div class="stat">
-        <div class="stat-value">8</div>
-        <div class="stat-label">On-Chain Instructions</div>
+        <div class="stat-value">Live</div>
+        <div class="stat-label">Program + escrow vault on devnet</div>
       </div>
       <div class="stat">
-        <div class="stat-value">4</div>
-        <div class="stat-label">Rule Types</div>
+        <div class="stat-value">Non-custodial</div>
+        <div class="stat-label">Slashed funds sit in a program-owned vault</div>
       </div>
       <div class="stat">
-        <div class="stat-value">100%</div>
-        <div class="stat-label">On-Chain Enforced</div>
+        <div class="stat-value">No oracle</div>
+        <div class="stat-label">Every rule is evaluated by the program itself</div>
       </div>
       <div class="stat">
-        <div class="stat-value"><5s</div>
-        <div class="stat-label">Tx Confirmation</div>
+        <div class="stat-value">MIT</div>
+        <div class="stat-label">Open source and self-hostable</div>
       </div>
     </footer>
   </div>
@@ -101,33 +108,59 @@
   <section class="how-section" id="how-it-works">
     <div class="how-inner">
       <div class="how-tag"><span class="badge-dot"></span> How It Works</div>
-      <h2 class="how-title">Five steps to on-chain accountability</h2>
-      <p class="how-sub">From registration to compensation, every action is enforced by the Solana program. No oracles needed. No manual intervention.</p>
+      <h2 class="how-title">Five steps from identity to compensation</h2>
+      <p class="how-sub">An operator raises their agent's cost of lying. Everyone else gets a way to price that cost before they take the risk.</p>
       <div class="how-grid">
         <div class="how-card">
           <div class="how-icon"><i class="fa-solid fa-user-plus"></i></div>
           <h3>Register</h3>
-          <p>Create an on-chain agent identity linked to your operator wallet.</p>
+          <p>Create an on-chain agent identity bound to the operator wallet that owns it.</p>
         </div>
         <div class="how-card">
           <div class="how-icon"><i class="fa-solid fa-lock"></i></div>
           <h3>Bond</h3>
-          <p>Lock SOL as a security deposit. This is your accountability guarantee.</p>
+          <p>Lock SOL as security deposit. The operator signs, and only the operator can withdraw it.</p>
         </div>
         <div class="how-card">
           <div class="how-icon"><i class="fa-solid fa-shield-halved"></i></div>
           <h3>Enforce</h3>
-          <p>Set spending limits, timelocks, and program allowlists on-chain.</p>
+          <p>Attach rules — spend limits, timelocks, program allowlists. They live on-chain, not in a config file.</p>
         </div>
         <div class="how-card">
           <div class="how-icon"><i class="fa-solid fa-bolt"></i></div>
           <h3>Slash</h3>
-          <p>When rules break, the bond is penalized automatically.</p>
+          <p>When a rule breaks, collateral moves into a program-owned escrow vault — not to an admin.</p>
         </div>
         <div class="how-card">
           <div class="how-icon"><i class="fa-solid fa-hand-holding-dollar"></i></div>
           <h3>Compensate</h3>
-          <p>Victims receive payment from the slashed bond. No courts needed.</p>
+          <p>The injured party is paid out of escrow. No court, no claim form, no counterparty goodwill.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Who checks a bond -->
+  <section class="how-section" id="who">
+    <div class="how-inner">
+      <div class="how-tag"><span class="badge-dot"></span> Who Checks a Bond</div>
+      <h2 class="how-title">Built for the side that carries the risk</h2>
+      <p class="how-sub">Anyone about to hand money or authority to an agent they don't control.</p>
+      <div class="how-grid">
+        <div class="how-card">
+          <div class="how-icon"><i class="fa-solid fa-server"></i></div>
+          <h3>API &amp; MCP providers</h3>
+          <p>Serving unknown agents over x402 or MCP. Compute and credits are spent before payment settles, so the caller's ability to pay is the whole risk.</p>
+        </div>
+        <div class="how-card">
+          <div class="how-icon"><i class="fa-solid fa-store"></i></div>
+          <h3>Agent marketplaces</h3>
+          <p>Listing third-party agents that touch user funds. One bad listing is a support queue, a refund, and a reputation problem.</p>
+        </div>
+        <div class="how-card">
+          <div class="how-icon"><i class="fa-solid fa-cubes"></i></div>
+          <h3>Agent frameworks</h3>
+          <p>Shipping agents that hold wallets. A trust module is cheaper than building a compliance team.</p>
         </div>
       </div>
     </div>

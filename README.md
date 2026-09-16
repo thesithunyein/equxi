@@ -4,7 +4,7 @@
 
 <h1 align="center">Equxi</h1>
 
-<p align="center"><strong>Solana-Native Trust Layer for AI Agents</strong></p>
+<p align="center"><strong>Slashable collateral for AI agents on Solana</strong></p>
 
 <p align="center">
   <a href="https://equxi.sithunyein.com"><img src="https://img.shields.io/badge/Live-Site-9945FF?style=for-the-badge" alt="Live Site" /></a>
@@ -17,14 +17,32 @@
 
 ## The Problem
 
-AI agents lack economic accountability. Nobody can safely trust an autonomous agent with real money because:
+Agents are being handed money. Nobody can check them.
 
-- Counterparties refuse to deal with agents that can lose money with no recourse
-- Wallets and permission systems limit what an agent *can* do, but nothing makes it *pay* when it does the wrong thing anyway
-- When an agent misbehaves there is no on-chain mechanism to compensate the injured party
+The rails already exist — agents have wallets, cards, bank accounts and paid API access.
+What none of it answers is what happens when an agent takes the payment and doesn't deliver:
+
+- **The provider eats the loss.** An API or MCP endpoint serving an unknown agent spends
+  compute and credits before settlement clears. If the agent never pays, there is no recourse.
+- **A reputation with nothing behind it is free to lie.** An agent can burn a rating,
+  re-register under a new key, and be back to a clean slate the same block.
+- **Permission is solved; consequence isn't.** Wallets cap what an agent can spend. Nothing
+  makes it *pay* when it breaks a rule anyway.
 
 Platforms have solved **permission** — allowlists, spend caps, approval prompts.
 Equxi supplies the missing half: **consequence**.
+
+An operator registers an agent and locks SOL as a bond. The program holds it in its own
+vault. Rules run on-chain, and any counterparty — an API provider, a marketplace, another
+agent — reads the bond and slash history from one endpoint before deciding whether to deal.
+
+### Who reads a bond
+
+| Buyer | What they get |
+|---|---|
+| **API & MCP providers** | A way to price the risk of serving an unknown agent before spending compute on it |
+| **Agent marketplaces** | Bonding as a listing requirement, which moves liability onto the operator |
+| **Agent frameworks** | A trust module their wallet-holding agents can adopt instead of building compliance |
 
 ## How It Works
 
@@ -61,6 +79,7 @@ The program executes 8 instructions on devnet. All transactions confirmed.
 | `execute_slash` | Seizes collateral into the program-owned escrow vault |
 | `compensate_victim` | Pays the victim out of the escrow vault |
 | `update_trust_score` | Updates agent reputation |
+| `migrate_agent` | Grows a v0.1 agent account in place, preserving every existing field |
 
 ## Quick Start
 

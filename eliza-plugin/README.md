@@ -6,9 +6,26 @@ Adds spend limits, timelocks, and bond enforcement to any Solana agent built on 
 
 ## Install
 
+The npm release is pending. Until it lands, install from the repository:
+
 ```bash
-npm install @equxi/plugin-eliza
+git clone https://github.com/thesithunyein/equxi.git
+cd equxi/eliza-plugin
+npm install
+npm run build
 ```
+
+Then reference it by path in your agent's `package.json`:
+
+```json
+{
+  "dependencies": {
+    "@equxi/plugin-eliza": "file:../equxi/eliza-plugin"
+  }
+}
+```
+
+Once published, this becomes `npm install @equxi/plugin-eliza`.
 
 ## Quick Start
 
@@ -68,6 +85,14 @@ Slash an agent's bond for rule violation.
 4. **Slash** when rules are violated (bond penalized)
 
 All enforced on Solana. No oracles needed for quantitative rules.
+
+## Verify a bond before you transact
+
+Bond and slash history is public. Read it without a wallet:
+
+- **Explorer**: https://equxi.sithunyein.com/explorer.html
+- **Badge API**: `https://equxi.sithunyein.com/api/badge?agent=<agent-pda>`
+- **Registry API**: `https://equxi.sithunyein.com/api/trust`
 
 ## Program
 
