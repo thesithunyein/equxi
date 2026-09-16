@@ -32,7 +32,7 @@ jobs:
             sleep 10
           done
           fail=0
-          for path in "" explorer.html app.html docs.html deck.html api/trust; do
+          for path in "" landing.js explorer.html app.html docs.html deck.html api/trust; do
             code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 --retry 4 --retry-delay 5 "$BASE/$path")
             printf '%-16s %s\n' "/${path:-}" "$code"
             [ "$code" = "200" ] || fail=1
@@ -43,4 +43,23 @@ jobs:
             *"Slashable collateral"*) : ;;
             *) echo "::warning title=Stale content?::The live title does not match the expected hero. If this push changed the landing page, production may be serving an older build."; fail=1 ;;
           esac
+
+          # The live numbers are filled client-side from /api/trust, so a build
+          # that ships the markup without the script (or the reverse) still
+          # returns 200 on every page and looks fine. Assert the two halves are
+          # both being served. Retried, because the HTML and the asset can land
+          # a few seconds apart even inside one deploy.
+          marked=0
+          for attempt in 1 2 3 4 5 6; do
+            if curl -s --max-time 20 "$BASE/?probe=$(date +%s)" | grep -q 'data-fill="bonded"'; then
+              marked=1 && break
+            fi
+            sleep 10
+          done
+          if [ "$marked" != "1" ]; then
+            echo "The live landing page is not serving the live-stats markup." && fail=1
+          fi
+          if ! curl -s --max-time 20 "$BASE/landing.js" | grep -q '/api/trust'; then
+            echo "The deployed landing.js does not read /api/trust." && fail=1
+          fi
           exit $fail
