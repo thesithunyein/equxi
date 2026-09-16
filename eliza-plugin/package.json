@@ -15,6 +15,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "prepare": "npm run build",
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit",
     "prepublishOnly": "npm run build"

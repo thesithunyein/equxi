@@ -30,4 +30,13 @@ Thumbs.db
 dist/
 *.js.map
 
+# Prebuilt output for the publishable packages IS tracked, so a git
+# install works with zero build steps on every package manager
+# (npm/pnpm 10 block prepare scripts by default; git installs also
+# have no npm tarball to carry dist).
+!sdk/dist/
+!sdk/dist/**
+!eliza-plugin/dist/
+!eliza-plugin/dist/**
+
 .vercel

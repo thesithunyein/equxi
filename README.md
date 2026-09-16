@@ -451,9 +451,21 @@ console.log("Available to victims:", vault.available.toString());
 
 ## Usage in elizaOS
 
+**pnpm, straight from git today:**
+
 ```bash
-npm install @equxi/plugin-eliza
+pnpm add github:thesithunyein/equxi#path:eliza-plugin
 ```
+
+**npm / yarn:** clone and install by path (npm's git installer cannot target a subdirectory):
+
+```bash
+git clone https://github.com/thesithunyein/equxi.git
+# then in your package.json:
+#   "dependencies": { "@equxi/plugin-eliza": "file:../equxi/eliza-plugin" }
+```
+
+Once published, this becomes `npm install @equxi/plugin-eliza`.
 
 ```typescript
 import { equxiPlugin } from "@equxi/plugin-eliza";
