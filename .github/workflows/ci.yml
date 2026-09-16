@@ -167,6 +167,12 @@ jobs:
           test -f explorer.html || exit 1
           test -f explorer.js || exit 1
           test -f dev-server.js || exit 1
+          # The upgrade path: a broken migration tool is worse than none, and it
+          # only ever runs against a live deployment, so check it here instead.
+          test -f migrate.js || exit 1
+          test -f deploy-v2.sh || exit 1
+          node --check migrate.js || exit 1
+          bash -n deploy-v2.sh || exit 1
           test -f tests/unit/layout.test.ts || exit 1
           test -f tests/unit/sdk.test.ts || exit 1
           test -f tests/unit/read.test.ts || exit 1
