@@ -5,6 +5,14 @@ members = [
 ]
 
 [profile.release]
+# On Solana, program size is rent: the deployer pays ~5080 lamports per byte to
+# hold the program in ProgramData, and every upgrade is written through a
+# rent-funded buffer of the full program size. The same source at opt-level 3
+# produces a 464,480-byte program (a 2.36 SOL buffer) and at "z" one that fits
+# in the 1.9 SOL this deployment can actually fund. Behaviour is unchanged, and
+# `anchor test` runs this exact profile, so the on-chain suite -- including
+# compute-unit limits -- pins it either way.
+opt-level = "z"
 overflow-checks = true
 lto = "fat"
 codegen-units = 1
