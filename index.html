@@ -99,19 +99,39 @@
     .grade-pill.g-D { border-color: rgba(255,180,80,0.4); color: #ffb450; }
     .grade-pill.g-F { border-color: rgba(255,90,90,0.45); color: #ff7b7b; }
 
-    /* Builder strip — the thing a provider actually runs. */
+    /* Builder strip — the thing a provider actually runs. Held in the same card
+       language as the live board above it, so the section reads as a product
+       surface rather than a line of code floating in the background. */
     .dev-section { position: relative; z-index: 1; width: 100%; padding: 8px 32px 96px; }
-    .dev-inner { max-width: 1000px; margin: 0 auto; text-align: center; }
-    .dev-code {
-      display: block; margin: 22px auto 16px; max-width: 720px;
-      padding: 16px 18px; border-radius: 12px;
-      border: 1px solid #1e1e1e; background: #080808;
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: 13px; color: var(--green); text-align: left; overflow-x: auto;
+    .dev-inner { max-width: 720px; margin: 0 auto; text-align: center; }
+    .dev-card {
+      display: flex; align-items: center; gap: 12px;
+      margin: 22px auto 18px; padding: 12px 14px 12px 18px;
+      border: 1px solid #1e1e1e; border-radius: 14px; background: #070707;
     }
-    .dev-links { display: flex; gap: 18px; justify-content: center; flex-wrap: wrap; font-size: 13px; }
-    .dev-links a { color: var(--muted); }
-    .dev-links a:hover { color: var(--text); }
+    .dev-code {
+      flex: 1 1 auto; min-width: 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 13px; color: var(--green); text-align: center;
+      overflow-x: auto; white-space: nowrap; scrollbar-width: none;
+    }
+    .dev-code::-webkit-scrollbar { display: none; }
+    .dev-copy {
+      flex: 0 0 auto; padding: 7px 14px; border-radius: 999px; cursor: pointer;
+      background: transparent; color: var(--muted);
+      border: 1px solid rgba(255,255,255,0.12);
+      font-family: var(--font); font-size: 12px; font-weight: 500;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .dev-copy:hover { color: var(--text); border-color: rgba(153,69,255,0.5); }
+    .dev-links { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    .dev-pill {
+      padding: 8px 16px; border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.1);
+      font-size: 13px; color: rgba(255,255,255,0.75);
+      transition: color 0.2s, border-color 0.2s, background 0.2s;
+    }
+    .dev-pill:hover { color: #fff; border-color: rgba(153,69,255,0.5); background: rgba(153,69,255,0.08); }
 
     @media (max-width: 768px) {
       .live-section { padding: 8px 20px 64px; }
@@ -119,6 +139,11 @@
       .live-tiles { grid-template-columns: repeat(2, 1fr); }
       .live-row { grid-template-columns: 1fr auto; row-gap: 10px; }
       .live-row .fig.hide-sm { display: none; }
+      /* A nowrap command in a flex row would push the copy button off screen
+         on a phone, so the two stack instead. */
+      .dev-card { flex-direction: column; align-items: stretch; padding: 14px 16px; }
+      .dev-code { text-align: left; }
+      .dev-copy { align-self: center; }
     }
   </style>
 </head>
@@ -272,16 +297,20 @@
   </section>
 
   <!-- For builders -->
-  <section class="dev-section">
+  <section class="dev-section" id="builders">
     <div class="dev-inner">
       <div class="how-tag"><span class="badge-dot"></span> For Builders</div>
       <h2 class="how-title">One call before you serve</h2>
-      <code class="dev-code">curl "https://equxi.sithunyein.com/api/trust?agent=&lt;pubkey&gt;"</code>
+      <p class="how-sub">Read the bond before you spend compute on an unknown agent.</p>
+      <div class="dev-card">
+        <code class="dev-code" id="devCode">curl "https://equxi.sithunyein.com/api/trust?agent=&lt;pubkey&gt;"</code>
+        <button type="button" class="dev-copy" id="devCopy">Copy</button>
+      </div>
       <div class="dev-links">
-        <a href="docs.html">Docs</a>
-        <a href="https://github.com/thesithunyein/equxi/tree/main/sdk">SDK</a>
-        <a href="https://github.com/thesithunyein/equxi/tree/main/eliza-plugin">elizaOS plugin</a>
-        <a href="explorer.html">Badge for your README</a>
+        <a class="dev-pill" href="docs.html">Docs</a>
+        <a class="dev-pill" href="https://github.com/thesithunyein/equxi/tree/main/sdk">SDK</a>
+        <a class="dev-pill" href="https://github.com/thesithunyein/equxi/tree/main/eliza-plugin">elizaOS plugin</a>
+        <a class="dev-pill" href="explorer.html">Badge for your README</a>
       </div>
     </div>
   </section>

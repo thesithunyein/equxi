@@ -25,6 +25,43 @@
   var rows = document.getElementById("liveRows");
   var notice = document.getElementById("liveNotice");
 
+  /**
+   * The builder strip is static markup, but the command is the one thing a
+   * reader has to reproduce by hand — selecting a nowrap code line on a phone is
+   * fiddly, so give them a button. Wired before the guard below, because this
+   * half of the page does not depend on the read succeeding.
+   */
+  function wireCopy() {
+    var code = document.getElementById("devCode");
+    var button = document.getElementById("devCopy");
+    if (!code || !button) return;
+
+    var idle = button.textContent;
+    var reset;
+
+    button.addEventListener("click", function () {
+      var command = code.textContent;
+      var done = function () {
+        button.textContent = "Copied";
+        clearTimeout(reset);
+        reset = setTimeout(function () {
+          button.textContent = idle;
+        }, 1600);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(command).then(done, function () {
+          // Clipboard access needs a secure context. Falling back to a prompt
+          // keeps the command copyable rather than silently doing nothing.
+          window.prompt("Copy this:", command);
+        });
+        return;
+      }
+      window.prompt("Copy this:", command);
+    });
+  }
+
+  wireCopy();
+
   if (!tiles || !rows) return;
 
   /* ── helpers ────────────────────────────────────────────────────────── */
