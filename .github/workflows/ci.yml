@@ -65,6 +65,35 @@ jobs:
       - name: Run program tests
         run: anchor test --skip-build
 
+      # Publish the exact bytes this job built and tested, so a devnet deploy
+      # is provably the same artifact CI verified rather than a local rebuild
+      # that might have drifted. Uploaded only after the tests pass.
+      - name: Upload built program
+        uses: actions/upload-artifact@v4
+        with:
+          name: equxi-program
+          path: target/deploy/equxi.so
+          if-no-files-found: error
+          retention-days: 30
+
+  # Pure-Rust tests, no validator: the byte-level account migration can be
+  # checked exhaustively here, which is cheaper and far more thorough than
+  # trying to fabricate a v0.1-shaped account on a test validator.
+  rust-unit:
+    name: Rust Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
+
+      - name: Run program unit tests
+        run: cargo test --manifest-path programs/equxi/Cargo.toml --features no-entrypoint
+
   # Fast, validator-free checks. These lock the wire format shared by the SDK,
   # the elizaOS plugin, and the web app, and they fail on the kind of drift that
   # previously shipped silently (a stale hand-written IDL, a stale discriminator,
@@ -149,8 +178,9 @@ jobs:
         run: |
           echo "Checking Rust program..."
           head -5 programs/equxi/src/lib.rs | grep -q "anchor_lang" || exit 1
-          for ix in initialize create_vault register_agent create_bond withdraw_bond \
-                    add_constraint execute_slash compensate_victim update_trust_score; do
+          for ix in initialize create_vault migrate_agent register_agent create_bond \
+                    withdraw_bond add_constraint execute_slash compensate_victim \
+                    update_trust_score; do
             grep -q "fn handler" "programs/equxi/src/instructions/$ix.rs" || exit 1
           done
           echo "All program instructions present"

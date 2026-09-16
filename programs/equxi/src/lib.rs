@@ -29,6 +29,16 @@ pub mod equxi {
         instructions::create_vault::handler(ctx)
     }
 
+    /// One-time migration for agents registered before v0.2: grow the account
+    /// from 116 to 118 bytes so it carries `constraint_count`. Signed by the
+    /// agent's owner, or the program admin if the owner key is unreachable.
+    pub fn migrate_agent(
+        ctx: Context<MigrateAgent>,
+        existing_constraints: u16,
+    ) -> Result<()> {
+        instructions::migrate_agent::handler(ctx, existing_constraints)
+    }
+
     /// Register a new AI agent
     pub fn register_agent(
         ctx: Context<RegisterAgent>,
