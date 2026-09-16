@@ -19,22 +19,21 @@
 
 Agents are being handed money. Nobody can check them.
 
-The rails already exist — agents have wallets, cards, bank accounts and paid API access.
-What none of it answers is what happens when an agent takes the payment and doesn't deliver:
+Agents already hold wallets, cards and paid API access. None of it answers what happens when
+they don't deliver:
 
-- **The provider eats the loss.** An API or MCP endpoint serving an unknown agent spends
-  compute and credits before settlement clears. If the agent never pays, there is no recourse.
-- **A reputation with nothing behind it is free to lie.** An agent can burn a rating,
-  re-register under a new key, and be back to a clean slate the same block.
+- **The provider eats the loss.** An endpoint serving an unknown agent spends compute before
+  settlement clears. If it never pays, there is no recourse.
+- **Reputation that is free to lose is free to lie.** Burn a rating, register a new key,
+  clean slate the same block.
 - **Permission is solved; consequence isn't.** Wallets cap what an agent can spend. Nothing
   makes it *pay* when it breaks a rule anyway.
 
-Platforms have solved **permission** — allowlists, spend caps, approval prompts.
-Equxi supplies the missing half: **consequence**.
+Platforms solved **permission** — allowlists, spend caps, approvals. Equxi is the missing
+half: **consequence**.
 
-An operator registers an agent and locks SOL as a bond. The program holds it in its own
-vault. Rules run on-chain, and any counterparty — an API provider, a marketplace, another
-agent — reads the bond and slash history from one endpoint before deciding whether to deal.
+Operators lock SOL as a bond for their agent. The program holds it in its own vault, and any
+counterparty reads the bond and slash history from one endpoint before dealing.
 
 ### Who reads a bond
 
