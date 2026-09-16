@@ -102,10 +102,23 @@ describe("landing page", () => {
     expect(landing).to.include("throw new Error");
   });
 
-  it("escapes chain-supplied text before it reaches the DOM", () => {
-    expect(landing).to.include("function esc(");
-    // Every interpolation of a chain value must go through esc().
-    expect(landing).to.not.match(/innerHTML\s*=\s*[^;]*\+[^;]*agent\.name/);
+  it("never puts a chain value into the DOM as HTML", () => {
+    // Tiles and the failure notice are both written with `textContent`, so no
+    // agent-controlled string can become markup here. That is a stronger
+    // guarantee than escaping each interpolation and hoping none was missed.
+    // Comments are stripped first: the file's own notes name the unsafe API
+    // while explaining why it is not used.
+    const code = landing
+      .replace(/\/\*[\s\S]*?\*\//g, " ")
+      .replace(/^\s*\/\/.*$/gm, " ");
+    expect(code).to.not.include("innerHTML");
+    expect(code).to.include("textContent");
+  });
+
+  it("makes each live tile a way into the registry", () => {
+    // The per-agent table is gone; the numbers are the door now.
+    expect(html).to.match(/<a[^>]+class="live-tile"[^>]+href="explorer\.html"/);
+    expect(html).to.not.include("live-board");
   });
 
   it("loads the script that does the reading", () => {
