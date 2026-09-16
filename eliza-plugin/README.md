@@ -6,13 +6,18 @@ Adds spend limits, timelocks, and bond enforcement to any Solana agent built on 
 
 ## Install
 
-The npm release is pending. Until it lands, install from the repository:
+**pnpm, straight from git today:**
+
+```bash
+pnpm add github:thesithunyein/equxi#path:eliza-plugin
+```
+
+**npm / yarn:** npm's git installer cannot target a subdirectory, so clone and install by path:
 
 ```bash
 git clone https://github.com/thesithunyein/equxi.git
 cd equxi/eliza-plugin
 npm install
-npm run build
 ```
 
 Then reference it by path in your agent's `package.json`:
@@ -26,6 +31,8 @@ Then reference it by path in your agent's `package.json`:
 ```
 
 Once published, this becomes `npm install @equxi/plugin-eliza`.
+
+The git install needs no build step — `dist/` is prebuilt and tracked in the repo (pnpm 10 and npm skip `prepare` scripts on git dependencies, so the compiled output ships in git itself).
 
 ## Quick Start
 
