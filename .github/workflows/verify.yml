@@ -8,9 +8,13 @@ name: Verify Live Site
 # a working site. The deploy pipeline reports success on upload; only a real
 # request tells you the pages a judge opens actually serve.
 #
-# Timing: Vercel's build is short (seconds for a static site) but not instant.
-# The retry loop polls for up to four minutes before concluding the site is
-# actually broken, so a slow build does not page a red X.
+# Timing, learned the hard way: this job starts within seconds of the push, and
+# a CDN can serve the new HTML a moment before every asset in the same deploy.
+# The first version checked each URL once immediately after a liveness probe
+# that the *previous* build also passes, so it caught a half-propagated deploy
+# and reported a broken site that was fine a second later. Every assertion now
+# retries for up to a minute and only a condition that stays false fails the
+# run, which is why a red X here means something.
 
 on:
   push:
@@ -25,41 +29,54 @@ jobs:
       - name: Check the pages a judge opens
         run: |
           BASE=https://equxi.sithunyein.com
+
+          # Liveness only: `/api/trust` answers on every build, including the one
+          # currently live, so this waits for the site to be up at all and says
+          # nothing about whether the new build has landed.
           attempts=0
           until curl -s -o /dev/null --max-time 20 --retry 2 "$BASE/api/trust?probe=$(date +%s)"; do
             attempts=$((attempts+1))
             [ $attempts -ge 24 ] && break
             sleep 10
           done
+
+          # check <label> <url> [required-pattern]
+          # Retried, because a push can surface the new HTML before its assets.
+          # `no-cache` makes the edge revalidate rather than hand back the build
+          # this push just replaced.
+          check() {
+            label="$1"; url="$2"; pattern="$3"
+            n=0; code=000
+            while [ $n -lt 6 ]; do
+              body=$(curl -s --max-time 30 -H 'cache-control: no-cache' -w '\n%{http_code}' "$url" 2>/dev/null || true)
+              code=$(printf '%s' "$body" | tail -n 1)
+              if [ "$code" = "200" ] && { [ -z "$pattern" ] || printf '%s' "$body" | grep -q "$pattern"; }; then
+                printf '%-18s %s\n' "$label" "200"
+                return 0
+              fi
+              n=$((n+1))
+              if [ $n -lt 6 ]; then sleep 10; fi
+            done
+            printf '%-18s FAILED (last status %s)\n' "$label" "$code"
+            return 1
+          }
+
           fail=0
-          for path in "" landing.js explorer.html app.html docs.html deck.html api/trust; do
-            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 --retry 4 --retry-delay 5 "$BASE/$path")
-            printf '%-16s %s\n' "/${path:-}" "$code"
-            [ "$code" = "200" ] || fail=1
+          for path in "" explorer.html app.html docs.html deck.html api/trust; do
+            check "/${path:-}" "$BASE/$path" "" || fail=1
           done
-          title=$(curl -s --max-time 20 "$BASE/" | grep -o '<title>[^<]*</title>' || true)
+
+          # The live numbers are filled client-side from /api/trust, so a build
+          # that ships the markup without the script (or the reverse) still
+          # returns 200 on every page and looks completely fine. Assert both
+          # halves of the landing page are actually being served.
+          check "/ (live stats)" "$BASE/" 'data-fill="bonded"' || fail=1
+          check "/landing.js" "$BASE/landing.js" "api/trust" || fail=1
+
+          title=$(curl -s --max-time 20 -H 'cache-control: no-cache' "$BASE/" | grep -o '<title>[^<]*</title>' || true)
           echo "Live title: $title"
           case "$title" in
             *"Slashable collateral"*) : ;;
             *) echo "::warning title=Stale content?::The live title does not match the expected hero. If this push changed the landing page, production may be serving an older build."; fail=1 ;;
           esac
-
-          # The live numbers are filled client-side from /api/trust, so a build
-          # that ships the markup without the script (or the reverse) still
-          # returns 200 on every page and looks fine. Assert the two halves are
-          # both being served. Retried, because the HTML and the asset can land
-          # a few seconds apart even inside one deploy.
-          marked=0
-          for attempt in 1 2 3 4 5 6; do
-            if curl -s --max-time 20 "$BASE/?probe=$(date +%s)" | grep -q 'data-fill="bonded"'; then
-              marked=1 && break
-            fi
-            sleep 10
-          done
-          if [ "$marked" != "1" ]; then
-            echo "The live landing page is not serving the live-stats markup." && fail=1
-          fi
-          if ! curl -s --max-time 20 "$BASE/landing.js" | grep -q '/api/trust'; then
-            echo "The deployed landing.js does not read /api/trust." && fail=1
-          fi
           exit $fail
