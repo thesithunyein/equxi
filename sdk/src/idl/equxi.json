@@ -21,33 +21,33 @@
       "accounts": [
         {
           "name": "config",
-          "isMut": true,
-          "isSigner": false
+          "writable": true,
+          "signer": false
         },
         {
           "name": "vault",
-          "isMut": true,
-          "isSigner": false
+          "writable": true,
+          "signer": false
         },
         {
           "name": "payer",
-          "isMut": true,
-          "isSigner": true
+          "writable": true,
+          "signer": true
         },
         {
           "name": "program",
-          "isMut": false,
-          "isSigner": false
+          "writable": false,
+          "signer": false
         },
         {
           "name": "programData",
-          "isMut": false,
-          "isSigner": false
+          "writable": false,
+          "signer": false
         },
         {
           "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
+          "writable": false,
+          "signer": false
         }
       ],
       "args": []
@@ -67,33 +67,33 @@
       "accounts": [
         {
           "name": "config",
-          "isMut": true,
-          "isSigner": false
+          "writable": true,
+          "signer": false
         },
         {
           "name": "vault",
-          "isMut": true,
-          "isSigner": false
+          "writable": true,
+          "signer": false
         },
         {
           "name": "payer",
-          "isMut": true,
-          "isSigner": true
+          "writable": true,
+          "signer": true
         },
         {
           "name": "program",
-          "isMut": false,
-          "isSigner": false
+          "writable": false,
+          "signer": false
         },
         {
           "name": "programData",
-          "isMut": false,
-          "isSigner": false
+          "writable": false,
+          "signer": false
         },
         {
           "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
+          "writable": false,
+          "signer": false
         }
       ],
       "args": []
@@ -113,33 +113,33 @@
       "accounts": [
         {
           "name": "config",
-          "isMut": false,
-          "isSigner": false
+          "writable": false,
+          "signer": false
         },
         {
           "name": "agent",
-          "isMut": true,
-          "isSigner": false
+          "writable": true,
+          "signer": false
         },
         {
           "name": "signer",
-          "isMut": true,
-          "isSigner": true
+          "writable": true,
+          "signer": true
         },
         {
           "name": "program",
-          "isMut": false,
-          "isSigner": false
+          "writable": false,
+          "signer": false
         },
         {
           "name": "programData",
-          "isMut": false,
-          "isSigner": false
+          "writable": false,
+          "signer": false
         },
         {
           "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
+          "writable": false,
+          "signer": false
         }
       ],
       "args": [
@@ -164,23 +164,23 @@
       "accounts": [
         {
           "name": "config",
-          "isMut": true,
-          "isSigner": false
+          "writable": true,
+          "signer": false
         },
         {
           "name": "agent",
-          "isMut": true,
-          "isSigner": false
+          "writable": true,
+          "signer": false
         },
         {
           "name": "operator",
-          "isMut": true,
-          "isSigner": true
+          "writable": true,
+          "signer": true
         },
         {
           "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
+          "writable": false,
+          "signer": false
         }
       ],
       "args": [
@@ -213,28 +213,28 @@
       "accounts": [
         {
           "name": "config",
-          "isMut": true,
-          "isSigner": false
+          "writable": true,
+          "signer": false
         },
         {
           "name": "bond",
-          "isMut": true,
-          "isSigner": false
+          "writable": true,
+          "signer": false
         },
         {
           "name": "agent",
-          "isMut": true,
-          "isSigner": false
+          "writable": true,
+          "signer": false
         },
         {
           "name": "owner",
-          "isMut": true,
-          "isSigner": true
+          "writable": true,
+          "signer": true
         },
         {
           "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
+          "writable": false,
+          "signer": false
         }
       ],
       "args": [
@@ -263,18 +263,18 @@
       "accounts": [
         {
           "name": "bond",
-          "isMut": true,
-          "isSigner": false
+          "writable": true,
+          "signer": false
         },
         {
           "name": "agent",
-          "isMut": true,
-          "isSigner": false
+          "writable": true,
+          "signer": false
         },
         {
           "name": "operator",
-          "isMut": true,
-          "isSigner": true
+          "writable": true,
+          "signer": true
         }
       ],
       "args": []
@@ -294,23 +294,23 @@
       "accounts": [
         {
           "name": "constraint",
-          "isMut": true,
-          "isSigner": false
+          "writable": true,
+          "signer": false
         },
         {
           "name": "agent",
-          "isMut": true,
-          "isSigner": false
+          "writable": true,
+          "signer": false
         },
         {
           "name": "owner",
-          "isMut": true,
-          "isSigner": true
+          "writable": true,
+          "signer": true
         },
         {
           "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
+          "writable": false,
+          "signer": false
         }
       ],
       "args": [
@@ -347,38 +347,38 @@
       "accounts": [
         {
           "name": "config",
-          "isMut": true,
-          "isSigner": false
+          "writable": true,
+          "signer": false
         },
         {
           "name": "vault",
-          "isMut": true,
-          "isSigner": false
+          "writable": true,
+          "signer": false
         },
         {
           "name": "agent",
-          "isMut": true,
-          "isSigner": false
+          "writable": true,
+          "signer": false
         },
         {
           "name": "bond",
-          "isMut": true,
-          "isSigner": false
+          "writable": true,
+          "signer": false
         },
         {
           "name": "slashRecord",
-          "isMut": true,
-          "isSigner": false
+          "writable": true,
+          "signer": false
         },
         {
           "name": "authority",
-          "isMut": true,
-          "isSigner": true
+          "writable": true,
+          "signer": true
         },
         {
           "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
+          "writable": false,
+          "signer": false
         }
       ],
       "args": [
@@ -407,33 +407,33 @@
       "accounts": [
         {
           "name": "config",
-          "isMut": false,
-          "isSigner": false
+          "writable": false,
+          "signer": false
         },
         {
           "name": "vault",
-          "isMut": true,
-          "isSigner": false
+          "writable": true,
+          "signer": false
         },
         {
           "name": "slashRecord",
-          "isMut": true,
-          "isSigner": false
+          "writable": true,
+          "signer": false
         },
         {
           "name": "agent",
-          "isMut": true,
-          "isSigner": false
+          "writable": true,
+          "signer": false
         },
         {
           "name": "victim",
-          "isMut": true,
-          "isSigner": false
+          "writable": true,
+          "signer": false
         },
         {
           "name": "authority",
-          "isMut": false,
-          "isSigner": true
+          "writable": false,
+          "signer": true
         }
       ],
       "args": [
@@ -458,18 +458,18 @@
       "accounts": [
         {
           "name": "config",
-          "isMut": false,
-          "isSigner": false
+          "writable": false,
+          "signer": false
         },
         {
           "name": "agent",
-          "isMut": true,
-          "isSigner": false
+          "writable": true,
+          "signer": false
         },
         {
           "name": "authority",
-          "isMut": false,
-          "isSigner": true
+          "writable": false,
+          "signer": true
         }
       ],
       "args": [
