@@ -55,6 +55,23 @@ fi
 SO_SIZE=$(stat -c %s "$EQUXI_SO")
 echo "artifact      $EQUXI_SO ($SO_SIZE bytes)"
 
+# Anchor refuses to run at any address other than the one compiled in, so a
+# build whose declare_id drifted -- which is what `anchor build` produces after
+# `anchor keys sync` generates a fresh keypair -- would deploy cleanly and then
+# reject every instruction. Check the bytes rather than trusting the build.
+( cd "$REPO_DIR" && node -e '
+const fs = require("fs");
+const layout = require("./lib/equxi-layout.js");
+const so = fs.readFileSync(process.argv[1]);
+const id = Buffer.from(layout.bs58Decode(layout.PROGRAM_ID));
+if (!so.includes(id)) {
+  console.error(`artifact does not declare ${layout.PROGRAM_ID}; it would deploy ` +
+    `and then reject every instruction`);
+  process.exit(1);
+}
+console.log(`declares     ${layout.PROGRAM_ID}`);
+' "$EQUXI_SO" )
+
 # Verify the deployed bytes are the v0.1 build we think they are. If the chain
 # does not match the rollback artifact, upgrading would destroy a deployment we
 # cannot restore, so stop and say so instead of guessing.
