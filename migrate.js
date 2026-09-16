@@ -19,6 +19,14 @@
  * change is byte-for-byte what it was. A migration that silently rewrote a
  * reputation record would be worse than no migration at all.
  *
+ * The instructions are built here rather than through `@coral-xyz/anchor`'s
+ * `Program`, deliberately. The account privileges in `sdk/src/idl/equxi.json`
+ * are not honoured by every Anchor client version, and a privilege that is
+ * silently dropped ('writable privilege escalated') fails at the worst possible
+ * moment — half way through a migration. Deriving the discriminator from the
+ * instruction name and stating every account flag explicitly removes that
+ * dependency: the bytes on the wire are exactly what is written here.
+ *
  * Usage:
  *   node migrate.js                 # do it (devnet)
  *   node migrate.js --dry-run       # report what would change, send nothing
@@ -32,26 +40,28 @@
  */
 "use strict";
 
+const crypto = require("crypto");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
 
-const anchor = require("@coral-xyz/anchor");
 const {
   Connection,
   Keypair,
   PublicKey,
   SystemProgram,
+  Transaction,
+  TransactionInstruction,
 } = require("@solana/web3.js");
 
 const layout = require("./lib/equxi-layout.js");
-const IDL = require("./sdk/src/idl/equxi.json");
 
 const RPC = process.env.EQUXI_RPC || "https://api.devnet.solana.com";
 const KEYPAIR_PATH =
   process.env.EQUXI_KEYPAIR || path.join(os.homedir(), ".config/solana/id.json");
 const DRY_RUN = process.argv.includes("--dry-run");
 
+const PROGRAM_ID = new PublicKey(layout.PROGRAM_ID);
 const BPF_LOADER_UPGRADEABLE = new PublicKey(
   "BPFLoaderUpgradeab1e11111111111111111111111"
 );
@@ -68,6 +78,19 @@ const PRESERVED_AGENT_FIELDS = [
   "createdAt",
 ];
 
+/**
+ * Anchor's instruction discriminator: the first 8 bytes of
+ * `sha256("global:" + snake_case_name)`. Derived here rather than copied so a
+ * renamed instruction can never silently point at the wrong one.
+ */
+function discriminator(snakeName) {
+  return crypto
+    .createHash("sha256")
+    .update(`global:${snakeName}`)
+    .digest()
+    .subarray(0, 8);
+}
+
 function loadKeypair(file) {
   if (!fs.existsSync(file)) {
     throw new Error(
@@ -80,33 +103,71 @@ function loadKeypair(file) {
   );
 }
 
+async function send(connection, instruction, signers) {
+  const tx = new Transaction().add(instruction);
+  const latest = await connection.getLatestBlockhash();
+  tx.feePayer = signers[0].publicKey;
+  tx.recentBlockhash = latest.blockhash;
+  tx.sign(...signers);
+  const signature = await connection.sendRawTransaction(tx.serialize());
+  await connection.confirmTransaction({ signature, ...latest }, "confirmed");
+  return signature;
+}
+
+function createVaultInstruction(accounts) {
+  return new TransactionInstruction({
+    programId: PROGRAM_ID,
+    keys: [
+      // Writable even though the handler only reads it: Anchor enforces a
+      // field's `mut` at deserialization (ConstraintMut), not at write time, so
+      // a read-only config is rejected before the instruction body runs.
+      { pubkey: accounts.config, isSigner: false, isWritable: true },
+      { pubkey: accounts.vault, isSigner: false, isWritable: true },
+      { pubkey: accounts.payer, isSigner: true, isWritable: true },
+      { pubkey: PROGRAM_ID, isSigner: false, isWritable: false },
+      { pubkey: accounts.programData, isSigner: false, isWritable: false },
+      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+    ],
+    data: Buffer.from(discriminator("create_vault")),
+  });
+}
+
+function migrateAgentInstruction(accounts, existingConstraints) {
+  const count = Buffer.alloc(2);
+  count.writeUInt16LE(existingConstraints, 0);
+  return new TransactionInstruction({
+    programId: PROGRAM_ID,
+    keys: [
+      { pubkey: accounts.config, isSigner: false, isWritable: false },
+      { pubkey: accounts.agent, isSigner: false, isWritable: true },
+      { pubkey: accounts.signer, isSigner: true, isWritable: true },
+      { pubkey: PROGRAM_ID, isSigner: false, isWritable: false },
+      { pubkey: accounts.programData, isSigner: false, isWritable: false },
+      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+    ],
+    data: Buffer.concat([discriminator("migrate_agent"), count]),
+  });
+}
+
 async function main() {
-  const programId = new PublicKey(IDL.address);
   const connection = new Connection(RPC, "confirmed");
   const authority = loadKeypair(KEYPAIR_PATH);
 
-  const provider = new anchor.AnchorProvider(
-    connection,
-    new anchor.Wallet(authority),
-    { commitment: "confirmed" }
-  );
-  const program = new anchor.Program(IDL, provider);
-
   const [configPDA] = PublicKey.findProgramAddressSync(
     [Buffer.from("config")],
-    programId
+    PROGRAM_ID
   );
   const [vaultPDA] = PublicKey.findProgramAddressSync(
     [Buffer.from("vault")],
-    programId
+    PROGRAM_ID
   );
   const [programDataPDA] = PublicKey.findProgramAddressSync(
-    [programId.toBuffer()],
+    [PROGRAM_ID.toBuffer()],
     BPF_LOADER_UPGRADEABLE
   );
 
   console.log(`cluster     ${RPC}`);
-  console.log(`program     ${programId.toBase58()}`);
+  console.log(`program     ${PROGRAM_ID.toBase58()}`);
   console.log(`signer      ${authority.publicKey.toBase58()}`);
   console.log(
     `balance     ${(await connection.getBalance(authority.publicKey)) / 1e9} SOL`
@@ -143,7 +204,7 @@ async function main() {
   }
 
   // ── 1. the escrow vault ────────────────────────────────────────────────
-  let vault = await connection.getAccountInfo(vaultPDA);
+  const vault = await connection.getAccountInfo(vaultPDA);
   if (vault) {
     const decoded = layout.decodeVault(vault.data);
     console.log(
@@ -153,22 +214,21 @@ async function main() {
   } else if (DRY_RUN) {
     console.log(`\nvault       MISSING ${vaultPDA.toBase58()} — would create it`);
   } else {
-    const sig = await program.methods
-      .createVault()
-      .accounts({
+    const signature = await send(
+      connection,
+      createVaultInstruction({
         config: configPDA,
         vault: vaultPDA,
         payer: authority.publicKey,
-        program: programId,
         programData: programDataPDA,
-        systemProgram: SystemProgram.programId,
-      })
-      .rpc();
-    console.log(`\nvault       created ${vaultPDA.toBase58()} in ${sig}`);
+      }),
+      [authority]
+    );
+    console.log(`\nvault       created ${vaultPDA.toBase58()} in ${signature}`);
   }
 
   // ── 2. every agent still on the v0.1 layout ────────────────────────────
-  const agentAccounts = await connection.getProgramAccounts(programId, {
+  const agentAccounts = await connection.getProgramAccounts(PROGRAM_ID, {
     filters: [layout.discriminatorFilter("Agent")],
   });
   console.log(
@@ -199,7 +259,7 @@ async function main() {
     // count is safe to get wrong in one direction only — the v0.1 accounts live
     // in a different seed space (a u64 index, not a u16), so a wrong number can
     // misreport the counter but can never collide with an existing account.
-    const constraints = await connection.getProgramAccounts(programId, {
+    const constraints = await connection.getProgramAccounts(PROGRAM_ID, {
       filters: [
         layout.discriminatorFilter("Constraint"),
         layout.pubkeyFilter(pubkey.toBase58(), layout.OFFSETS.Constraint.agent),
@@ -212,21 +272,26 @@ async function main() {
     );
 
     if (DRY_RUN) {
-      console.log(`    would grow 116 -> 118 bytes and set constraintCount=${constraints.length}`);
+      console.log(
+        `    would grow ${layout.AGENT_LAYOUT_V1_SIZE} -> ` +
+          `${layout.AGENT_LAYOUT_V2_SIZE} bytes and set constraintCount=${constraints.length}`
+      );
       continue;
     }
 
-    await program.methods
-      .migrateAgent(constraints.length)
-      .accounts({
-        config: configPDA,
-        agent: pubkey,
-        signer: authority.publicKey,
-        program: programId,
-        programData: programDataPDA,
-        systemProgram: SystemProgram.programId,
-      })
-      .rpc();
+    await send(
+      connection,
+      migrateAgentInstruction(
+        {
+          config: configPDA,
+          agent: pubkey,
+          signer: authority.publicKey,
+          programData: programDataPDA,
+        },
+        constraints.length
+      ),
+      [authority]
+    );
 
     // ── audit: prove nothing but the counter moved ───────────────────────
     const after = await connection.getAccountInfo(pubkey);
