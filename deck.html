@@ -309,9 +309,9 @@
   <!-- 01 — Title -->
   <div class="slide">
     <img src="assets/logo.webp" alt="Equxi" style="width: 72px; height: 72px; border-radius: 16px; margin-bottom: 28px;" />
-    <div class="tag"><span class="tag-dot"></span> Solana Trust Layer</div>
-    <h1>The accountability layer for <em>autonomous commerce</em></h1>
-    <p class="lead">Bond operators. Enforce rules on-chain. Slash misbehaving agents. Compensate victims.</p>
+    <div class="tag"><span class="tag-dot"></span> Solana · Agent Counterparty Risk</div>
+    <h1>Slashable collateral for <em>AI agents</em></h1>
+    <p class="lead">Operators lock SOL as a bond. API and MCP providers check that bond in one request before serving an unknown agent. Break your rules, and the bond pays the victim — from a program-owned vault, with no court and no admin holding the funds.</p>
     <div class="row">
       <a href="https://equxi.sithunyein.com/app.html" class="btn btn-fill" target="_blank">Open Dashboard</a>
       <a href="https://github.com/thesithunyein/equxi" class="btn btn-outline" target="_blank">
@@ -325,24 +325,24 @@
   <!-- 02 — Problem -->
   <div class="slide">
     <div class="tag"><span class="tag-dot"></span> The Problem</div>
-    <h2>AI agents are handling real money. <em>Nobody can trust them.</em></h2>
-    <p class="lead">Counterparties refuse to deal with agents that can lose funds with no recourse. Traditional wallets hold money but cannot enforce rules or compensate victims.</p>
+    <h2>Agents are being handed money. <em>Nobody can check them.</em></h2>
+    <p class="lead">The rails already exist — agents have wallets, cards, bank accounts and paid API access. None of it answers what happens when an agent takes the payment and doesn't deliver.</p>
     <div class="grid">
       <div class="card">
-        <h3>$0 Accountability</h3>
-        <p>AI agents execute transactions autonomously. When they misbehave, there is no mechanism to penalize them. Victims have no recourse.</p>
+        <h3>The provider eats the loss</h3>
+        <p>An API or MCP endpoint serving an unknown agent spends compute and credits before settlement clears. If the agent never pays, there is no recourse but to block the address.</p>
       </div>
       <div class="card">
-        <h3>No Behavioral Enforcement</h3>
-        <p>Existing wallets hold funds but cannot enforce spending limits, timelocks, or program allowlists. Agents can do anything with deposited capital.</p>
+        <h3>A score with nothing behind it</h3>
+        <p>Reputation that costs nothing to lose is free to lie. An agent can burn a rating, re-register under a new key, and be back to a clean slate the same block.</p>
       </div>
       <div class="card">
-        <h3>Trust Gap Blocks Scale</h3>
-        <p>Without accountability, institutional capital cannot flow into agent-managed strategies. The market is stuck at experiments.</p>
+        <h3>Permission is solved. Consequence isn't.</h3>
+        <p>Wallets cap what an agent can spend and allowlists cap where. Nothing makes it <em>pay</em> when it breaks a rule anyway.</p>
       </div>
       <div class="card">
-        <h3>No Compensation Mechanism</h3>
-        <p>When an agent rug-pulls or malfunctions, there is no on-chain mechanism to automatically compensate affected parties.</p>
+        <h3>No compensation path</h3>
+        <p>When an agent rugs a counterparty there is no on-chain mechanism to make the injured party whole. The loss is final.</p>
       </div>
     </div>
     <div class="slide-num">02</div>
@@ -352,7 +352,7 @@
   <div class="slide">
     <div class="tag"><span class="tag-dot"></span> The Solution</div>
     <h2>Bond. Enforce. <em>Slash.</em> Compensate.</h2>
-    <p class="lead">Equxi is a Solana-native trust layer. Operators lock SOL as a bond, set on-chain behavioral rules, and get slashed automatically when agents misbehave.</p>
+    <p class="lead">An operator registers an agent and locks SOL as a bond. The program holds it in its own vault. Rules run on-chain, and any counterparty can read the bond and the slash history from one endpoint before deciding whether to deal.</p>
     <div class="flow">
       <div class="step">
         <div class="step-icon"><i class="fa-solid fa-user-plus"></i></div>
@@ -389,7 +389,7 @@
     <div class="two-col">
       <div class="card">
         <h3>Solana Program</h3>
-        <p class="small">8 on-chain instructions. Anchor framework. Deployed on devnet. Full register-bond-enforce-slash flow verified with confirmed transactions.</p>
+        <p class="small">9 instructions under Anchor, live on devnet with a program-owned escrow vault. Register, bond, enforce, slash and compensate all execute on-chain with no oracle in the loop.</p>
       </div>
       <div class="card">
         <h3>Dashboard</h3>
@@ -397,11 +397,11 @@
       </div>
       <div class="card">
         <h3>TypeScript SDK</h3>
-        <p class="small">Programmatic access to all 8 instructions. Import into any Solana project. Full type safety with Anchor IDL.</p>
+        <p class="small">Typed access to all 9 instructions, generated from the on-chain IDL. Source ships in the repo; the npm release is prepared and awaiting publish.</p>
       </div>
       <div class="card">
         <h3>elizaOS Plugin</h3>
-        <p class="small">One-line integration for any agent built on elizaOS. Natural language commands trigger on-chain actions automatically.</p>
+        <p class="small">Adds spend limits, timelocks and bond enforcement to any elizaOS agent. Source in the repo under <code>eliza-plugin/</code>.</p>
       </div>
     </div>
     <div class="slide-num">04</div>
@@ -410,19 +410,19 @@
   <!-- 05 — Traction -->
   <div class="slide">
     <div class="tag"><span class="tag-dot"></span> Traction</div>
-    <h2>Verified on <em>Solana devnet.</em></h2>
+    <h2>What's live <em>today.</em></h2>
     <div class="metrics">
       <div class="metric">
-        <div class="metric-val">8</div>
-        <div class="metric-label">Instructions</div>
+        <div class="metric-val">Live</div>
+        <div class="metric-label">Devnet program + escrow vault</div>
       </div>
       <div class="metric">
-        <div class="metric-val">12+</div>
-        <div class="metric-label">On-Chain Txs</div>
+        <div class="metric-val">9</div>
+        <div class="metric-label">On-chain instructions</div>
       </div>
       <div class="metric">
-        <div class="metric-val">3</div>
-        <div class="metric-label">Products</div>
+        <div class="metric-val">134</div>
+        <div class="metric-label">Automated tests</div>
       </div>
       <div class="metric">
         <div class="metric-val">MIT</div>
@@ -432,15 +432,15 @@
     <ul class="items">
       <li>
         <span class="icon"><svg viewBox="0 0 24 24" fill="#14F195"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
-        <span><strong>Full flow proven:</strong> register agent → lock 0.5 SOL bond → add spending limit rule → slash 0.1 SOL → bond reduced to 0.4 SOL. All confirmed on-chain.</span>
+        <span><strong>Upgraded a live deployment without losing state.</strong> v0.2 grew the agent account from 116 to 118 bytes, which would have left the program unable to read its own existing agents. A migration instruction performed the byte surgery in place on devnet, and an audit confirmed all 8 preserved fields were unchanged.</span>
       </li>
       <li>
         <span class="icon"><svg viewBox="0 0 24 24" fill="#14F195"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
-        <span><strong>CI/CD passing:</strong> GitHub Actions builds Rust program and TypeScript SDK on every push. Auto-deploys to Vercel.</span>
+        <span><strong>Non-custodial by construction.</strong> Slashed collateral moves into a program-owned vault. The admin can direct a payout to a victim but can never withdraw to themselves — the vault is not theirs to drain.</span>
       </li>
       <li>
         <span class="icon"><svg viewBox="0 0 24 24" fill="#14F195"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
-        <span><strong>Program ID:</strong> D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc — verified on Solana Explorer.</span>
+        <span><strong>Where we actually are, stated plainly:</strong> one self-operated agent on devnet — pre-traction. The bond, slash and compensation paths execute and the escrow vault is live; no external operator has registered yet. Getting to ten bonded agents is the next milestone, and it is the reason we are here.</span>
       </li>
     </ul>
     <div class="slide-num">05</div>
@@ -449,34 +449,60 @@
   <!-- 06 — Market -->
   <div class="slide">
     <div class="tag"><span class="tag-dot"></span> Market</div>
-    <h2>AI agents are the <em>next trillion-dollar economy.</em></h2>
-    <p class="lead">Autonomous trading, agent-to-agent commerce, automated treasury management. Every transaction needs accountability. Equxi is the trust layer.</p>
+    <h2>Who pays, and <em>why now</em></h2>
+    <p class="lead">Three buyers, one primitive. Each is already handling agents it cannot verify.</p>
     <div class="grid">
       <div class="card">
-        <h3>Autonomous Traders</h3>
-        <p class="small">Trading bots managing real capital need to prove they operate within defined risk parameters. Equxi enforces spending limits on-chain.</p>
+        <h3>API &amp; MCP providers</h3>
+        <p class="small">Agents call paid endpoints directly over x402 and MCP. Compute and credits are spent before settlement clears, so the caller's ability to pay is the entire risk. Equxi turns it into a bond a provider can read in one request.</p>
       </div>
       <div class="card">
-        <h3>Agent Frameworks</h3>
-        <p class="small">elizaOS, GRIFFAIN, Headless. Every framework needs a trust layer for their agents. Equxi plugs in with one import.</p>
+        <h3>Agent marketplaces</h3>
+        <p class="small">Marketplaces listing third-party agents need to gate the ones touching user funds. A required bond moves liability off the platform and onto the operator who built the agent.</p>
       </div>
       <div class="card">
-        <h3>Institutional DeFi</h3>
-        <p class="small">Protocols accepting agent deposits need accountability guarantees. Equxi bonds provide slashable collateral as security.</p>
+        <h3>Agent frameworks</h3>
+        <p class="small">Frameworks shipping wallet-holding agents need a trust module, not a compliance team. One import gives their agents a bond and their users a way to check it.</p>
       </div>
       <div class="card">
-        <h3>Agent-to-Agent Commerce</h3>
-        <p class="small">When agents transact with each other, both parties need trust guarantees. Equxi provides the enforcement layer.</p>
+        <h3>Agent-to-agent commerce</h3>
+        <p class="small">When two agents transact unsupervised, neither can sue the other. Collateral is the only recourse that settles in the same block as the breach.</p>
       </div>
     </div>
     <div class="slide-num">06</div>
   </div>
 
-  <!-- 07 — Open Source -->
+  <!-- 07 — Why Now -->
+  <div class="slide">
+    <div class="tag"><span class="tag-dot"></span> Why Now</div>
+    <h2>The rails are funded. <em>The safety layer isn't.</em></h2>
+    <p class="lead">Colosseum's own portfolio is building the agent economy's payment and access layer. None of it is the part that makes an unknown agent safe to deal with.</p>
+    <div class="grid">
+      <div class="card">
+        <h3>Already funded</h3>
+        <p class="small">Laso gives agents cards and bank accounts. Frames lets agents pay for resources. Clawpump gives agents companies. Flovia measures agent payments. Sudont secures agent execution. MCPay and Corbits won track prizes for x402 rails.</p>
+      </div>
+      <div class="card">
+        <h3>The gap</h3>
+        <p class="small">Every one of them assumes the counterparty is good for the money. Nothing on the stack answers what happens when an agent takes payment and doesn't deliver — the exact question a provider asks before serving it.</p>
+      </div>
+      <div class="card">
+        <h3>Why Solana</h3>
+        <p class="small">This is only cheap where breach and payout land in the same block. Bond, rule evaluation, seizure and compensation are one program with no oracle in the loop.</p>
+      </div>
+      <div class="card">
+        <h3>Timing</h3>
+        <p class="small">Agent payment volume is the fastest-growing new counterparty class on Solana, and every provider onboarding to it rediscovers this problem from scratch.</p>
+      </div>
+    </div>
+    <div class="slide-num">07</div>
+  </div>
+
+  <!-- 08 — Open Source -->
   <div class="slide">
     <div class="tag"><span class="tag-dot"></span> Open Source</div>
     <h2>Public code. <em>Permanent trust.</em></h2>
-    <p class="lead">The entire codebase is MIT licensed. Solana program, SDK, plugin, dashboard. Anyone can fork, audit, and build on it. Open weights, once released, can never be taken back.</p>
+    <p class="lead">The entire codebase is MIT licensed — program, SDK, plugin, dashboard and read API. Anyone can fork it, audit it, or run their own registry without asking permission.</p>
     <div class="two-col">
       <div class="card">
         <h3>Why This Matters</h3>
@@ -487,14 +513,28 @@
         <p class="small">Agent builders lose the only open accountability layer on Solana. They must build from scratch or depend on centralized alternatives that can be switched off overnight.</p>
       </div>
     </div>
-    <div class="slide-num">07</div>
+    <div class="slide-num">08</div>
   </div>
 
-  <!-- 08 — Team -->
+  <!-- 09 — Founder -->
   <div class="slide">
     <div class="tag"><span class="tag-dot"></span> Founder</div>
-    <h2><em>Sithu Nyein</em></h2>
-    <p class="lead">Solo founder and engineer. Built the entire product: Rust program, Anchor framework, TypeScript SDK, frontend dashboard, and elizaOS plugin. Based in Yangon, Myanmar. Studying at University of the People.</p>
+    <h2><em>Sithu Nyein</em> — solo founder</h2>
+    <p class="lead">Built the entire product alone: the Rust program, the SDK, the dashboard, the registry, and the elizaOS plugin. Based in Yangon, Myanmar. Studying at University of the People.</p>
+    <ul class="items" style="margin-top: 20px;">
+      <li>
+        <span class="icon"><svg viewBox="0 0 24 24" fill="#14F195"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
+        <span><strong>Third-party validation:</strong> recipient of a Superteam <em>Agentic Engineering</em> grant, awarded for this project before this competition.</span>
+      </li>
+      <li>
+        <span class="icon"><svg viewBox="0 0 24 24" fill="#14F195"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
+        <span><strong>Why me:</strong> I ran agents and watched them spend money I could not get back. Every rails project assumes good faith; I have been on the wrong side of that assumption, which is why I built the half nobody else wants to.</span>
+      </li>
+      <li>
+        <span class="icon"><svg viewBox="0 0 24 24" fill="#14F195"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
+        <span><strong>Shipping cadence:</strong> from empty repo to a live devnet program with escrow, a migrated production deployment, and 134 automated tests — in under a month, solo.</span>
+      </li>
+    </ul>
     <div class="contact-row">
       <a href="https://x.com/equxi_ai" class="btn btn-outline" target="_blank">
         <svg viewBox="0 0 24 24" fill="white"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
@@ -506,29 +546,30 @@
         <svg viewBox="0 0 24 24" fill="white"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
       </a>
     </div>
-    <div class="slide-num">08</div>
+    <div class="slide-num">09</div>
   </div>
 
-  <!-- 09 — Ask -->
+  <!-- 10 — Business Model -->
   <div class="slide">
-    <div class="tag"><span class="tag-dot"></span> The Ask</div>
-    <h2>$10,000 to go <em>mainnet.</em></h2>
+    <div class="tag"><span class="tag-dot"></span> Business Model</div>
+    <h2>We charge for <em>the check, and the bond.</em></h2>
+    <p class="lead">Reading a bond is free and stays free — a trust layer nobody queries has no value. Revenue sits on the two sides that care about the answer.</p>
     <ul class="items">
       <li>
         <span class="icon"><svg viewBox="0 0 24 24" fill="#9945FF"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
-        <span><strong>Mainnet deployment</strong> with security audit through Solana ecosystem grants</span>
+        <span><strong>Take rate on bonded volume.</strong> A basis-point fee when collateral is posted, and again when it is slashed. Revenue scales with how much risk the network is actually underwriting — not with how many people sign up.</span>
       </li>
       <li>
         <span class="icon"><svg viewBox="0 0 24 24" fill="#9945FF"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
-        <span><strong>Automated enforcement</strong> via risk oracle integration for real-time slash triggers</span>
+        <span><strong>Verification API.</strong> The public badge stays free forever. Providers that need threshold checks, webhooks or volume get a paid tier — the same shape as any risk-data API.</span>
       </li>
       <li>
         <span class="icon"><svg viewBox="0 0 24 24" fill="#9945FF"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
-        <span><strong>elizaOS plugin</strong> shipped and tested with 5 real agent builders</span>
+        <span><strong>Marketplace gating.</strong> Platforms that require bonding for listed agents pay per listing. They move liability onto the operator; we get distribution into every agent they onboard.</span>
       </li>
       <li>
         <span class="icon"><svg viewBox="0 0 24 24" fill="#9945FF"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
-        <span><strong>First 10 paying operators</strong> using Equxi to bond their AI agents on mainnet</span>
+        <span><strong>What we want:</strong> devnet to mainnet with an audit, and our first ten external operators bonded. Verdicts are admin-gated today — deliberately, at this stage. Decentralising that is the roadmap, and the first thing we would fund.</span>
       </li>
     </ul>
     <div class="row" style="margin-top: 40px;">
@@ -538,7 +579,7 @@
         GitHub
       </a>
     </div>
-    <div class="slide-num">09</div>
+    <div class="slide-num">10</div>
   </div>
 
 </body>
