@@ -112,4 +112,20 @@ describe("landing page", () => {
     expect(html).to.include('src="landing.js"');
     expect(landing).to.include('"/api/trust"');
   });
+
+  it("only reaches for elements the page actually has", () => {
+    // A renamed id leaves a control silently dead — the copy button keeps its
+    // label and the tiles keep their em dashes, with no error anywhere.
+    const declared = new Set(
+      (html.match(/\sid="([^"]+)"/g) || []).map((m) => m.replace(/^\sid="/, "").replace(/"$/, ""))
+    );
+    const referenced = (landing.match(/getElementById\("([^"]+)"\)/g) || []).map((m) =>
+      m.replace(/^getElementById\("/, "").replace(/"\)$/, "")
+    );
+    expect(referenced.length, "landing.js looks up nothing").to.be.at.least(3);
+    const missing = referenced.filter((id) => !declared.has(id));
+    expect(missing, `landing.js looks up ids the page does not define: ${missing.join(", ")}`).to.deep.equal(
+      []
+    );
+  });
 });
