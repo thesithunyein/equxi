@@ -137,29 +137,30 @@
         var grade = p.grade || "ungraded";
         var slashes = (p.stats && p.stats.slashCount) || 0;
         var open = (p.stats && p.stats.openSlashes) || 0;
+        var link = "explorer.html?agent=" + esc(agent.address);
         return (
           '<div class="live-row">' +
-          '<div class="nm"><a href="explorer.html?agent=' +
-          esc(agent.address) +
+          '<div class="nm"><div class="nm-top"><a href="' +
+          link +
           '">' +
           esc(agent.name) +
-          "</a><span>" +
+          '</a><span class="grade-pill g-' +
+          esc(grade) +
+          '">' +
+          esc(grade) +
+          "</span></div>" +
+          '<span class="nm-meta">' +
           esc(agent.agentType || "agent") +
           (slashes
             ? " · " + esc(slashes) + " slash" + (slashes === 1 ? "" : "es")
             : " · never slashed") +
           (open > 0 ? ' · <span style="color:#ffb450">' + esc(open) + " unpaid</span>" : "") +
           "</span></div>" +
-          '<div class="fig"><span class="grade-pill g-' +
-          esc(grade) +
-          '">' +
-          esc(grade) +
-          "</span></div>" +
           '<div class="fig">' +
           esc(sol(p.bond.amountLamports)) +
           " SOL<em>bonded</em></div>" +
-          '<div class="fig hide-sm"><a href="explorer.html?agent=' +
-          esc(agent.address) +
+          '<div class="fig hide-sm"><a href="' +
+          link +
           '" style="color:var(--purple)">Inspect →</a></div>' +
           "</div>"
         );
