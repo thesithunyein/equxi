@@ -75,17 +75,26 @@
 
     .live-row {
       display: grid;
-      grid-template-columns: 1fr auto auto auto;
-      align-items: center; gap: 16px;
-      padding: 12px 0; border-top: 1px solid #161616;
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      align-items: center; gap: 20px;
+      padding: 14px 0; border-top: 1px solid #161616;
       font-size: 14px;
     }
     .live-row:first-of-type { border-top: none; }
-    .live-row .nm { font-weight: 600; }
-    /* The name is the link, so the row is reachable on a phone too, where the
+    /* The grade belongs beside the name it grades. In its own column it sat in
+       the middle of the row with nothing to attach to. */
+    .live-row .nm { min-width: 0; }
+    .live-row .nm-top { display: flex; align-items: center; gap: 10px; }
+    .live-row .nm-top a { font-weight: 600; }
+    /* The name is the link, so the row stays reachable on a phone, where the
        trailing "Inspect" column is hidden. */
-    .live-row .nm a:hover { color: var(--purple); }
-    .live-row .nm span { display: block; font-weight: 400; font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .live-row .nm-top a:hover { color: var(--purple); }
+    /* Scoped by class, not by `span`: the "still owed" marker inside this line
+       is a span as well, and a blanket rule sent it to a line of its own. */
+    .live-row .nm-meta {
+      display: block; font-weight: 400; font-size: 12px;
+      color: var(--muted); margin-top: 3px;
+    }
     .live-row .fig { font-variant-numeric: tabular-nums; white-space: nowrap; }
     .live-row .fig em { font-style: normal; color: var(--muted); font-size: 12px; display: block; }
     .grade-pill {
@@ -137,7 +146,7 @@
       .live-section { padding: 8px 20px 64px; }
       .dev-section { padding: 8px 20px 72px; }
       .live-tiles { grid-template-columns: repeat(2, 1fr); }
-      .live-row { grid-template-columns: 1fr auto; row-gap: 10px; }
+      .live-row { grid-template-columns: minmax(0, 1fr) auto; row-gap: 10px; }
       .live-row .fig.hide-sm { display: none; }
       /* A nowrap command in a flex row would push the copy button off screen
          on a phone, so the two stack instead. */
