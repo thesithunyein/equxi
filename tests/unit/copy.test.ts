@@ -15,7 +15,7 @@
  * not count as prose.
  */
 import { expect } from "chai";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const root = process.cwd();
@@ -127,6 +127,66 @@ describe("page copy stays short", () => {
         "violation"
       );
       expect(body, `${file} never mentions slashing`).to.include("slash");
+    });
+  });
+
+  it("leaves no page without a route to the others", () => {
+    // Every top-level page has to reach all four destinations. The landing page
+    // had no footer links at all, the Explorer's primary button opened the app
+    // while the landing page's opened the registry, and docs.html could not
+    // reach the Explorer — three ways to hit a dead end from a judge's click.
+    const pages = ["index.html", "explorer.html", "docs.html", "app.html"];
+    pages.forEach((page) => {
+      const body = read(page);
+      pages
+        .filter((target) => target !== page)
+        .forEach((target) => {
+          expect(body, `${page} has no link to ${target}`).to.include(`href="${target}"`);
+        });
+    });
+  });
+
+  it("links to no page that does not exist", () => {
+    // A renamed file leaves a link that 404s for a reader and is invisible in
+    // every other form of review.
+    const pages = ["index.html", "explorer.html", "docs.html", "app.html", "deck.html"];
+    const missing: string[] = [];
+    pages.forEach((page) => {
+      const hrefs = Array.from(read(page).matchAll(/href="([^"#:?]+\.html)"/g)).map(
+        (m) => m[1]
+      );
+      hrefs.forEach((href) => {
+        if (!existsSync(join(root, href))) missing.push(`${page} → ${href}`);
+      });
+    });
+    expect(missing, `links to files that do not exist: ${missing.join(", ")}`).to.deep.equal(
+      []
+    );
+  });
+
+  it("does not repeat the same labelled link above the fold", () => {
+    // The landing page's header button and its hero button both said "Check an
+    // agent" and both pointed at the Explorer: two identical buttons stacked
+    // one screen apart. Different labels for the same destination are fine (a
+    // nav item and a call to action read differently); identical ones are not.
+    const pages = ["index.html", "explorer.html", "docs.html"];
+    pages.forEach((page) => {
+      const body = read(page);
+      const header = (body.match(/<header[\s\S]*?<\/header>/) || [""])[0];
+      const hero = (body.match(/<main[\s\S]*?<\/main>/) || [""])[0];
+      const seen = new Map<string, number>();
+      Array.from((header + hero).matchAll(/<a\b[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g)).forEach(
+        (m) => {
+          const label = m[2].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+          if (!label) return;
+          const key = `${label} → ${m[1]}`;
+          seen.set(key, (seen.get(key) || 0) + 1);
+        }
+      );
+      const repeated = Array.from(seen.entries())
+        .filter(([, count]) => count > 1)
+        .map(([key, count]) => `${key} ×${count}`);
+      expect(repeated, `${page} repeats a button: ${repeated.join(", ")}`).to.deep.equal([]);
     });
   });
 

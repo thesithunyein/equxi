@@ -21,6 +21,7 @@
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:site" content="@equxi_ai" />
   <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#9945FF" />
   <link rel="canonical" href="https://equxi.sithunyein.com" />
 
   <style>
@@ -38,7 +39,7 @@
        whole group reads as left-shifted. Three columns centres it. */
     #who .how-grid { grid-template-columns: repeat(3, 1fr); }
 
-    .live-section { position: relative; z-index: 1; width: 100%; padding: 8px 32px 88px; }
+    .live-section { position: relative; z-index: 1; width: 100%; padding: 8px 32px 40px; }
     .live-inner { max-width: 1000px; margin: 0 auto; text-align: center; }
 
     .live-tiles {
@@ -72,7 +73,7 @@
     /* Builder strip — the thing a provider actually runs. Held in the same card
        language as the live board above it, so the section reads as a product
        surface rather than a line of code floating in the background. */
-    .dev-section { position: relative; z-index: 1; width: 100%; padding: 8px 32px 96px; }
+    .dev-section { position: relative; z-index: 1; width: 100%; padding: 8px 32px 72px; }
     .dev-inner { max-width: 720px; margin: 0 auto; text-align: center; }
     .dev-card {
       display: flex; align-items: center; gap: 12px;
@@ -136,7 +137,10 @@
         <a href="https://github.com/thesithunyein/equxi" class="nav-link" target="_blank">GitHub</a>
         <a href="https://x.com/equxi_ai" class="nav-link" target="_blank"><i class="fa-brands fa-x-twitter"></i></a>
       </nav>
-      <a href="explorer.html" class="btn-primary desktop-only">Check an agent</a>
+      <!-- The hero already offers "Check an agent". Repeating it here put the
+           same button twice on one screen and left the supply side — the
+           operator who bonds an agent — with no way in but a text link. -->
+      <a href="app.html" class="btn-primary desktop-only">Register an agent</a>
       <button class="menu-toggle" id="menuToggle" aria-label="Menu">
         <span></span><span></span><span></span>
       </button>
@@ -147,7 +151,7 @@
       <a href="explorer.html" class="mobile-nav-link">Explorer</a>
       <a href="https://github.com/thesithunyein/equxi" class="mobile-nav-link" target="_blank">GitHub</a>
       <a href="https://x.com/equxi_ai" class="mobile-nav-link" target="_blank"><i class="fa-brands fa-x-twitter"></i></a>
-      <a href="explorer.html" class="btn-primary" style="width:100%;margin-top:12px;">Check an agent</a>
+      <a href="app.html" class="btn-primary" style="width:100%;margin-top:12px;">Register an agent</a>
     </div>
 
     <main class="hero">
@@ -168,8 +172,9 @@
         <a href="explorer.html" class="btn-primary btn-lg">Check an agent</a>
         <a href="#how-it-works" class="btn-outline btn-lg">How It Works →</a>
       </div>
-      <p style="margin-top:14px;font-size:13px;opacity:0.6;">
-        No wallet to look one up
+      <p style="margin-top:14px;font-size:13px;opacity:0.65;">
+        No wallet needed to look one up —
+        <a href="app.html" style="text-decoration:underline;">or bond your own agent →</a>
       </p>
     </main>
   </div>
@@ -293,6 +298,15 @@
         <img src="assets/logo.webp" alt="Equxi" width="28" height="28" style="border-radius: 6px;" />
         <span style="font-weight: 600;">Equxi</span>
       </div>
+      <!-- Every page, reachable from the bottom of the page. The footer had no
+           links at all, so the only way on from here was back up. -->
+      <nav class="footer-links">
+        <a href="docs.html">Docs</a>
+        <a href="app.html">Dashboard</a>
+        <a href="explorer.html">Explorer</a>
+        <a href="https://github.com/thesithunyein/equxi" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://x.com/equxi_ai" target="_blank" rel="noopener">X</a>
+      </nav>
       <div class="footer-copy">Built on Solana. Open source under MIT.</div>
     </div>
   </footer>
