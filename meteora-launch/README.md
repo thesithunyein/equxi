@@ -80,6 +80,14 @@ independently verifiable on chain and the outcome visible in a public read API.
   devnet program (`D7akK6aU…`), whose source in this repository is newer than the
   deployment (the 7-day unbonding window described in `SPEC.md` is not deployed yet).
 
+## What the whole run cost
+
+The demo wallet went from **2.900 SOL to 2.118 SOL**, and most of that difference is not
+spent: **581,086,289 EAGT** were bought through the curve and are still held, and the
+graduated DAMM v2 pool can sell them back. The real cost of the launch, the graduation, the
+proceeds claims, the agent and the bond is therefore about **0.08 SOL** — fees, rent, and
+the 0.0302 SOL that brought the bond to Equxi's minimum.
+
 ## What this adds to the Equxi submission
 
 The Meteora track judges *depth of integration*, not the size of the pitch. This directory
