@@ -380,6 +380,48 @@ describe("read API (api/trust.js)", () => {
       expect(payload.vault!.availableLamports).to.equal("1000000000");
     });
 
+    it("publishes slash records and escrow custody side by side, and names the gap", async () => {
+      // Balanced: one 1 SOL record, and the vault reports taking in 1 SOL.
+      const balanced = await build({}, fullStub());
+      expect(balanced.reconciliation.balanced).to.equal(true);
+      expect(balanced.reconciliation.recordsSlashedLamports).to.equal("1000000000");
+      expect(balanced.reconciliation.unescrowedLamports).to.equal("0");
+      expect(balanced.reconciliation.unescrowedSol).to.equal(0);
+      expect(balanced.warnings.join(" ")).to.not.match(/never-deposited/i);
+
+      // Unbalanced: a second record whose lamports never entered escrow, which is
+      // what this devnet deployment actually looks like — records written before
+      // the program held collateral in escrow.
+      const stub = new StubRpc({
+        Agent: [[AGENT_ADDR, agentFixture({ name: "atlas", constraintCount: 1 })]],
+        Bond: [["BondPdaPlaceholder", bondFixture({ amount: 5_000_000_000n })]],
+        SlashRecord: [
+          ["SlashPdaOne", slashFixture({ nonce: 1n, amount: 1_000_000_000n })],
+          ["SlashPdaTwo", slashFixture({ nonce: 2n, amount: 1_000_000_000n })],
+        ],
+        Constraint: [["ConstraintPda", constraintFixture()]],
+        Vault: [["VaultPdaPlaceholder", vaultFixture(1_000_000_000n, 0n)]],
+      });
+      const payload = await build({}, stub);
+
+      expect(payload.reconciliation.recordsSlashedLamports).to.equal("2000000000");
+      expect(payload.reconciliation.vaultTotalSlashedLamports).to.equal("1000000000");
+      expect(payload.reconciliation.unescrowedLamports).to.equal("1000000000");
+      expect(payload.reconciliation.unescrowedSol).to.equal(1);
+      expect(payload.reconciliation.balanced).to.equal(false);
+      expect(payload.warnings.join(" ")).to.match(/recorded-but-never-deposited/i);
+    });
+
+    it("never tells a reader escrow owes money it never received", async () => {
+      const payload = await build({}, fullStub());
+      const profileWarnings = payload.agents[0].profile.warnings.join(" ");
+      // The chain can support "not yet compensated"; it cannot support a claim
+      // that a specific amount is owed out of escrow, because slash records
+      // carry no deposit.
+      expect(profileWarnings).to.match(/not yet compensated/i);
+      expect(profileWarnings).to.not.match(/still owed/i);
+    });
+
     it("grades a bonded agent with one unpaid slash", async () => {
       const payload = await build({}, fullStub());
       // 100 - 10 (one slash) - 12 (unpaid) = 78 -> B

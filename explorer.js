@@ -391,7 +391,7 @@
         v: sol(t.bondedLamports) + " SOL",
         s: "across all bonds",
       },
-      { k: "Slashes recorded", v: t.slashCount, s: t.openSlashes + " still owed" },
+      { k: "Slashes recorded", v: t.slashCount, s: t.openSlashes + " unresolved" },
       {
         k: "Escrow balance",
         v: vault ? sol(vault.availableLamports) + " SOL" : "—",
@@ -855,7 +855,7 @@
       esc(sol(p.stats.compensationPaidLamports)) +
       " SOL paid to victims, " +
       esc(sol(p.stats.uncompensatedLamports)) +
-      " SOL still owed · estimated " +
+      " SOL uncompensated · estimated " +
       esc(p.stats.slashRatePerMonth.toFixed(2)) +
       " slashes/month.</div>" +
       renderEmbed(agent) +

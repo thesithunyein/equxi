@@ -315,8 +315,12 @@ describe("read layer", () => {
       const unpaid = profile({ slashes: [slashFixture({ nonce: 1n })] });
 
       expect(unpaid.score).to.be.lessThan(paid.score);
-      expect(unpaid.warnings.join(" ")).to.match(/still owed/i);
-      expect(paid.warnings.join(" ")).to.not.match(/still owed/i);
+      // The warning must not claim escrow owes money it never received: slash
+      // records carry no deposit, so "not yet compensated" is the claim the
+      // chain can actually support.
+      expect(unpaid.warnings.join(" ")).to.match(/not yet compensated/i);
+      expect(unpaid.warnings.join(" ")).to.not.match(/still owed/i);
+      expect(paid.warnings.join(" ")).to.not.match(/not yet compensated/i);
     });
 
     it("orders slashes by nonce regardless of input order", () => {

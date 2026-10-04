@@ -92,7 +92,7 @@
     set("agents", counts.agents);
     set("bonded", sol(totals.bondedLamports) + " SOL");
     set("slashes", totals.slashCount);
-    set("slashesSub", totals.openSlashes + " still owed");
+    set("slashesSub", totals.openSlashes + " unresolved");
     set("escrow", vault ? sol(vault.availableLamports) + " SOL" : "—");
   }
 

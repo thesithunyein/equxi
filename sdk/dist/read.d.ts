@@ -111,7 +111,12 @@ export interface TrustStats {
     openSlashes: number;
     totalSlashedLamports: bigint;
     compensationPaidLamports: bigint;
-    /** Slashed but still sitting in escrow, owed to a victim. */
+    /**
+     * Recorded as slashed and not yet compensated. Not the same as "held in
+     * escrow": slash records written before escrow custody existed carry no
+     * deposit, so this figure can exceed what the vault ever received. The public
+     * read API reconciles the two and reports the difference.
+     */
     uncompensatedLamports: bigint;
     slashRatePerMonth: number;
 }

@@ -246,6 +246,37 @@ async function buildResponse(query, deps) {
     { slashes: 0, openSlashes: 0, bondedLamports: 0n }
   );
 
+  /* --- reconciliation ------------------------------------------------------
+   * Slash records are claims; the vault is custody. The records should sum to
+   * what the vault reports it has taken in, and on a deployment that predates
+   * escrow custody they do not: records written before v0.2 moved no lamports.
+   * Per-record funding is not stored on chain, so the difference cannot be
+   * attributed to a specific record — which is exactly why both numbers are
+   * published side by side instead of one total that quietly omits the other.
+   */
+  var recordsSlashedLamports = slashes.reduce(function (acc, s) {
+    return acc + BigInt(s.data.amountLamports);
+  }, 0n);
+  var recordsCompensatedLamports = slashes.reduce(function (acc, s) {
+    return acc + (s.data.compensated ? BigInt(s.data.amountLamports) : 0n);
+  }, 0n);
+  var vaultSlashedLamports = vault ? BigInt(vault.totalSlashedLamports) : 0n;
+  var vaultCompensatedLamports = vault ? BigInt(vault.totalCompensatedLamports) : 0n;
+
+  /** Positive: records claim more than escrow has ever received. */
+  var unescrowedLamports = recordsSlashedLamports - vaultSlashedLamports;
+
+  var reconciliation = {
+    recordsSlashedLamports: recordsSlashedLamports.toString(),
+    recordsSlashedSol: Number(recordsSlashedLamports) / L.LAMPORTS_PER_SOL,
+    recordsCompensatedLamports: recordsCompensatedLamports.toString(),
+    vaultTotalSlashedLamports: vaultSlashedLamports.toString(),
+    vaultTotalCompensatedLamports: vaultCompensatedLamports.toString(),
+    unescrowedLamports: unescrowedLamports.toString(),
+    unescrowedSol: Number(unescrowedLamports) / L.LAMPORTS_PER_SOL,
+    balanced: unescrowedLamports === 0n,
+  };
+
   /* --- program-level notes -------------------------------------------------
    * A deployment that predates v0.2 has no escrow vault and 116-byte Agent
    * accounts. Saying so up front is the difference between a reader knowing the
@@ -265,6 +296,18 @@ async function buildResponse(query, deps) {
   if (vault === null) {
     programWarnings.push(
       "No Vault account exists on this deployment, so slashed collateral is not yet held in program-owned escrow."
+    );
+  }
+  if (unescrowedLamports > 0n) {
+    programWarnings.push(
+      "Slash records total " +
+        reconciliation.recordsSlashedSol +
+        " SOL but the escrow vault reports taking in " +
+        Number(vaultSlashedLamports) / L.LAMPORTS_PER_SOL +
+        " SOL. The " +
+        reconciliation.unescrowedSol +
+        " SOL difference is recorded-but-never-deposited collateral: those records predate escrow custody, so no " +
+        "lamports entered the vault for them and they cannot be paid while escrow holds less than they claim."
     );
   }
 
@@ -287,6 +330,7 @@ async function buildResponse(query, deps) {
       bondedSol: Number(totals.bondedLamports) / L.LAMPORTS_PER_SOL,
     },
     vault: vault,
+    reconciliation: reconciliation,
     agents: profiles,
   };
 }

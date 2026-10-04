@@ -63,6 +63,23 @@ declare namespace trust {
       bondedLamports: string;
       bondedSol: number;
     };
+    /**
+     * Slash records summed, against what the vault reports taking in. Per-record
+     * funding is not stored on chain, so the difference is named rather than
+     * attributed: a positive `unescrowedLamports` means records claim lamports
+     * that never entered escrow.
+     */
+    reconciliation: {
+      recordsSlashedLamports: string;
+      recordsSlashedSol: number;
+      recordsCompensatedLamports: string;
+      vaultTotalSlashedLamports: string;
+      vaultTotalCompensatedLamports: string;
+      unescrowedLamports: string;
+      unescrowedSol: number;
+      /** True when the records sum to exactly what escrow has received. */
+      balanced: boolean;
+    };
     vault: EquxiLayout.VaultAccount | null;
     agents: ApiAgent[];
   }

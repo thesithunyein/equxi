@@ -127,7 +127,8 @@ declare namespace EquxiLayout {
       totalSlashedLamports: string;
       totalSlashedSol: number;
       compensationPaidLamports: string;
-      uncompensatedLamports: string;
+      /** Recorded as slashed and not yet compensated; see the API's `reconciliation`. */
+    uncompensatedLamports: string;
       slashRatePerMonth: number;
     };
     warnings: string[];

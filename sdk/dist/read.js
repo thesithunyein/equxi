@@ -232,7 +232,7 @@ function buildTrustProfile(input) {
     // An unpaid slash is worse than a paid one: the harm is still outstanding.
     if (openSlashes > 0) {
         score -= Math.min(openSlashes * 12, 30);
-        warnings.push(`${openSlashes} slash${openSlashes === 1 ? "" : "es"} recorded but not yet compensated — the victim is still owed.`);
+        warnings.push(`${openSlashes} slash${openSlashes === 1 ? "" : "es"} recorded and not yet compensated — no payment has reached a victim. Whether escrow can cover it is not per-agent state: slash records carry no deposit.`);
     }
     // A sub-1-SOL bond is enough to register but thin against real risk.
     if (bondSummary && bondSummary.amountLamports < BigInt(LAMPORTS_PER_SOL)) {
