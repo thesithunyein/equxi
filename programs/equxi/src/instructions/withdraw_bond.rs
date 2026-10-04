@@ -142,9 +142,15 @@ mod tests {
     fn an_absurd_expiry_saturates_instead_of_wrapping() {
         // A wrapping add would land in the past and hand an operator an instant
         // withdrawal — the failure mode must be "never withdrawable", not "now".
+        // This expiry is the last one whose window does not fit in an i64, so a
+        // wrapping `+` would produce a negative deadline here.
+        let overflows_by_one = i64::MAX - UNBONDING_PERIOD + 1;
+        assert_eq!(withdrawable_at(overflows_by_one), i64::MAX);
         assert_eq!(withdrawable_at(i64::MAX), i64::MAX);
+
+        // At that saturation point the bond is expired but still unbonding.
         assert_eq!(
-            ensure_withdrawable(i64::MAX - 1, i64::MAX).unwrap_err(),
+            ensure_withdrawable(overflows_by_one, overflows_by_one).unwrap_err(),
             Error::from(EquxiError::BondInUnbondingPeriod)
         );
         assert!(ensure_withdrawable(i64::MAX, i64::MAX).is_ok());
