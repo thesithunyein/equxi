@@ -173,10 +173,15 @@ suite proves both halves of it. Both Rust changes are deployed: the window went 
 | 0:06–0:16 | Trust Explorer, Augur's panel open | "This agent posted collateral on Solana. A counterparty can read its bond and its slash history in one call — before serving it." |
 | 0:16–0:24 | Score ledger expanded | "The grade is derived from evidence, not asserted by an admin — and the breakdown sums to the number, so it can be checked." |
 | 0:24–0:40 | Terminal: `prove-compensation.js` — a live slash and payout | "A violation is recorded. Watch the collateral: out of the bond, into a vault the admin cannot touch — and out to the victim." |
-| 0:40–0:50 | Terminal: a bond created with a 1-second lock, then withdrawn at expiry — refused with `BondInUnbondingPeriod` | "Exit is not instant. For seven days past the lock, the collateral is still there to be seized." |
+| 0:40–0:50 | Terminal: `prove-unbonding.js` — a bond created with a 1-second lock, then withdrawn at expiry, refused with `BondInUnbondingPeriod` | "Exit is not instant. For seven days past the lock, the collateral is still there to be seized." |
 | 0:50–1:02 | `launch.html` — the Meteora DBC launch page, EAGT read back as A / 92 | "A Meteora launch whose graduation proceeds became the agent's bond — ten transactions, all on chain." |
 | 1:02–1:10 | `/api/trust` JSON and badge for the slashed agent | "The same registry reports it all publicly, with no privileged access." |
 | 1:10–1:15 | Close on the landing page | "Detection is still off-chain and the admin is still one key — the next two things to fix." |
+
+Both terminal segments were rehearsed end-to-end on live devnet on 2026-10-04:
+`prove-compensation.js` passes 13/13 assertions in 6.6s and `prove-unbonding.js` passes 7/7
+in 7.3s. Exact commands, expected on-screen lines, per-take SOL costs and fallbacks are in
+[`DEMO-RUNBOOK.md`](DEMO-RUNBOOK.md).
 
 ## 9. What is not done
 

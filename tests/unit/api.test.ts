@@ -23,6 +23,7 @@ import { PublicKey } from "@solana/web3.js";
 // strips types rather than transpiling.
 import L from "../../lib/equxi-layout";
 import badge from "../../api/badge";
+import markets from "../../api/markets";
 import trust from "../../api/trust";
 
 /** Local aliases, because a default import does not bind the namespace types. */
@@ -800,5 +801,168 @@ describe("badge API (api/badge.js)", () => {
       const out = await handle({});
       expect(out.statusCode).to.equal(400);
     });
+  });
+});
+
+/* ── markets (Panta) ──────────────────────────────────────────────────── */
+
+describe("markets API (api/markets.js)", () => {
+  const NOW = 1_800_000_000;
+
+  const ITEM = {
+    marketId: "mkt_ed_1",
+    category: "sports",
+    title: "Will Example United win the derby?",
+    description: "Resolves YES if Example United wins on matchday.",
+    images: ["https://cdn.panta.market/x.png"],
+    phase: "primary",
+    marketType: "binary",
+    startTime: "2026-10-01T00:00:00Z",
+    endTime: "2026-10-11T00:00:00Z",
+    resolutionTime: "2026-10-12T00:00:00Z",
+    region: "global",
+    resolved: false,
+    status: "open",
+    volumeUsdc: "1234.56",
+    campaignId: null,
+    createdByPartner: true,
+    yesPrice: null,
+    noPrice: null,
+    // A field this API does not document must not leak into the output.
+    internalRiskScore: 99,
+  };
+
+  interface Call {
+    url: string;
+    init: { method: string; headers: Record<string, string>; signal?: unknown };
+  }
+
+  // Local alias on purpose: a default import does not bind the namespace types.
+  // `any` on the decoded body on purpose: the stub returns whatever body the
+  // test wants, and the real declaration narrows it at the call site.
+  type PantaFetch = (
+    url: string,
+    init: Call["init"]
+  ) => Promise<{ ok: boolean; status: number; json: () => Promise<any> }>;
+
+  function pantaFetch(
+    calls: Call[],
+    response: { ok?: boolean; status?: number; body?: unknown } = {}
+  ): PantaFetch {
+    const status = response.status ?? 200;
+    const ok = response.ok ?? (status >= 200 && status < 300);
+    return (async (url: string, init: Call["init"]) => {
+      calls.push({ url, init });
+      return {
+        ok,
+        status,
+        json: async () =>
+          response.body !== undefined ? response.body : { items: [ITEM], nextCursor: "cursor_2" },
+      };
+    }) as PantaFetch;
+  }
+
+  const deps = (
+    calls: Call[],
+    apiKey = "pk_test_abc",
+    response?: { ok?: boolean; status?: number; body?: unknown }
+  ) => ({ fetchImpl: pantaFetch(calls, response), now: NOW, apiKey });
+
+  it("states that the feed is unconfigured instead of failing or inventing data", async () => {
+    const calls: Call[] = [];
+    const payload = await markets.buildResponse({}, deps(calls, ""));
+
+    expect(payload.configured).to.equal(false);
+    expect(payload.markets).to.deep.equal([]);
+    expect(payload.counts.markets).to.equal(0);
+    expect(payload.note).to.include("PANTA_API_KEY");
+    expect(calls.length).to.equal(0); // It must not call Panta without a key.
+  });
+
+  it("calls the trailing-slash route with the key header and normalizes items", async () => {
+    const calls: Call[] = [];
+    const payload = await markets.buildResponse({}, deps(calls));
+
+    expect(calls.length).to.equal(1);
+    expect(calls[0].url).to.equal("https://live-api.panta.market/api/v1/markets/");
+    expect(calls[0].init.headers["X-Api-Key"]).to.equal("pk_test_abc");
+    expect(payload.configured).to.equal(true);
+    expect(payload.counts.markets).to.equal(1);
+    expect(payload.nextCursor).to.equal("cursor_2");
+    expect(payload.markets[0].marketId).to.equal("mkt_ed_1");
+    expect(payload.markets[0].phase).to.equal("primary");
+    expect(payload.markets[0].volumeUsdc).to.equal("1234.56");
+    expect("internalRiskScore" in payload.markets[0]).to.equal(false);
+  });
+
+  it("forwards the allow-listed params and clamps limit to 50", async () => {
+    const calls: Call[] = [];
+    await markets.buildResponse(
+      { category: "sports", status: "open", createdBy: "me", cursor: "c1", limit: "999" },
+      deps(calls)
+    );
+
+    expect(calls[0].url).to.equal(
+      "https://live-api.panta.market/api/v1/markets/?category=sports&status=open&createdBy=me&cursor=c1&limit=50"
+    );
+  });
+
+  it("rejects a non-numeric limit before calling upstream", async () => {
+    const calls: Call[] = [];
+    try {
+      await markets.buildResponse({ limit: "zero" }, deps(calls));
+      expect.fail("should have thrown");
+    } catch (error) {
+      const typed = error as Error & { status?: number };
+      expect(typed.status).to.equal(400);
+      expect(typed.message).to.include("limit");
+    }
+    expect(calls.length).to.equal(0);
+  });
+
+  it("keeps Panta's error meaning: 429 rate limit, 400 bad params, 502 rejected key", async () => {
+    async function statusFor(body: unknown, httpStatus: number) {
+      try {
+        await markets.buildResponse({}, deps([], "pk_test_abc", { ok: false, status: httpStatus, body }));
+        return null;
+      } catch (error) {
+        return (error as Error & { status?: number }).status ?? null;
+      }
+    }
+
+    expect(await statusFor({ error: "RATE_LIMITED" }, 429)).to.equal(429);
+    expect(await statusFor({ error: "INVALID_MARKET_PARAMS" }, 422)).to.equal(400);
+    expect(await statusFor({ error: "UNAUTHORIZED" }, 401)).to.equal(502);
+  });
+
+  it("answers the handler with 200 and x-equxi-configured when no key is set", async () => {
+    const originalFetch = globalThis.fetch;
+    const originalKey = process.env.PANTA_API_KEY;
+    delete process.env.PANTA_API_KEY;
+    (globalThis as { fetch: unknown }).fetch = pantaFetch([]);
+    try {
+      const headers: Record<string, string> = {};
+      let body = "";
+      await markets(
+        { method: "GET", query: {} },
+        {
+          statusCode: 0,
+          setHeader(name: string, value: string) {
+            headers[name] = value;
+          },
+          end(chunk?: string) {
+            body = chunk || "";
+          },
+        }
+      );
+
+      const parsed = JSON.parse(body);
+      expect(parsed.configured).to.equal(false);
+      expect(headers["x-equxi-configured"]).to.equal("false");
+      expect(headers["content-type"]).to.match(/application\/json/);
+    } finally {
+      (globalThis as { fetch: unknown }).fetch = originalFetch;
+      if (originalKey !== undefined) process.env.PANTA_API_KEY = originalKey;
+    }
   });
 });

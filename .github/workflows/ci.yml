@@ -164,6 +164,8 @@ jobs:
           test -f api/trust.d.ts || exit 1
           test -f api/badge.js || exit 1
           test -f api/badge.d.ts || exit 1
+          test -f api/markets.js || exit 1
+          test -f api/markets.d.ts || exit 1
           test -f lib/equxi-layout.js || exit 1
           test -f explorer.html || exit 1
           test -f explorer.js || exit 1
@@ -227,19 +229,21 @@ jobs:
           # The function must not acquire dependencies: `vercel.json` disables the
           # build, so anything imported here has to resolve at runtime unbuilt.
           # Every `require` must therefore be relative.
-          for f in api/trust.js api/badge.js lib/equxi-layout.js; do
+          for f in api/trust.js api/badge.js api/markets.js lib/equxi-layout.js; do
             if grep -oE 'require\("[^"]+"\)' "$f" | grep -vE 'require\("\.[^"]*"\)'; then
               echo "$f requires a package; it must stay dependency-free" && exit 1
             fi
           done
           node --check api/trust.js || exit 1
           node --check api/badge.js || exit 1
+          node --check api/markets.js || exit 1
           node --check lib/equxi-layout.js || exit 1
           node --check explorer.js || exit 1
           node --check landing.js || exit 1
           node --check dev-server.js || exit 1
           grep -q 'module.exports' api/trust.js || exit 1
           grep -q 'module.exports' api/badge.js || exit 1
+          grep -q 'module.exports' api/markets.js || exit 1
           # The badge must escape the agent-controlled values it prints.
           grep -q 'function xml(' api/badge.js || exit 1
           # The landing page reads this API, and agent names are attacker
@@ -254,7 +258,7 @@ jobs:
           grep -q 'src="landing.js"' index.html || exit 1
           # Every api/*.js file is a route; dev-server.js must serve the same set
           # or the Explorer cannot be developed locally.
-          for route in trust badge; do
+          for route in trust badge markets; do
             grep -q "/api/$route" dev-server.js || exit 1
           done
           echo "Read API complete"

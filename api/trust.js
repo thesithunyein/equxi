@@ -29,6 +29,9 @@
  * | `owner=<pubkey>` | Every agent owned by a wallet |
  * | `cluster=devnet\|testnet\|mainnet-beta` | RPC cluster (default `devnet`) |
  * | `rpc=<url>` | Explicit RPC endpoint (development only) |
+ *
+ * A deployment can set `EQUXI_RPC` to make every read default to a dedicated
+ * endpoint (for example RPC Fast's Focus plan); an explicit `?rpc=` still wins.
  */
 "use strict";
 
@@ -173,7 +176,9 @@ async function buildResponse(query, deps) {
   var now = deps.now;
 
   var cluster = query.cluster || "devnet";
-  var rpcUrl = query.rpc || CLUSTER_RPC[cluster];
+  // Precedence: explicit ?rpc= (development), then the deployment default from
+  // EQUXI_RPC (dedicated infra), then the public cluster endpoint.
+  var rpcUrl = query.rpc || process.env.EQUXI_RPC || CLUSTER_RPC[cluster];
   if (!rpcUrl) {
     throw Object.assign(new Error("unknown cluster: " + cluster), { status: 400 });
   }

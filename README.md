@@ -97,6 +97,7 @@ node dev-server.js
 #   Explorer     http://localhost:4321/explorer.html
 #   Read API     http://localhost:4321/api/trust
 #   Badge        http://localhost:4321/api/badge?agent=<pda>
+#   Markets      http://localhost:4321/api/markets
 ```
 
 Plain `npx serve .` also works for the dashboard, but the Trust Explorer needs
@@ -162,7 +163,7 @@ layout change that is not mirrored in every client fails immediately.
 | `tests/unit/layout.test.ts` | Discriminators, PDAs, Borsh encoding |
 | `tests/unit/sdk.test.ts` | The IDL shipped in `sdk/src/idl/equxi.json` |
 | `tests/unit/read.test.ts` | Query filters, decoding, the trust-scoring rules, and that the SDK scorer and the API scorer agree |
-| `tests/unit/api.test.ts` | `api/trust.js` and `api/badge.js` end to end, against a stubbed RPC |
+| `tests/unit/api.test.ts` | `api/trust.js`, `api/badge.js` and `api/markets.js` end to end, against stubbed RPC and Panta responses |
 
 > **Honest status:** the unit tests and all TypeScript typechecks pass, CI
 > compiles the Rust program and runs `anchor test` on a local validator, and the
@@ -186,6 +187,7 @@ equxi/
 ├── eliza-plugin/             elizaOS plugin (IDL-free; encodes from coder.ts)
 ├── api/trust.js              GET /api/trust — public read API (Vercel function)
 ├── api/badge.js              GET /api/badge — embeddable SVG trust badge
+├── api/markets.js            GET /api/markets — Panta prediction markets feed
 ├── lib/equxi-layout.js       Account layouts + scoring for the API (no deps)
 ├── dev-server.js             Static server + read API for local development
 ├── tests/unit/               Validator-free wire-format + SDK + read tests
@@ -300,6 +302,9 @@ curl "https://equxi.sithunyein.com/api/trust?agent=<pda>"
 curl "https://equxi.sithunyein.com/api/trust?owner=<wallet>"
 ```
 
+A deployment can set `EQUXI_RPC` to make every read default to a dedicated
+endpoint (for example RPC Fast's Focus plan); an explicit `?rpc=` still wins.
+
 ```jsonc
 {
   "ok": true,
@@ -376,6 +381,40 @@ code. What keeps the copy honest is
 [`tests/unit/api.test.ts`](tests/unit/api.test.ts), which pins every
 discriminator, size, and decoded field against the independently written decoder
 in `eliza-plugin/src/coder.ts`.
+
+## Panta markets feed
+
+Equxi tells you whether an agent's collateral is at risk; the markets an agent
+trades are the other half of the picture. `GET /api/markets` reads the
+operator's own markets live from [Panta's](https://panta.market) API and
+normalizes them into one flat list. It never custodies or signs anything.
+
+```bash
+# The feed itself (200 even when the integration is switched off — see below)
+curl https://equxi.sithunyein.com/api/markets
+
+# Filtered, with Panta's cursor pagination forwarded
+curl "https://equxi.sithunyein.com/api/markets?category=sports&status=open&createdBy=me&limit=50"
+```
+
+```jsonc
+{
+  "ok": true,
+  "configured": true,
+  "source": "panta",
+  "generatedAt": 1800000000,
+  "counts": { "markets": 1 },
+  "nextCursor": "cursor_2",
+  "markets": [ { "marketId": "…", "title": "…", "phase": "primary", "volumeUsdc": "1234.56" } ]
+}
+```
+
+The endpoint is honest about being switched off: with **no `PANTA_API_KEY` set**
+it answers `200` with `configured: false` and a `note` saying what to set —
+never a 500 that reads like an outage, and never a made-up empty market list
+that reads like data. Upstream failures keep their meaning: `RATE_LIMITED`
+becomes a `429`, `INVALID_MARKET_PARAMS` a `400`, and a rejected key a `502`
+because that is this deployment's config fault, not the caller's.
 
 ## Trust Explorer
 

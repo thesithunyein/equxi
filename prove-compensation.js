@@ -23,7 +23,7 @@
  *
  * The keypair must be the key that owns the config account — the same key the
  * program derives its slash/compensate authority from. On devnet that is
- * 3zpsbtuS6qjgTVqYnXt3R59WgQceaDC2CG9zgxDMsiR (see `--who` to print it).
+ * 3zpsbtuS6qjgTVqYnXt3R59WgQceaDC2CGp9zgxDMsiR (see `--who` to print it).
  *
  * Options:
  *   --who              print the required authority and exit (no key needed)
@@ -44,7 +44,7 @@ const API = process.env.EQUXI_API || "https://equxi.sithunyein.com/api/trust";
 const PROGRAM_ID = new PublicKey("D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc");
 
 // The key that owns the config account on devnet, i.e. the slash/compensate authority.
-const DEVNET_AUTHORITY = "3zpsbtuS6qjgTVqYnXt3R59WgQceaDC2CG9zgxDMsiR";
+const DEVNET_AUTHORITY = "3zpsbtuS6qjgTVqYnXt3R59WgQceaDC2CGp9zgxDMsiR";
 const AUGUR_OWNER = DEVNET_AUTHORITY;
 
 const args = process.argv.slice(2);
@@ -172,6 +172,7 @@ async function main() {
   const config = await client.getConfig();
   const nonce = config.totalSlashed;
   const vaultBefore = await vaultInfo();
+  const vaultStateBefore = await client.getVault();
   console.log("      vault before:", sol(vaultBefore.lamports), "(above rent: " + sol(vaultBefore.aboveRent) + ")");
 
   const { slashPDA, tx: slashTx } = await client.executeSlash(
@@ -187,9 +188,13 @@ async function main() {
   const seized = vaultAfterSlash.aboveRent - vaultBefore.aboveRent;
   assert("vault grew by exactly the slash amount", seized === slashSol * LAMPORTS_PER_SOL, "delta " + sol(seized));
 
+  // totalSlashed and available are cumulative counters, so this run's proof is
+  // the delta: a demo must be re-runnable without the vault needing a reset.
   const vaultState = await client.getVault();
-  assert("vault.totalSlashed matches the seizure", vaultState.totalSlashed.toString() === String(slashSol * LAMPORTS_PER_SOL), vaultState.totalSlashed.toString());
-  assert("vault.available equals the seizure", vaultState.available.toString() === String(slashSol * LAMPORTS_PER_SOL), vaultState.available.toString());
+  const seizedTotal = Number(vaultState.totalSlashed) - Number(vaultStateBefore.totalSlashed);
+  const seizedAvailable = Number(vaultState.available) - Number(vaultStateBefore.available);
+  assert("vault.totalSlashed grew by exactly the seizure", seizedTotal === slashSol * LAMPORTS_PER_SOL, "+" + sol(seizedTotal) + " (total now " + sol(vaultState.totalSlashed) + ")");
+  assert("vault.available grew by exactly the seizure", seizedAvailable === slashSol * LAMPORTS_PER_SOL, "+" + sol(seizedAvailable));
 
   // The seizure must come *out of the bond*, and the bond's recorded amount must
   // still describe the collateral it actually holds (AAS-1 I5).

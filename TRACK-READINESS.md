@@ -128,7 +128,7 @@ migration executed against live state, 5 green CI jobs, LICENSE, SECURITY.md, SP
 | Requirement | Status |
 |---|---|
 | Submit to Colosseum + Panta sidetrack | ⬜ |
-| **Meaningfully integrate the Panta API** | ❌ nothing exists |
+| **Meaningfully integrate the Panta API** | ✅ `GET /api/markets` built 2026-10-04 — dependency-free, 6 unit tests, all three states (unconfigured / accepted / rejected key) verified against the live Panta API; switches on when `PANTA_API_KEY` is set |
 | Working demonstration of the product | ⚠️ demo video must be re-recorded anyway |
 
 Facts verified from `docs.panta.market` (2026-10-04), so the build plan below is against
@@ -151,6 +151,15 @@ also the most original angle available to us — nobody else can pair a predicti
 with verifiable on-chain collateral history, and the payoff for the main track is that the
 trust data becomes *priced*.
 
+**Built 2026-10-04.** `GET /api/markets` reads
+`https://live-api.panta.market/api/v1/markets/` with `X-Api-Key`, forwards
+`category | status | createdBy | cursor | limit` (limit clamped to Panta's 50), normalizes
+markets into a flat list, caches for 30s, and maps Panta's error codes onto honest statuses
+(`RATE_LIMITED` → 429, `INVALID_MARKET_PARAMS` → 400, rejected key → 502). With no key set
+it answers `200 { configured: false, note: … }` — never a fake-empty list, never a 500 that
+reads like an outage — so the endpoint is demoable before the key lands. **Still open:** the
+Explorer market card, and the tier-2 market-per-agent creation flow.
+
 Needs from you: a Panta API key (start with `pk_test_`), and a USDC wallet if we want to
 create a market for the demo.
 
@@ -160,7 +169,7 @@ create a market for the demo.
 |---|---|
 | Submit to Colosseum + RPC Fast sidetrack | ⬜ |
 | Claim the Focus plan via their form | ⬜ you |
-| **Use RPC Fast infrastructure during and after the hackathon** | ⚠️ feasible today, not done: the read layer already takes an endpoint (`DEFAULT_RPC` / `?rpc=`), so pointing it at their endpoint is a config change, not a rewrite |
+| **Use RPC Fast infrastructure during and after the hackathon** | ⚠️ wired, one env var away: the read layer now honours `EQUXI_RPC` as the deployment-wide default (`?rpc=` still wins), so switching to their endpoint is a config change, not a rewrite — endpoint URL pending from their form |
 | Follow @rpcfast; join Telegram + Discord | ⬜ you |
 | Publish 2–3 posts/month about RPC Fast for two months | ⬜ you (their "community presence" criterion) |
 
@@ -177,17 +186,17 @@ API, RPC-endpoint parameterised".
 
 | # | Action | Owner | Why now |
 |---|---|---|---|
-| 1 | Re-record the 75s demo, including the terminal segment (`prove-compensation.js`) | you + me | every track needs it; currently nothing exists on disk |
+| 1 | Re-record the 75s demo — terminal drivers (`prove-compensation.js` 13/13, `prove-unbonding.js` 7/7) are rehearsed and the runbook exists | you | every track needs the video; only the recording itself is left |
 | 2 | ~~Deploy the CI-built program to devnet~~ **Done 2026-10-04** — unbonding window + `top_up_bond` live, byte-verified | me | the site and the chain now agree |
 | 3 | Submit on Colosseum (main track) | you | unlocks CertiK / Panta / RPC Fast / Adevar |
 | 4 | CertiK form (answers ready in §2) + Meteora form | you | forms are on Colosseum |
 | 5 | Adevar: apply on Superteam Earn, post the tweet from `@thesithunyein`, follow @AdevarLabs | you | the tweet is a hard requirement, not a bonus |
-| 6 | Panta: mint an API key, then build `/api/markets` + the agent market card | me (needs your key) | the only track where the product is missing, not the paperwork |
+| 6 | Panta: set `PANTA_API_KEY` (mint a `pk_test_` key) — `/api/markets` is built, tested and verified in unconfigured + rejected-key states; Explorer card remains | you (key) + me (card) | integration no longer missing: only the key |
 | 7 | RPC Fast: claim Focus plan → point the read layer at their endpoint → record the proof; follow + join + 2 posts | you + me | needs their endpoint URL, which comes from the form |
 
 ## 8. What I can build next, by payoff
 
-1. **Panta market panel** (`/api/markets` + Explorer card) — converts the weakest track into
+1. **Panta market panel** (`/api/markets` done; Explorer card remains) — converts the weakest track into
    a real integration and gives the demo a second act.
 2. **Deploy the unbonding window** — removes the one place where the live site contradicts
    the live program.

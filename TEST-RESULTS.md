@@ -512,8 +512,36 @@ is refused with the bond and its collateral untouched, and a slash recorded agai
 expired-but-unbonded agent still seizes the whole bond into escrow.
 
 As with everything else Rust here, it is source-only until CI builds it and a
-deployment puts it on chain: **devnet still runs the pre-window program**, so the live
-deployment still allows the old instant exit.
+deployment puts it on chain — and it now is: **devnet runs the window program** (upgrade
+`5tK2dMyR…`, slot 507390281, on-chain bytes verified against the CI build; see the status
+table at the top of this file). The live refusal rehearsal below is the deployed
+program answering for itself.
+
+## Live rehearsal against the deployed window program (2026-10-04)
+
+Both terminal segments of the demo were rehearsed end to end against devnet, with the
+recovered admin key, so the recording session has measured behaviour rather than hope:
+
+**The refusal, live.** [`prove-unbonding.js`](prove-unbonding.js) registers a fresh agent,
+locks the 0.1 SOL minimum for 1 second, waits for `expires_at` to pass, then attempts
+`withdraw_bond`. The deployed program answered **`BondInUnbondingPeriod` (6004)** — and the
+assertion pins that it is not `BondNotExpired`, so the lock really had expired and the
+*window* is what refused. The bond was then re-read: still active, `amount = 100000000`,
+and the lamports still in the account. 7/7 assertions, 7.3 s. Attempted-withdrawal tx:
+[`4kLUuNEy4eguKiFjFnnmw7QuaPB18aNStA73A8vsHiPTLpWVdcKpf9sBNgRpQhemooASosVvPYN1vzdB2pPD3Dc`](https://explorer.solana.com/tx/4kLUuNEy4eguKiFjFnnmw7QuaPB18aNStA73A8vsHiPTLpWVdcKpf9sBNgRpQhemooASosVvPYN1vzdB2pPD3Dc?cluster=devnet).
+
+**The money path, re-run.** [`prove-compensation.js`](prove-compensation.js) passed 13/13 in
+6.6 s against the same deployment: bond 0.5 → slash 0.2 → vault **+0.2000** → compensate →
+victim **+0.2000** → `/api/trust` reports the compensation. Slash tx:
+[`2n8SSBU2EFqbrH6s2cZw9AQNWXT5G4rzqAgo2GkGzcT64P4UJ6wQ24igWZHCkeinXkobeCLKf6D1YSgQjmF9fSUu`](https://explorer.solana.com/tx/2n8SSBU2EFqbrH6s2cZw9AQNWXT5G4rzqAgo2GkGzcT64P4UJ6wQ24igWZHCkeinXkobeCLKf6D1YSgQjmF9fSUu?cluster=devnet).
+
+> **Honest note.** The first rehearsal of the money path failed one assertion, and it was
+> the harness, not the chain: it compared the vault's *cumulative* `totalSlashed` counter
+> against this run's seizure. After the fix, the assertion is a delta
+> (`vault.totalSlashed grew by exactly the seizure`), which also makes the demo
+> re-recordable without resetting chain state. The 13/13 above is the re-run after the fix.
+
+Commands, timings, costs and fallbacks: [`DEMO-RUNBOOK.md`](DEMO-RUNBOOK.md).
 
 ## Still open: one escrow pool for every agent
 
