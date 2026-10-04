@@ -4,7 +4,7 @@
 > be confused:
 >
 > * **JavaScript/TypeScript** checks — these have been **executed** and the results
->   are recorded below. `npm run test:unit` runs **119** assertions over the wire
+>   are recorded below. `npm run test:unit` runs **149** assertions over the wire
 >   formats, PDA seeds, IDL, SDK, read layer, and read API with no validator. The
 >   read API additionally has **live devnet evidence** (below), which is the one
 >   place a real network was involved.
@@ -22,7 +22,7 @@
 
 | Check | Status | Notes |
 |-------|--------|-------|
-| `npm run test:unit` | ✅ **119 passing** | Wire formats, PDA seeds, IDL, SDK, read layer, read API, badge |
+| `npm run test:unit` | ✅ **149 passing** | Wire formats, PDA seeds, IDL, SDK, read layer, read API, badge, reconciliation |
 | `tsc --noEmit` (tests) | ✅ **0 errors** | |
 | `tsc --noEmit` (SDK) | ✅ **0 errors** | |
 | `tsc --noEmit` (elizaOS plugin) | ✅ **0 errors** | Was **16 errors** before the rewrite |
@@ -31,11 +31,12 @@
 | Read API against live devnet | ✅ **returned real data** | See “Live devnet read” below |
 | Trust Explorer rendered | ✅ **verified in a browser** | Screenshot reproduced below in prose; served by `dev-server.js` |
 | `anchor build` | ✅ **compiled** | CI run [34983589484](https://github.com/thesithunyein/equxi/actions/runs/34983589484), `Build program` took 201s |
-| `anchor test` | ✅ **113 passing, 0 failing** | 13 on-chain tests + 100 unit tests on a real local validator (at that revision; the unit suite has since grown to 119) |
-| CI (Wire-format Unit Tests) | ✅ **119 passing** | Runs on every push |
+| `anchor test` | ✅ **165 passing, 0 failing** | 16 on-chain tests + 149 unit tests on a real local validator |
+| Unbonding window | ✅ **on-chain + unit** | Withdrawal inside the window is refused with the bond intact, a violation observed after expiry still seizes the whole bond, and every boundary of the pure gate is unit-tested — see “The exit race” below. Source-only until the next devnet upgrade |
+| CI (Wire-format Unit Tests) | ✅ **149 passing** | Runs on every push |
 | `GET /api/badge` against live devnet | ✅ **returned a real badge** | `x-equxi-status: graded`, `x-equxi-grade: D`, `x-equxi-score: 48` for agent Augur — see below |
 | Explorer: search, sort, filter, ledger, embed | ✅ **verified in a browser against live devnet** | See below |
-| SDK scorer vs. API scorer agreement | ✅ **119 passing** | Both implementations asserted equal across six scenarios, including the floored one |
+| SDK scorer vs. API scorer agreement | ✅ **149 passing** | Both implementations asserted equal across six scenarios, including the floored one |
 | CI (Build & Test Program) | ✅ **green** | Compiles the program and runs the on-chain suite |
 | Devnet redeploy of v0.2 | ✅ **Deployed and migrated** | Program replaced at `D7akK…` (slot 499249941), vault created, live agent grown 116 → 118 bytes with all 8 preserved fields verified identical — see below |
 
@@ -332,7 +333,7 @@ Sizes are `8 (discriminator) + INIT_SPACE`.
 `params`: `max_amount` (8) @41, `max_per_period` (8) @49, `period_seconds` (8) @57,
 `timelock_seconds` (8) @65, `allowed_programs` (256) @73.
 
-### SlashRecord — 219 bytes
+### SlashRecord — 259 bytes
 
 | Offset | Size | Field |
 |--------|------|-------|
@@ -363,10 +364,18 @@ Sizes are `8 (discriminator) + INIT_SPACE`.
 `programs/equxi/src/error.rs` defines the following variants. Verify the count against
 the source rather than trusting a number in this document.
 
-`NameTooLong`, `BondTooSmall`, `BondInactive`, `BondNotExpired`, `InsufficientBond`,
-`Unauthorized`, `AgentNotActive`, `InvalidTrustScore`, `SlashingAuthorityRequired`,
-`InvalidAmount`, `ExceedsSlashAmount`, `VaultInsufficient`, `AlreadyCompensated`,
-`TooManyConstraints`, `InvalidAdminAuthority`, `ProgramDataMismatch`, `Overflow`.
+`NameTooLong`, `BondTooSmall`, `BondInactive`, `BondNotExpired`,
+`BondInUnbondingPeriod`, `InsufficientBond`, `Unauthorized`, `AgentNotActive`,
+`InvalidTrustScore`, `SlashingAuthorityRequired`, `InvalidAmount`,
+`ExceedsSlashAmount`, `VaultInsufficient`, `AlreadyCompensated`,
+`TooManyConstraints`, `InvalidAdminAuthority`, `ProgramDataMismatch`,
+`InvalidAgentLayout`, `Overflow`.
+
+> `BondInUnbondingPeriod` (6004) was inserted after `BondNotExpired`, which shifts
+the numbers of every code declared below it. Nothing in this repository matches
+on the number — the suite and every decoder match on the name — but an external
+integrator that hard-coded a numeric code should re-read the list. The variant
+only exists in the source: the devnet deployment predates it.
 
 > v0.1 listed 12 codes while the source defined 13. Three of them
 > (`AuthorityRequired`, `AlreadyDeactivated`, `ConstraintExists`) were never thrown.
@@ -396,7 +405,17 @@ contract every decoder depends on.
 | over-compensation rejected | negative |
 | **two constraints on one agent** | regression (PDA collision) |
 | withdraw before expiry rejected | negative |
-| **withdraw closes the bond and returns the collateral** | happy path |
+| **withdraw refused inside the unbonding window, bond and collateral intact** | negative |
+| **slash still seizes an expired bond that is inside the window** | regression (the exit race) |
+
+The successful exit — `close = operator` returning rent plus the un-slashed
+collateral, and the bond PDA disappearing — is no longer reachable from this
+suite: it needs a validator clock seven days past the lock, which a local
+`solana-test-validator` cannot be moved to. That branch now lives in a pure
+`ensure_withdrawable(now, expires_at)` and is pinned by the Rust unit tests in
+`withdraw_bond.rs`, including both sides of the expiry boundary and of the
+window boundary. What the on-chain suite proves is the part that needs a
+validator: the handler really calls that gate.
 
 ## Reproducing
 
@@ -469,9 +488,54 @@ incentive.
 > read API currently reports 0.2 SOL of consequences that never economically happened.
 > That is legacy v0.1 demo state, not a fault in the path documented above.
 
-**Still open.** `execute_slash` checks `agent.status`, `bond.is_active` and a non-zero
-amount, but **not** expiry, so an expired bond can still be seized. `withdraw_bond`,
-however, requires only `now >= expires_at`. The practical consequence is a race: once a
-bond expires, the operator can withdraw before a victim's claim lands, and nothing stops
-them. Slashing must be possible for violations committed while a bond was live, and a
-claim needs to survive expiry. Tracked in [`SPEC.md`](SPEC.md) §7.
+## The exit race, closed in source (2026-10-04)
+
+This used to be open, and it was a race rather than a missing check. `execute_slash`
+deliberately checks `agent.status`, `bond.is_active` and a non-zero amount but **not**
+expiry — a violation committed while a bond was live is slashed after the fact, because
+detection is off-chain — while `withdraw_bond` required only `now >= expires_at`. An
+operator could therefore withdraw the instant the lock ended and leave a late claim
+nothing to seize.
+
+`withdraw_bond` now requires `now >= expires_at + UNBONDING_PERIOD` (7 days;
+source of truth `programs/equxi/src/instructions/withdraw_bond.rs`), and refuses the
+window with a distinct `BondInUnbondingPeriod` (6004) so a client can tell “too early”
+from “expired, but still slashable”. The gate is a pure function,
+`ensure_withdrawable(now, expires_at)`, because the branch that *allows* the exit cannot
+be reached from an integration test — a local validator's clock cannot move a week
+forward — so the unit tests walk both boundaries second by second, and the on-chain
+suite proves the two outcomes that need a real validator: withdrawal inside the window
+is refused with the bond and its collateral untouched, and a slash recorded against an
+expired-but-unbonded agent still seizes the whole bond into escrow.
+
+As with everything else Rust here, it is source-only until CI builds it and a
+deployment puts it on chain: **devnet still runs the pre-window program**, so the live
+deployment still allows the old instant exit.
+
+## Still open: one escrow pool for every agent
+
+`compensate_victim` pays `min(record.amount, vault.available())` where
+`available() = total_slashed − total_compensated` — both are **global** counters, and a
+`SlashRecord` carries no record of whether its own lamports ever reached the vault. Two
+consequences, one of which is already live on devnet:
+
+* A record whose lamports were never deposited can still be compensated, and the payout
+  comes out of collateral that was seized from a **different** agent. This is not
+  hypothetical: Augur carries two v0.1-era slashes of 0.1 SOL each that moved nothing,
+  and `/api/trust` reports exactly that (`reconciliation.unescrowedLamports
+  = 200000000`).
+* The reverse direction is the operator's: a bond whose recorded collateral was debited
+  by a v0.1 slash but whose lamports were never moved can be withdrawn in full once its
+  window closes.
+
+Severity is bounded by the fact that compensation is admin-signed (`authority ==
+config.admin`), so this is cross-subsidy and mis-reporting rather than a permissionless
+drain — but it is a real accounting defect, and a launchpad-style pitch where one
+deposit's collateral is meant to back one launch makes it a product problem too.
+
+The detection side is shipped: the read API publishes
+`sum(record.amount)` beside the vault's own totals and warns when they disagree. The
+fix belongs in the program — a per-record funding marker or a per-agent sub-ledger in
+the vault, so a payout can only draw on the collateral seized for that bond — and it
+needs a layout change plus a migration, so it is deliberately not bundled into this
+release. Tracked in [`SPEC.md`](SPEC.md) §7.

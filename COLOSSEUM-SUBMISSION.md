@@ -77,10 +77,21 @@ on-chain `trust_score` field is admin-set, so it is reported separately and neve
 an input. Every score ships a breakdown that sums exactly to the total, so it can be
 checked rather than trusted.
 
-**Engineering discipline.** 147 validator-free unit tests plus the on-chain suite in CI;
-a migration that grew live accounts in place and re-decoded each one to prove all eight
-fields survived byte-for-byte; an SDK defect found by reading the published artifact back
-from npm rather than trusting the build.
+**Engineering discipline.** 149 validator-free unit tests plus a 16-test on-chain suite
+(165 total) in CI; a migration that grew live accounts in place and re-decoded each one
+to prove all eight fields survived byte-for-byte; an SDK defect found by reading the
+published artifact back from npm rather than trusting the build.
+
+**Two defects the verification caught, both fixed.** The read API was publishing the sum
+of slash records as if it were money in escrow, while two of those records had no lamports
+behind them — it now publishes the reconciliation next to the totals and names the 0.2 SOL
+that is recorded but never deposited. And `withdraw_bond` accepted `now >= expires_at`, so
+an operator could exit the instant the lock ended and leave a late claim an empty account;
+exit now waits out a 7-day unbonding window in which the collateral stays slashable, with a
+separate error code so a client can tell "too early" from "expired, but still slashable".
+Both are recorded in [`TEST-RESULTS.md`](TEST-RESULTS.md), with the on-chain tests that
+prove the refusals and the unit tests that pin the boundary a local validator cannot
+reach.
 
 ## 4. Market size
 
@@ -113,9 +124,18 @@ business with users, and the next milestone is exactly that conversion.
 
 ## 7. Roadmap
 
-1. **Close the expiry race.** `execute_slash` ignores expiry while `withdraw_bond` requires
-   only it, so an operator can withdraw before a victim's claim lands. Bonds must stay
-   slashable for violations committed while live.
+**Closed since this document was first written: the expiry race.** `withdraw_bond` used to
+accept `now >= expires_at` while `execute_slash` rightly ignores expiry, so an operator
+could leave before a late claim landed. Exit now requires a 7-day unbonding window past
+expiry — `BondInUnbondingPeriod` — during which the bond stays slashable, and the on-chain
+suite proves both halves of it. Source-only until the next deployment, which is the honest
+status of every Rust change here.
+
+1. **Segregate escrow per agent.** One vault pool backs every record, and a `SlashRecord`
+   does not record whether its own lamports ever arrived, so a payout for an unfunded
+   record can draw on collateral seized from a different agent. The read API already
+   reports the mismatch; the fix — a per-record funding marker or a per-agent sub-ledger —
+   needs an account layout change and a migration.
 2. **On-chain violation proofs.** Detection is off-chain today; a slash is asserted. A
    verifiable witness is the next real primitive.
 3. **Dispute window.** Optimistic slashing with a challenge period and an arbiter.
@@ -137,5 +157,7 @@ business with users, and the next milestone is exactly that conversion.
 ## 9. What is not done
 
 Stated deliberately, since a judge will find it anyway: detection is off-chain; the slash
-authority is a single key; the expiry race above is open; and there is no external operator
-yet. Everything in section 3 is verifiable today.
+authority is a single key; escrow is a single pool, so a payout is not bound to the
+collateral seized for the record it pays (the read API reports the mismatch it can see);
+the unbonding window is in source only until the next devnet upgrade; and there is no
+external operator yet. Everything in section 3 is verifiable today.
