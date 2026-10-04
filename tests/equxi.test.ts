@@ -494,35 +494,74 @@ describe("equxi", () => {
     }
   });
 
-  it("Closes the bond on withdrawal and returns the remaining collateral", async () => {
-    // agentB used a 1 second lock.
+  // The bond no longer exits when its lock expires: the collateral stays
+  // slashable for an unbonding window afterwards, so a withdrawal at expiry is
+  // refused. The branch that *succeeds* is pinned by the unit tests in
+  // programs/equxi/src/instructions/withdraw_bond.rs — a local test validator's
+  // clock cannot be moved a week forward from a client, so this suite proves
+  // the refusals and the unit tests prove the arithmetic.
+  it("Refuses withdrawal inside the unbonding window after the lock expired", async () => {
+    // agentB used a 1 second lock, so `expires_at` is already in the past.
     await new Promise((r) => setTimeout(r, 2500));
 
-    const operatorBefore = await provider.connection.getBalance(admin.publicKey);
+    try {
+      await program.methods
+        .withdrawBond()
+        .accounts({
+          bond: bondBPDA,
+          agent: agentBPDA,
+          operator: admin.publicKey,
+        })
+        .rpc();
+      expect.fail("Should have failed");
+    } catch (err) {
+      expect(String(err)).to.include("BondInUnbondingPeriod");
+    }
+
+    // The refusal is not a half-success: bond and collateral are both intact.
+    const bond = await program.account.bond.fetch(bondBPDA);
+    expect(bond.isActive).to.be.true;
+    expect(bond.amount.toString()).to.equal("100000000");
+  });
+
+  // The other half of the race the window closes, end to end: a violation
+  // observed *after* the lock expired can still be paid out of the operator's
+  // collateral, instead of finding an account that already walked away with it.
+  it("Still slashes an expired bond that is inside the unbonding window", async () => {
+    const vaultBefore = await provider.connection.getBalance(vaultPDA);
+
+    // The slash-record PDA is seeded with the global slash counter, so read it
+    // from the config instead of recounting every slash in this file.
+    const nonce = (await program.account.config.fetch(configPDA)).totalSlashed;
+    const slashPDA = link(agentBPDA, nonce);
 
     await program.methods
-      .withdrawBond()
+      .executeSlash("Violated spend limit after lock expiry", new BN(100_000_000))
       .accounts({
-        bond: bondBPDA,
+        config: configPDA,
+        vault: vaultPDA,
         agent: agentBPDA,
-        operator: admin.publicKey,
+        bond: bondBPDA,
+        slashRecord: slashPDA,
+        authority: admin.publicKey,
+        systemProgram: SystemProgram.programId,
       })
       .rpc();
 
-    const operatorAfter = await provider.connection.getBalance(admin.publicKey);
-    // rent-exempt deposit + 0.1 SOL collateral, minus the tx fee.
-    expect(operatorAfter - operatorBefore).to.be.greaterThan(90_000_000);
+    // The entire bond was still there to seize, and it went to escrow.
+    const vaultAfter = await provider.connection.getBalance(vaultPDA);
+    expect(vaultAfter - vaultBefore).to.equal(100_000_000);
 
-    // The bond account is closed, so nothing is stranded.
-    let closed = false;
-    try {
-      await program.account.bond.fetch(bondBPDA);
-    } catch {
-      closed = true;
-    }
-    expect(closed).to.equal(true);
+    const bond = await program.account.bond.fetch(bondBPDA);
+    expect(bond.amount.toString()).to.equal("0");
+    expect(bond.isActive).to.be.false;
 
+    const record = await program.account.slashRecord.fetch(slashPDA);
+    expect(record.amount.toString()).to.equal("100000000");
+    expect(record.compensated).to.be.false;
+
+    // A drained bond takes its agent out of the active set.
     const agent = await program.account.agent.fetch(agentBPDA);
-    expect(agent.bondAddress.toString()).to.equal(PublicKey.default.toString());
+    expect(agent.status).to.deep.equal({ slashed: {} });
   });
 });

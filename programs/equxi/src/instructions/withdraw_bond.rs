@@ -24,6 +24,26 @@ pub fn withdrawable_at(expires_at: i64) -> i64 {
     expires_at.saturating_add(UNBONDING_PERIOD)
 }
 
+/// The whole gate, as a pure function over an explicit `now`.
+///
+/// The handler is a one-line wrapper around this. Keeping the decision here —
+/// rather than inline behind `Clock::get()` — is what lets the unit tests below
+/// pin *every* branch, including the one that says yes: a local test validator's
+/// clock cannot be moved forward, so the post-window branch is unreachable from
+/// an integration test and would otherwise ship untested.
+///
+/// The two refusals stay distinct so a client can tell "too early" from "past
+/// the lock, but still inside the unbonding window".
+pub fn ensure_withdrawable(now: i64, expires_at: i64) -> Result<()> {
+    if now < expires_at {
+        return Err(EquxiError::BondNotExpired.into());
+    }
+    if now < withdrawable_at(expires_at) {
+        return Err(EquxiError::BondInUnbondingPeriod.into());
+    }
+    Ok(())
+}
+
 /// Returns the bond to its operator after the lock period **and an unbonding
 /// window**, and closes the bond account so no lamports are stranded.
 ///
@@ -51,18 +71,7 @@ pub struct WithdrawBond<'info> {
 
 pub fn handler(ctx: Context<WithdrawBond>) -> Result<()> {
     let clock = Clock::get()?;
-    let expires_at = ctx.accounts.bond.expires_at;
-    let earliest = withdrawable_at(expires_at);
-
-    // Two distinct refusals, so a client can tell "too early" from "past the lock
-    // but still inside the unbonding window".
-    if clock.unix_timestamp < expires_at {
-        return Err(EquxiError::BondNotExpired.into());
-    }
-    require!(
-        clock.unix_timestamp >= earliest,
-        EquxiError::BondInUnbondingPeriod
-    );
+    ensure_withdrawable(clock.unix_timestamp, ctx.accounts.bond.expires_at)?;
 
     let amount = ctx.accounts.bond.amount;
 
@@ -77,20 +86,25 @@ pub fn handler(ctx: Context<WithdrawBond>) -> Result<()> {
 mod tests {
     use super::*;
 
-    /// The race this window exists to close: under the old rule a bond was
-    /// withdrawable the moment `now >= expires_at`, so the collateral could be
-    /// gone before any post-hoc slash was recorded.
-    #[test]
-    fn withdrawal_cannot_be_instant_at_expiry() {
-        let expires_at = 1_700_000_000i64;
+    const EXPIRES_AT: i64 = 1_700_000_000;
 
-        // What the old rule allowed, and no longer does.
-        assert!(expires_at >= expires_at);
-        assert!(withdrawable_at(expires_at) > expires_at);
-
+    /// `AnchorError`'s `PartialEq` compares error code numbers — exactly the
+    /// contract a caller sees — so comparing against `Error::from(..)` asserts
+    /// the specific refusal, not merely that something failed.
+    fn assert_refusal(now: i64, expected: EquxiError) {
         assert_eq!(
-            withdrawable_at(expires_at),
-            expires_at + UNBONDING_PERIOD,
+            ensure_withdrawable(now, EXPIRES_AT).unwrap_err(),
+            Error::from(expected),
+            "now={now} (expires_at={EXPIRES_AT}) must be refused"
+        );
+    }
+
+    #[test]
+    fn withdrawable_at_pushes_the_deadline_past_expiry() {
+        assert!(withdrawable_at(EXPIRES_AT) > EXPIRES_AT);
+        assert_eq!(
+            withdrawable_at(EXPIRES_AT),
+            EXPIRES_AT + UNBONDING_PERIOD,
             "withdrawable_at must push the deadline past expiry by the whole window"
         );
     }
@@ -100,10 +114,39 @@ mod tests {
         assert_eq!(UNBONDING_PERIOD, 604_800);
     }
 
+    /// The race this window exists to close: under the old rule a bond was
+    /// withdrawable the moment `now >= expires_at`, so the collateral could be
+    /// gone before any post-hoc slash was recorded.
+    #[test]
+    fn a_bond_cannot_exit_at_the_moment_its_lock_expires() {
+        assert_refusal(EXPIRES_AT, EquxiError::BondInUnbondingPeriod);
+    }
+
+    #[test]
+    fn every_second_of_the_window_is_refused() {
+        assert_refusal(EXPIRES_AT - 1, EquxiError::BondNotExpired);
+        assert_refusal(EXPIRES_AT + 1, EquxiError::BondInUnbondingPeriod);
+        assert_refusal(
+            EXPIRES_AT + UNBONDING_PERIOD - 1,
+            EquxiError::BondInUnbondingPeriod,
+        );
+    }
+
+    #[test]
+    fn exit_opens_the_second_the_window_closes() {
+        assert!(ensure_withdrawable(EXPIRES_AT + UNBONDING_PERIOD, EXPIRES_AT).is_ok());
+        assert!(ensure_withdrawable(EXPIRES_AT + UNBONDING_PERIOD + 86_400, EXPIRES_AT).is_ok());
+    }
+
     #[test]
     fn an_absurd_expiry_saturates_instead_of_wrapping() {
         // A wrapping add would land in the past and hand an operator an instant
         // withdrawal — the failure mode must be "never withdrawable", not "now".
         assert_eq!(withdrawable_at(i64::MAX), i64::MAX);
+        assert_eq!(
+            ensure_withdrawable(i64::MAX - 1, i64::MAX).unwrap_err(),
+            Error::from(EquxiError::BondInUnbondingPeriod)
+        );
+        assert!(ensure_withdrawable(i64::MAX, i64::MAX).is_ok());
     }
 }
