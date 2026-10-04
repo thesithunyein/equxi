@@ -74,8 +74,8 @@ finding stated with its fix). CertiK's criteria ("how feature-complete or testne
 "codebase quality", "willingness to show security as a foundation") map to evidence, not
 promises.
 
-**Where it is weak:** value at risk today is small and honestly so — 0.6 SOL bonded across
-2 devnet agents, and the protocol deliberately holds *only operator collateral*. Say that;
+**Where it is weak:** value at risk today is small and honestly so — 1.4 SOL bonded across
+6 devnet agents, and the protocol deliberately holds *only operator collateral*. Say that;
 do not inflate it.
 
 ## 3. Meteora DBC Track
@@ -109,7 +109,7 @@ says so). The bond is Equxi's 0.1 SOL minimum: 0.0698 SOL from the launch plus a
 | Submitted to Colosseum | ⬜ (blocker #2) |
 | Solana/Rust submission | ✅ Rust/Anchor program, 1,216 production lines + 167 inline test lines |
 | Apply through the Superteam Earn bounty | ⬜ you — paste-ready answers in [`ADEVAR-APPLICATION.md`](ADEVAR-APPLICATION.md) |
-| Answer their short questions on complexity/architecture | ✅ material ready: `SPEC.md` (AAS-1 invariants), `TEST-RESULTS.md`, the exit-race fix, the migration, 166 tests |
+| Answer their short questions on complexity/architecture | ✅ material ready: `SPEC.md` (AAS-1 invariants), `TEST-RESULTS.md`, the exit-race fix, the migration, 172 tests |
 | **Tweet about the application + follow @AdevarLabs** | ✅ account exists — `@thesithunyein`. Still **required**: post the copy below and follow @AdevarLabs, or the application is not eligible |
 
 Suggested tweet (their template, repo link filled in):

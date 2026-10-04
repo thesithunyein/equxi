@@ -32,7 +32,7 @@ frameworks shipping wallet-holding agents.
 | Production Rust | **1,216 lines**, **15 files** |
 | Framework | Anchor **0.31.2** |
 | Instructions | **11** |
-| Value at risk today | 0.6 SOL across 3 devnet agents (small, and honestly so) |
+| Value at risk today | 1.4 SOL across 6 devnet agents (small, and honestly so) |
 
 Instructions: `initialize`, `create_vault`, `migrate_agent`, `register_agent`,
 `create_bond`, `top_up_bond`, `withdraw_bond`, `add_constraint`, `execute_slash`,
@@ -48,7 +48,7 @@ Risk-bearing surfaces to prioritise:
 
 ## 3. Security posture already in place
 
-- **166 tests in CI** (17 on-chain + 149 validator-free), plus 13 Rust unit tests, across 5
+- **172 tests in CI** (17 on-chain + 155 validator-free), plus 13 Rust unit tests, across 5
   green CI jobs on every push: build + `anchor test`, Rust unit tests, wire-format, lint,
   structure.
 - **Two defects found by verification and fixed in public**, with the evidence in
@@ -77,7 +77,7 @@ Risk-bearing surfaces to prioritise:
   marker or per-agent sub-ledger) needs a layout change and migration — roadmap item 1.
 - **Devnet only.** Mainnet is gated on post-hackathon funding, and this track's audit
   credit is exactly what de-risks that step.
-- No external operators yet; three devnet agents, all created during development.
+- No external operators yet; six devnet agents, all created during development.
 
 ## 5. Month-by-month roadmap (Nov 2026 → Oct 2027)
 

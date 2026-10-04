@@ -51,7 +51,7 @@ plus `SlashRecord`), PDA-seeded, with the escrow vault owned by the program. The
 `withdraw_bond` gated by the lock plus the unbonding window. The admin pays to record a
 violation (rent + fee) — slashing is a cost centre, never a revenue path.
 
-**Security posture already in place.** 166 tests in CI (17 on-chain + 149 validator-free)
+**Security posture already in place.** 172 tests in CI (17 on-chain + 155 validator-free)
 plus 13 Rust unit tests, in 5 green CI jobs on every push. Two defects were found by
 verification and fixed in public: the read API publishing slash records as if they were
 escrow (it now publishes the reconciliation and names the 0.2 SOL discrepancy), and the exit
@@ -85,7 +85,7 @@ https://equxi.sithunyein.com · Launch page: https://equxi.sithunyein.com/launch
 
 Their judging is codebase complexity, architectural clarity, repo completeness, and ecosystem
 impact. All four already exist: an 11-instruction program with live state and a migration
-executed against it, an explicit invariant set, five green CI jobs with 166 tests, LICENSE,
+executed against it, an explicit invariant set, five green CI jobs with 172 tests, LICENSE,
 SECURITY.md, and a public defect log — plus a second integration (Meteora DBC) that turns a
 token's graduation proceeds into the agent's collateral.
 
