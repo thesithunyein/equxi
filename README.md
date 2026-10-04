@@ -450,7 +450,7 @@ console.log("Available to victims:", vault.available.toString());
 
 ## Usage in elizaOS
 
-**pnpm, straight from git today:**
+**pnpm, straight from git:**
 
 ```bash
 pnpm add github:thesithunyein/equxi#path:eliza-plugin
@@ -464,7 +464,7 @@ git clone https://github.com/thesithunyein/equxi.git
 #   "dependencies": { "@equxi/plugin-eliza": "file:../equxi/eliza-plugin" }
 ```
 
-Once published, this becomes `npm install @equxi/plugin-eliza`.
+Live on npm as [`@equxi/plugin-eliza`](https://www.npmjs.com/package/@equxi/plugin-eliza) — `npm install @equxi/plugin-eliza`.
 
 ```typescript
 import { equxiPlugin } from "@equxi/plugin-eliza";

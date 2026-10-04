@@ -6,7 +6,7 @@ Adds spend limits, timelocks, and bond enforcement to any Solana agent built on 
 
 ## Install
 
-**pnpm, straight from git today:**
+**pnpm, straight from git:**
 
 ```bash
 pnpm add github:thesithunyein/equxi#path:eliza-plugin
@@ -30,7 +30,7 @@ Then reference it by path in your agent's `package.json`:
 }
 ```
 
-Once published, this becomes `npm install @equxi/plugin-eliza`.
+Live on npm as [`@equxi/plugin-eliza`](https://www.npmjs.com/package/@equxi/plugin-eliza) — `npm install @equxi/plugin-eliza`.
 
 The git install needs no build step — `dist/` is prebuilt and tracked in the repo (pnpm 10 and npm skip `prepare` scripts on git dependencies, so the compiled output ships in git itself).
 

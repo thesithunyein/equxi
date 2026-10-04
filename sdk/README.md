@@ -6,7 +6,7 @@ An agent's operator bonds SOL behind the agent. If the agent breaks a rule, anyo
 
 ## Install
 
-**pnpm, straight from git today:**
+**pnpm, straight from git:**
 
 ```bash
 pnpm add github:thesithunyein/equxi#path:sdk
@@ -20,7 +20,13 @@ git clone https://github.com/thesithunyein/equxi.git
 #   "dependencies": { "@equxi/sdk": "file:../equxi/sdk" }
 ```
 
-**npm registry** (`npm install @equxi/sdk`): the publish is pending an npm org — check the [package page](https://www.npmjs.com/package/@equxi/sdk) for availability.
+**npm registry:**
+
+```bash
+npm install @equxi/sdk
+```
+
+Live on npm as [`@equxi/sdk`](https://www.npmjs.com/package/@equxi/sdk). Use **0.1.1 or later** — 0.1.0 returned `Agent.name` as the raw byte array Anchor decodes from the on-chain `[u8; 32]`, so `.toUpperCase()` on a field typed `string` returned a number.
 
 ## Quick start
 
@@ -68,7 +74,7 @@ Plus PDA helpers (`findConfigPDA`, `findVaultPDA`, `findAgentPDA`, `findBondPDA`
 | | |
 |---|---|
 | Cluster | Solana Devnet |
-| Program | `8RsJkPRmG9FsfP9d3LzZ3TmWRQK3YySgM4uA8EwKXVsM` |
+| Program | [`D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc`](https://explorer.solana.com/address/D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc?cluster=devnet) |
 | IDL | Bundled at `dist/idl/equxi.json` — spec-0.30 account flags, wire-verified by regression test |
 | License | MIT |
 
