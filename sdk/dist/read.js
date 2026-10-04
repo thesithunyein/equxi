@@ -105,6 +105,8 @@ async function listConstraints(fetcher, programId, decoders, accountDiscriminato
     }));
 }
 const LAMPORTS_PER_SOL = 1000000000;
+/** Mirrors the program's unbonding period; see `withdraw_bond.rs`. */
+const UNBONDING_PERIOD_SECONDS = 7 * 24 * 60 * 60;
 const SECONDS_PER_MONTH = 30 * 24 * 60 * 60;
 /**
  * Decode a fixed-size on-chain name into the string it represents.
@@ -168,6 +170,7 @@ function buildTrustProfile(input) {
             expiresAt: bond.expiresAt,
             isActive: bond.isActive,
             expired: now >= bond.expiresAt,
+            withdrawable: now >= bond.expiresAt + UNBONDING_PERIOD_SECONDS,
             locked: now < bond.expiresAt,
         }
         : null;

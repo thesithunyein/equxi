@@ -608,6 +608,9 @@
     }
     target.innerHTML = cachedBonds.map(function (b) {
       var expired = b.expiresAt && Date.now() / 1000 > b.expiresAt;
+      // Mirrors UNBONDING_PERIOD in programs/equxi/src/instructions/withdraw_bond.rs:
+      // expiry alone is not permission to withdraw.
+      var withdrawable = b.expiresAt && Date.now() / 1000 > b.expiresAt + 604800;
       var agentObj = cachedAgents.find(function (a) { return a.pubkey === b.agent; });
       var agentName = agentObj ? agentObj.name : short(b.agent);
       var buttons = '';
@@ -615,7 +618,7 @@
         buttons = '<button class="btn-outline" onclick="window._withdrawBond(\'' + b.pubkey + '\',\'' + b.agent + '\')">Withdraw</button>' +
           '<button class="btn-slash" onclick="window._openSlash(\'' + b.pubkey + '\',\'' + b.agent + '\',\'' + b.amount + '\',\'' + agentName + '\')">Slash</button>';
       }
-      return '<div class="bond-card"><div class="bond-icon"><i class="fa-solid fa-shield-halved"></i></div><div class="bond-info"><h3>' + lamportsToSol(b.amount) + ' SOL</h3><p>' + agentName + ' \u2014 ' + (b.isActive ? (expired ? "Expired \u2014 withdrawable" : "Locked") : "Withdrawn") + '</p></div><div class="bond-amount"><div class="value">' + (b.isActive ? "Active" : "Closed") + '</div><div class="label">' + (b.expiresAt ? new Date(b.expiresAt * 1000).toLocaleDateString() : "") + '</div></div>' + buttons + '</div>';
+      return '<div class="bond-card"><div class="bond-icon"><i class="fa-solid fa-shield-halved"></i></div><div class="bond-info"><h3>' + lamportsToSol(b.amount) + ' SOL</h3><p>' + agentName + ' \u2014 ' + (b.isActive ? (withdrawable ? "Expired \u2014 withdrawable" : (expired ? "Unbonding \u2014 still slashable" : "Locked")) : "Withdrawn") + '</p></div><div class="bond-amount"><div class="value">' + (b.isActive ? "Active" : "Closed") + '</div><div class="label">' + (b.expiresAt ? new Date(b.expiresAt * 1000).toLocaleDateString() : "") + '</div></div>' + buttons + '</div>';
     }).join("");
   }
   function renderConstraints() {

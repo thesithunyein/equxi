@@ -745,7 +745,11 @@
         " lamports)</span></span></div>" +
         "<div class=\"x-slash-row\"><span>Locked until</span><span>" +
         esc(when(p.bond.expiresAt)) +
-        (p.bond.expired ? " · <span class=\"x-pill paid\">withdrawable</span>" : " · <span class=\"x-pill owed\">locked</span>") +
+        (p.bond.withdrawable
+          ? " · <span class=\"x-pill paid\">withdrawable</span>"
+          : " · <span class=\"x-pill owed\">" +
+            (p.bond.expired ? "unbonding \u2014 still slashable" : "locked") +
+            "</span>") +
         "</span></div>" +
         "<div class=\"x-slash-row\"><span>Active</span><span>" +
         esc(p.bond.isActive ? "yes" : "no") +

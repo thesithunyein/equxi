@@ -92,6 +92,12 @@ export interface BondSummary {
     isActive: boolean;
     /** Lock period has elapsed; the operator may now withdraw. */
     expired: boolean;
+    /**
+     * The program keeps collateral slashable for a week past expiry, so `expired`
+     * is not permission to withdraw — this is (see `UNBONDING_PERIOD` in the
+     * program's `withdraw_bond`).
+     */
+    withdrawable: boolean;
     /** The bond is still inside its lock window. */
     locked: boolean;
 }

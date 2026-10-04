@@ -73,7 +73,7 @@ The program executes 8 instructions on devnet. All transactions confirmed.
 | `initialize` | Creates config + escrow vault; admin is bound to the program upgrade authority |
 | `register_agent` | Creates agent identity with name, type, and trust score |
 | `create_bond` | Locks SOL as collateral — the agent owner must sign |
-| `withdraw_bond` | Returns and closes the bond after the lock period |
+| `withdraw_bond` | Returns and closes the bond after the lock period **and a 7-day unbonding window** |
 | `add_constraint` | Adds a behavioral rule; agents may hold many |
 | `execute_slash` | Seizes collateral into the program-owned escrow vault |
 | `compensate_victim` | Pays the victim out of the escrow vault |

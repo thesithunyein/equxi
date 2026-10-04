@@ -111,6 +111,8 @@ declare namespace EquxiLayout {
       isActive: boolean;
       locked: boolean;
       expired: boolean;
+      /** Past the lock and past the unbonding window `withdraw_bond` enforces. */
+      withdrawable: boolean;
     } | null;
     slashes: Array<{
       nonce: string;

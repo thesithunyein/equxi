@@ -205,6 +205,12 @@ export interface BondSummary {
   isActive: boolean;
   /** Lock period has elapsed; the operator may now withdraw. */
   expired: boolean;
+  /**
+   * The program keeps collateral slashable for a week past expiry, so `expired`
+   * is not permission to withdraw — this is (see `UNBONDING_PERIOD` in the
+   * program's `withdraw_bond`).
+   */
+  withdrawable: boolean;
   /** The bond is still inside its lock window. */
   locked: boolean;
 }
@@ -252,6 +258,8 @@ export interface TrustProfile {
 }
 
 const LAMPORTS_PER_SOL = 1_000_000_000;
+/** Mirrors the program's unbonding period; see `withdraw_bond.rs`. */
+const UNBONDING_PERIOD_SECONDS = 7 * 24 * 60 * 60;
 const SECONDS_PER_MONTH = 30 * 24 * 60 * 60;
 
 /**
@@ -339,6 +347,7 @@ export function buildTrustProfile(input: TrustProfileInput): TrustProfile {
         expiresAt: bond.expiresAt,
         isActive: bond.isActive,
         expired: now >= bond.expiresAt,
+        withdrawable: now >= bond.expiresAt + UNBONDING_PERIOD_SECONDS,
         locked: now < bond.expiresAt,
       }
     : null;

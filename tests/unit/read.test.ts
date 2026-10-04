@@ -392,6 +392,23 @@ describe("read layer", () => {
       });
       expect(expired.bond!.expired).to.equal(true);
       expect(expired.bond!.locked).to.equal(false);
+
+      // Expiry is not permission. The program keeps the bond slashable for a
+      // week past expiry, so the read surface must not advertise an exit the
+      // chain would reject.
+      expect(expired.bond!.withdrawable).to.equal(false);
+
+      const pastWindow = profile({
+        bond: {
+          address: PublicKey.default,
+          amount: 1_000_000_000n,
+          lockedAt: now - 1_209_600,
+          expiresAt: now - (604_800 + 1),
+          isActive: true,
+        },
+      });
+      expect(pastWindow.bond!.expired).to.equal(true);
+      expect(pastWindow.bond!.withdrawable).to.equal(true);
     });
 
     it("never emits a score outside 0..100", () => {

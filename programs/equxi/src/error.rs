@@ -10,6 +10,8 @@ pub enum EquxiError {
     BondInactive,
     #[msg("Bond has not expired yet")]
     BondNotExpired,
+    #[msg("Bond is inside its unbonding period: collateral stays slashable after expiry")]
+    BondInUnbondingPeriod,
     #[msg("Insufficient bond balance for slashing")]
     InsufficientBond,
     #[msg("Unauthorized: only the operator can perform this action")]

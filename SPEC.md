@@ -144,7 +144,7 @@ counter.
 register_agent
       |
       v
- create_bond ──────────────► [locked] ──expiry──► withdraw_bond (closes account)
+ create_bond ──► [locked] ──expiry──► [unbonding: 7 days, still slashable] ──► withdraw_bond (closes account)
       |                          |
       |                       execute_slash
       |                          |
