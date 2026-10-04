@@ -937,6 +937,24 @@ describe("markets API (api/markets.js)", () => {
     expect(await statusFor({ error: "UNAUTHORIZED" }, 401)).to.equal(502);
   });
 
+  it("treats a 200 without an items array as a broken read, not as empty data", async () => {
+    async function failure(body: unknown) {
+      try {
+        await markets.buildResponse({}, deps([], "pk_test_abc", { body }));
+        return null;
+      } catch (error) {
+        return error as Error & { status?: number };
+      }
+    }
+
+    const missing = await failure({});
+    expect(missing && missing.status).to.equal(502);
+    expect(missing && missing.message).to.include("malformed");
+
+    const wrongType = await failure({ items: "nope" });
+    expect(wrongType && wrongType.status).to.equal(502);
+  });
+
   it("answers the handler with 200 and x-equxi-configured when no key is set", async () => {
     const originalFetch = globalThis.fetch;
     const originalKey = process.env.PANTA_API_KEY;

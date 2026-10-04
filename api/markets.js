@@ -164,7 +164,12 @@ async function buildResponse(query, deps) {
   }
 
   var payload = await response.json();
-  var items = (payload && payload.items) || [];
+  if (!payload || !Array.isArray(payload.items)) {
+    // A 200 without an items array is a broken read, not "no markets". Returning
+    // an empty list would present a partner or network anomaly as data.
+    throw Object.assign(new Error("Panta API returned a malformed market list"), { status: 502 });
+  }
+  var items = payload.items;
 
   return {
     ok: true,

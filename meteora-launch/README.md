@@ -64,11 +64,12 @@ independently verifiable on chain and the outcome visible in a public read API.
   0.1 SOL bond minimum, and prints that split when it runs. A curve whose threshold is
   larger than this demo's 0.698 SOL removes the top-up entirely — the mechanism is the
   same, the amount is a parameter.
-- **Later top-ups need a program instruction that does not exist yet.** This flow posts the
-  bond and funds it *at creation*, so `bond.amount` — the number Equxi's score reads — is
-  correct. Adding collateral to an *existing* bond goes through a plain SOL transfer to the
-  bond account, which is slashable but not recorded in `bond.amount`. A `top_up_bond`
-  instruction is the honest fix, and it is on the Equxi roadmap rather than pretended away.
+- **Later top-ups now have a program instruction.** This flow posts the bond and funds it
+  *at creation*, so `bond.amount` — the number Equxi's score reads — is correct. Adding
+  collateral to an *existing* bond used to need a plain SOL transfer that `bond.amount`
+  never recorded; [`top_up_bond`](../programs/equxi/src/instructions/top_up_bond.rs) now
+  updates both the lamports and the recorded amount, and it is **live on devnet** (upgrade
+  tx `QsbAk8qw…`, slot 507402154).
 - **Devnet graduation is manual.** Meteora's migration keepers run on mainnet, at the
   thresholds they publish (10 SOL, 750 USDC, …); this demo drove a deliberately tiny curve
   to completion and called the migrator itself. The DBC program id here is the same one as
@@ -76,9 +77,10 @@ independently verifiable on chain and the outcome visible in a public read API.
 - **Trading fees are not part of the bond.** They are small at this size (0.0056 SOL total)
   and, as noted above, must be claimed pre-graduation; the bond is funded from the
   migration fee.
-- **One devnet key ran everything**, and the Equxi deployment it talks to is the current
-  devnet program (`D7akK6aU…`), whose source in this repository is newer than the
-  deployment (the 7-day unbonding window described in `SPEC.md` is not deployed yet).
+- **One devnet key ran everything.** The Equxi deployment it talks to is the current devnet
+  program (`D7akK6aU…`) and now matches this source: the 7-day unbonding window is **live**
+  (upgrade tx `5tK2dMyR…`, slot 507390281, byte-verified against the CI build), and the
+  refusal it produces was re-proven on chain on 2026-10-04 (`BondInUnbondingPeriod`).
 
 ## What the whole run cost
 

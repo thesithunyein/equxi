@@ -221,6 +221,14 @@ async function buy() {
     amountUsdc,
     userId: "equxi",
   });
+  // The quote echo is the one client-side binding we can check: refusing a
+  // mismatch here prevents ever building (or later attributing) a transaction
+  // against a different market than the operator named.
+  if (quote.marketId !== marketId) {
+    throw new Error(
+      "quote answered for a different market (" + quote.marketId + ") — refusing to build"
+    );
+  }
   console.log("[1/3] quote");
   console.log("      buyer           :", buyer);
   console.log("      side            :", quote.side, "·", quote.amountUsdc, "USDC deposit");
