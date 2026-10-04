@@ -150,7 +150,7 @@ trust data becomes *priced*.
 Needs from you: a Panta API key (start with `pk_test_`), and a USDC wallet if we want to
 create a market for the demo.
 
-## 6. RPC Fast Sidetrack (~$500 of infrastructure)
+## 6. RPC Fast Sidetrack (~$10,500 in RPC infrastructure credits)
 
 | Requirement | Status |
 |---|---|
