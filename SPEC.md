@@ -196,10 +196,24 @@ AAS-1 (draft) does **not** yet specify:
 6. **Registry paging.** `getProgramAccounts` returns at most ~100 KB per call, so
    the reference read API can only scan a registry of roughly 850 accounts before
    the RPC refuses. A conforming reader should page, or index into a database.
+7. **Escrow is a single pool.** `compensate_victim` pays out of
+   `vault.total_slashed − vault.total_compensated` — both global counters — and a
+   `SlashRecord` does not record whether its own lamports ever arrived. A record
+   whose seizure never happened can therefore be compensated from collateral
+   taken off a **different** agent, and a bond whose recorded collateral was
+   debited without moving lamports can still be withdrawn in full. The read API
+   publishes the mismatch it can see (`reconciliation` in `GET /api/trust`); the
+   fix — a per-record funding marker or a per-agent sub-ledger — needs a layout
+   change and a migration.
+
+   *Closed in this revision:* the exit race. An expired bond used to be
+   withdrawable before a late claim landed; `withdraw_bond` now requires a 7-day
+   unbonding window past expiry in which the collateral stays slashable. See
+   `programs/equxi/src/instructions/withdraw_bond.rs`.
 
 ## 8. Reference implementation notes
 
-Equxi implements the model above in Anchor 0.30.1. Deliberate scope boundaries:
+Equxi implements the model above in Anchor 0.31.2. Deliberate scope boundaries:
 
 - The protocol holds **only operator collateral**. It is not a custodian of user
   funds, which keeps it out of money-transmission territory.
