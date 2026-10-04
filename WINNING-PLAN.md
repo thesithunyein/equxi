@@ -50,7 +50,10 @@ The existing **75 s shot list stays** as the product-truth clip (and feeds both 
 Judged on: **Panta API integration, technical execution, product/UX, originality, impact, traction.**
 Four winners (2,000 / 1,000 / 1,000 / 1,000 USDG) — a small field with four paid places.
 
-Honest current state: `/api/markets` is a **read-only discovery** integration. That is eligibility-grade, not 9+.
+Honest current state: `/api/markets` covers discovery, and the create/buy/attribute
+flows are built and tested (`lib/panta.js`, `panta-agent-market.js`, `--dry-run` works
+without spending). Until a key exists and one market is created + traded on chain, the
+integration is still *unproven end to end* — which is the difference between 8 and 9+.
 The 9+ move is the one nobody else can copy: **turn an agent's on-chain bond and slash record into a live, tradable prediction market** — *"Will agent X be slashed before <date>?"* — and show its YES/NO price right next to the collateral it prices.
 
 ### The integration map (what to build, endpoint by endpoint)
@@ -76,7 +79,7 @@ Applied in this commit to the `/api/markets` payload (`attribution` field) and R
 
 - [ ] **Mint `pk_test_` key** (free, 5 min): register → `POST /account/keys/ {"env":"test"}` → set `PANTA_API_KEY` in Vercel + locally. **[you]**
 - [ ] Ask in **Panta Discord #dev-chat** whether `pk_test_` keys get a test/devnet USDC environment for create + trade, and whether `canCreateMarkets` is enabled. Decide real-USDC (50 USDC fee) only after their answer. **[you]**
-- [ ] Build the agent-risk market flows in the order: create → buy → positions. **[me]**
+- [x] **Built 2026-10-05** — `lib/panta.js` + `panta-agent-market.js`: create (quote → build → sign → register) and buy (quote → build → submit → attribute), with `--dry-run` validating auth/params/fee for free, and unit tests pinning every documented route, body and error code. Positions/claim views remain. **[me]**
 - [ ] Explorer market card: price, phase, claim eligibility, "Powered by Panta". **[me]**
 - [ ] Create the first agent-risk market for a live Equxi agent (value at risk is 1.4 SOL across 6 agents — pick one with a recorded slash for a compelling question). **[you + me]**
 - [ ] Demo it in the technical video: market price next to the bond it prices; report the trade via `/trades/`. **[you]**

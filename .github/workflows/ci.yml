@@ -166,6 +166,9 @@ jobs:
           test -f api/badge.d.ts || exit 1
           test -f api/markets.js || exit 1
           test -f api/markets.d.ts || exit 1
+          test -f lib/panta.js || exit 1
+          test -f lib/panta.d.ts || exit 1
+          test -f panta-agent-market.js || exit 1
           test -f lib/equxi-layout.js || exit 1
           test -f explorer.html || exit 1
           test -f explorer.js || exit 1
@@ -229,7 +232,7 @@ jobs:
           # The function must not acquire dependencies: `vercel.json` disables the
           # build, so anything imported here has to resolve at runtime unbuilt.
           # Every `require` must therefore be relative.
-          for f in api/trust.js api/badge.js api/markets.js lib/equxi-layout.js; do
+          for f in api/trust.js api/badge.js api/markets.js lib/equxi-layout.js lib/panta.js; do
             if grep -oE 'require\("[^"]+"\)' "$f" | grep -vE 'require\("\.[^"]*"\)'; then
               echo "$f requires a package; it must stay dependency-free" && exit 1
             fi
@@ -237,6 +240,8 @@ jobs:
           node --check api/trust.js || exit 1
           node --check api/badge.js || exit 1
           node --check api/markets.js || exit 1
+          node --check lib/panta.js || exit 1
+          node --check panta-agent-market.js || exit 1
           node --check lib/equxi-layout.js || exit 1
           node --check explorer.js || exit 1
           node --check landing.js || exit 1
@@ -244,6 +249,8 @@ jobs:
           grep -q 'module.exports' api/trust.js || exit 1
           grep -q 'module.exports' api/badge.js || exit 1
           grep -q 'module.exports' api/markets.js || exit 1
+          # Panta's Terms require the attribution wherever the feed appears.
+          grep -q 'Powered by Panta' api/markets.js || exit 1
           # The badge must escape the agent-controlled values it prints.
           grep -q 'function xml(' api/badge.js || exit 1
           # The landing page reads this API, and agent names are attacker

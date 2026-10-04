@@ -420,6 +420,30 @@ that reads like data. Upstream failures keep their meaning: `RATE_LIMITED`
 becomes a `429`, `INVALID_MARKET_PARAMS` a `400`, and a rejected key a `502`
 because that is this deployment's config fault, not the caller's.
 
+**Agent-risk markets.** Discovery is half the integration; the other half is
+creation and trading, in [`panta-agent-market.js`](panta-agent-market.js) over
+[`lib/panta.js`](lib/panta.js):
+
+```bash
+# Validate auth + params + fee without paying anything
+PANTA_API_KEY=pk_test_… node panta-agent-market.js create \
+  --agent <agentPDA> --name "Witness260521" --resolve-by 2026-11-15 --dry-run
+
+# Create: quote → build → sign → broadcast → register
+PANTA_API_KEY=pk_test_… node panta-agent-market.js create \
+  --agent <agentPDA> --name "Witness260521" --resolve-by 2026-11-15 --key <keypair.json>
+
+# Trade YES, then report the trade for attribution
+PANTA_API_KEY=pk_test_… node panta-agent-market.js buy \
+  --market <marketId> --side yes --amount 20.00 --key <keypair.json>
+```
+
+The question is mechanical and public — *“Will Equxi agent <name> be slashed
+before <date>?”* — and it resolves from the same `/api/trust?agent=` evidence
+anyone can curl, so the market prices the exact risk this repo exists to make
+legible. Nothing is ever custodied: Panta cooks the transaction, the local
+wallet signs it, we broadcast on our RPC, then report the signature back.
+
 ## Trust Explorer
 
 [`explorer.html`](explorer.html) is the human-readable view of the same data —
