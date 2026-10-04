@@ -58,10 +58,13 @@ honest "what is not done" section.
 | Description, problem, target users | See `COLOSSEUM-SUBMISSION.md` §1–2, §4 — paste as-is: consequence (not permission) is unsolved for wallet-holding agents; users are API/MCP providers, marketplaces, agent frameworks |
 | Programs/contracts to audit, approximate line count | `programs/equxi/src` — **~1,216 lines of Rust**, 15 files, Anchor 0.31.2, 11 instructions. Risk-bearing surfaces: `execute_slash`, `compensate_victim`, `withdraw_bond`, `create_vault` + `state.rs` | 
 | Target mainnet launch date | **Q1 2027 if funded** — mainnet is gated on post-hackathon funding, which is precisely what this track's audit credit is for. Say it that way: the track exists to get projects to mainnet |
-| 6–12 month roadmap | Draft in §7 of `COLOSSEUM-SUBMISSION.md` (escrow segregation → on-chain violation proofs → dispute window → decentralised slash authority → registry paging); needs a month-by-month version ⬜ |
+| 6–12 month roadmap | ✅ month-by-month in [`CERTIK-BRIEF.md`](CERTIK-BRIEF.md) §5 (Nov 2026 → Oct 2027); the five-step summary stays in §7 of `COLOSSEUM-SUBMISSION.md` |
 | Team: names, roles, X/GitHub, full-time? | Sithu Nyein — solo: Anchor program, SDK, elizaOS plugin, read API, explorer, and the tests. Built alongside other work, not full-time. GitHub `thesithunyein`, X `@thesithunyein` |
 | Fundraising status | Bootstrapped. A **200 USDG Superteam grant** was awarded and payout is in progress; no external round raised and none in progress |
 | Scoping-call contact | Email `sithunyein.mailto@gmail.com` ✅ — their form accepts email, so Telegram is optional |
+
+Application-ready version of all of the above, with the audit scope, trust boundaries and the
+month-by-month roadmap: [`CERTIK-BRIEF.md`](CERTIK-BRIEF.md).
 
 **Where Equxi is strong for this track:** it is the one track that rewards exactly what is
 already in the repo — a testnet-ready program handling on-chain value, CI that compiles and
@@ -105,7 +108,7 @@ says so). The bond is Equxi's 0.1 SOL minimum: 0.0698 SOL from the launch plus a
 |---|---|
 | Submitted to Colosseum | ⬜ (blocker #2) |
 | Solana/Rust submission | ✅ Rust/Anchor program, 1,216 production lines + 167 inline test lines |
-| Apply through the Superteam Earn bounty | ⬜ you |
+| Apply through the Superteam Earn bounty | ⬜ you — paste-ready answers in [`ADEVAR-APPLICATION.md`](ADEVAR-APPLICATION.md) |
 | Answer their short questions on complexity/architecture | ✅ material ready: `SPEC.md` (AAS-1 invariants), `TEST-RESULTS.md`, the exit-race fix, the migration, 166 tests |
 | **Tweet about the application + follow @AdevarLabs** | ✅ account exists — `@thesithunyein`. Still **required**: post the copy below and follow @AdevarLabs, or the application is not eligible |
 
