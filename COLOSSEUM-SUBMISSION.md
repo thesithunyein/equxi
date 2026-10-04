@@ -83,6 +83,16 @@ checked rather than trusted.
 to prove all eight fields survived byte-for-byte; an SDK defect found by reading the
 published artifact back from npm rather than trusting the build.
 
+**The launch integration, on chain.** A token launch that creates its own accountability:
+[`meteora-launch/`](meteora-launch/README.md) builds a Meteora DBC config where half of
+trading fees and half of a 10% migration fee belong to the launch, drives the curve to 100%
+with a partial-fill buy, migrates the pool to DAMM v2, claims the graduation proceeds
+(0.0698 SOL), and posts them as the launched agent's Equxi bond — read back as **A / 92**
+through the public API. Ten devnet transactions, all linked, including the two things
+the run taught us that the docs do not say: a buy that would cross the graduation threshold
+must be a partial fill, and trading fees must be claimed *before* graduation because
+migration takes the fee vaults with it.
+
 **Two defects the verification caught, both fixed.** The read API was publishing the sum
 of slash records as if it were money in escrow, while two of those records had no lamports
 behind them — it now publishes the reconciliation next to the totals and names the 0.2 SOL
@@ -117,13 +127,18 @@ resolution fees, bonding-as-a-service for marketplaces, and risk pricing on bond
 
 ## 6. Traction (honest)
 
-Two agents on devnet, both created during development. Two independent implementations of
+Three agents on devnet, all created during development — including `EAGT`, whose bond was
+funded by a Meteora DBC launch that graduated on devnet the same day. Two independent implementations of
 the read layer (`sdk/src/read.ts` and `lib/equxi-layout.js`) are asserted to agree, and the
 SDK is published so an outside developer can install and use it today. There are no
 external operators or revenue yet — this is a working primitive with real proof, not a
 business with users, and the next milestone is exactly that conversion.
 
 ## 7. Roadmap
+
+**Also shipped since the first draft: a Meteora DBC launch that funds an agent's bond.**
+`meteora-launch/` runs a real devnet launch whose graduation proceeds become slashable
+collateral; the evidence is in `meteora-launch/README.md` and `TRACK-READINESS.md`.
 
 **Closed since this document was first written: the expiry race.** `withdraw_bond` used to
 accept `now >= expires_at` while `execute_slash` rightly ignores expiry, so an operator

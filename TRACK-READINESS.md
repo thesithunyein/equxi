@@ -85,16 +85,18 @@ GitHub UI yourself and choose an explicit permission.
 
 | Requirement | Status |
 |---|---|
-| Meaningful use of DBC / DAMM v2 | ❌ **no Meteora code exists** — `grep meteora` finds only an unrelated "Jupiter/Raydium" example in the plugin README |
-| Novel launch mechanics (their "Ideas we'd love to see") | ⚠️ the pitch exists (a share of graduation locks into Equxi's safety escrow), but it is prose, and their first judging criterion is **depth of integration** |
-| Traction/volume | not required ("we prefer"), so a devnet-level, working integration is the realistic target |
+| Meaningful use of DBC / DAMM v2 | ✅ **working devnet integration, every step on chain** — `meteora-launch/` builds the DBC config (creator trading fee 50%, migration fee 10% with 50% to the creator), creates the pool with metadata, swaps through the curve with a partial fill that stops exactly at the graduation boundary, migrates the pool to **DAMM v2**, claims the graduation proceeds, and posts them as an Equxi agent's bond. Ten transactions, all linked in `meteora-launch/README.md` |
+| Novel launch mechanics (their "Ideas we'd love to see") | ✅ "launch with safety escrow": the token launched on DBC (`EAGT`) created an agent whose bond is read back as **A / 92** by Equxi's public API. A launchpad built on this would make a token's graduation fund the collateral that backstops its own agent |
+| Traction/volume | not required ("we prefer"); honest numbers on devnet: graduation threshold **0.698 SOL**, proceeds **0.0698 SOL**, bond **0.1 SOL** |
+| What remains for this track | ⬜ a launch UI (this is a CLI today), ⬜ mainnet (Meteora's migration keepers only run there), ⬜ an Equxi `top_up_bond` instruction so *later* deposits are recorded rather than merely held |
 
-**The build that scores**: a DBC launch where graduation proceeds split into the agent's
-Equxi bond instead of all going to the pool — "launch with safety escrow". Concretely:
-`@meteora-ag/dynamic-bonding-curve-sdk` on devnet, a config where the graduation split/creator
-fee routes a slice to the bond PDA, a script in this repo producing real tx signatures, and a
-page that shows the bond as part of the token's launch. That turns the pitch into an
-end-to-end launch flow using their stack, which is the thing they say they are looking for.
+**What the build already proves** (and what it does not — the README states both): the
+integration is real DBC, not a mock. Two findings came out of running it rather than
+reading the docs: a buy that would cross the graduation threshold must be a **partial
+fill**, and a pool's **trading fees must be claimed before graduation**, because
+`migrate_to_damm_v2` takes the fee vaults with it (this run left 0.0056 SOL unclaimable and
+says so). The bond is Equxi's 0.1 SOL minimum: 0.0698 SOL from the launch plus a disclosed
+0.0302 top-up — a larger curve removes the top-up, the mechanism is identical.
 
 ## 4. Adevar Labs Pre-Audit ($4,000 in-kind)
 

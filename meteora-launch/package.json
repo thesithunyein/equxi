@@ -1,0 +1,22 @@
+{
+  "name": "equxi-meteora-launch",
+  "version": "1.0.0",
+  "description": "Launch a token on Meteora's dynamic bonding curve whose graduation proceeds post an Equxi agent's slashable collateral (devnet).",
+  "main": "index.js",
+  "scripts": {
+    "status": "node launch-safety-bond.js status",
+    "all": "node launch-safety-bond.js all",
+    "help": "node launch-safety-bond.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@meteora-ag/dynamic-bonding-curve-sdk": "^1.5.13",
+    "@solana/spl-token": "^0.4.15",
+    "@solana/web3.js": "^1.99.0",
+    "bn.js": "^5.2.5"
+  },
+  "private": true
+}
