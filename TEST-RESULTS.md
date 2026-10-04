@@ -409,3 +409,69 @@ anchor test
 ```
 
 CI runs the same sequence in the `Build & Test Program` job.
+
+## Compensation proof on devnet (2026-10-04)
+
+Everything above shows the program *can* move money. This section records the first time
+it *did*, end to end. The claim the protocol exists for — slashed collateral reaching the
+victim — previously had no on-chain evidence at all: devnet carried two slash records of
+0.1 SOL each while the escrow vault held exactly its rent-exempt minimum and the bond
+still held its full collateral. The records said money moved; the lamports said otherwise.
+
+Produced by [`prove-compensation.js`](prove-compensation.js), which asserts each balance
+movement instead of printing it:
+
+| Step | Transaction | Slot | Balance effect |
+|---|---|---|---|
+| Lock 0.5 SOL bond | [`3Y9cUQaq1kPrhorbZ2yY1oEg3Qs7bjeZ…`](https://explorer.solana.com/tx/3Y9cUQaq1kPrhorbZ2yY1oEg3Qs7bjeZmzWJmodVVfSs1dfUeoFMexDP4ovbePSxRGqm1C8RpGyey4XXYQEN7g9a?cluster=devnet) | 507271408 | bond **+0.5012** (0.5 collateral + rent) |
+| `execute_slash` 0.2 SOL | [`5otbo1PB4dEyNjzZDF6awTjJt…`](https://explorer.solana.com/tx/5otbo1PB4dEyNjzZDF6awTjJtsTVS69KRNETcVr5c7Lo4tgBp7CjzSQATm7NuQMRCQa14uFjKePKzjA73NzGLcru?cluster=devnet) | 507271413 | bond **−0.2000**, vault **+0.2000** |
+| `compensate_victim` 0.2 SOL | [`djWtG284YJTQMgGgYZFuu8R7…`](https://explorer.solana.com/tx/djWtG284YJTQMgGgYZFuu8R7yaJitVt876p31V7MD1T82W79ihc4rQiznkn8LpkUCi7Ut1CbcYEyim34jdWe52g?cluster=devnet) | 507271417 | vault **−0.2000**, victim **+0.2000** |
+
+Accounts: agent `Witness141106` = `8ayw4XbkUZzBkTox6xomAkJ4gNT97He35GSpE3K5eZbH`, bond
+`8RPSrhixG5qiyjYhDV6jWgezURtJ3V7yQBnUqwcPXSQ8`, slash record
+`65kqvDjBQGaHvHDE4G8cKYKc7ixokJX77iiMzXkSoL12` (nonce 2, amount 200,000,000, reason
+`prove-compensation: demonstrated violation`, victim `Some(…)`, `compensated = true`),
+victim `AfHDYGWYgL5StFgXTN912c9CG5bswpauxsuEZ1pcXdWy` — whose entire account history is
+that one incoming transfer, so there is no ambiguity about where the 0.2 SOL came from.
+
+Invariants checked against live account bytes after the run:
+
+| AAS-1 | Requirement | Observed |
+|---|---|---|
+| I1 | slashed lamports land in the program-owned vault, not the admin | vault **+0.2000**; admin **received nothing** — its only movement was 1,965,960 lamports of rent for the new slash record plus the 5,000 lamport fee |
+| I4 | `vault.lamports == rent_exempt + total_slashed − total_compensated` | `777,240 == 777,240 + 200,000,000 − 200,000,000` |
+| I5 | `bond.amount` equals collateral held; payout does not mutate it | recorded **300,000,000**, held **300,000,000**, unchanged by payout |
+| I6 | bond keeps its remaining collateral | 301,188,720 lamports — 0.3 SOL above rent |
+| I11 | payout ≤ slash amount | 0.2 SOL of a 0.2 SOL slash |
+| I13 | each slash compensated at most once | `compensated = true` |
+
+I1 is worth stating precisely, because "the admin received nothing" and "the admin's balance
+was unaffected" are not the same claim and only the first is true. The slash transaction
+moves value between exactly two accounts — bond **−200,000,000**, vault **+200,000,000** —
+while the authority *pays* 1,965,960 lamports to create the slash record (its rent-exempt
+minimum for a 259-byte account) on top of the 5,000 lamport fee. Recording a violation is
+a cost to the protocol, never a revenue path, and that is now checkable from the
+transaction rather than argued in prose.
+
+The public read path needs no privileged access to see any of it:
+`GET /api/trust?agent=8ayw4Xbk…` reports the slash as compensated, with the victim address
+and 0.2000 SOL. The new agent derives **B / 82**, against Augur's **D / 48** with both
+slashes still open — an unpaid slash costs more than a settled one, which is the intended
+incentive.
+
+> **Honest notes.** (1) The harness's bond assertion was wrong on the first run: it
+> compared the bond's post-payout balance against its *pre-slash* value, so a correct
+> −0.2 seizure printed as a failure. It now checks the seizure at the slash and the
+> no-op at the payout. Every figure above was then re-verified independently by reading
+> account state and transaction metadata, not by trusting the harness. (2) Two older
+> slash records on Augur (nonce 0 and 1, 0.1 SOL each) still have no lamports behind
+> them — the vault never received them and the bond's recorded amount never fell — so the
+> read API currently reports 0.2 SOL of consequences that never economically happened.
+> That is legacy v0.1 demo state, not a fault in the path documented above.
+
+**Still open.** `execute_slash` checks `agent.status`, `bond.is_active` and a non-zero
+amount, but **not** expiry, so an expired bond can still be seized. `withdraw_bond`,
+however, requires only `now >= expires_at`. The practical consequence is a race: once a
+bond expires, the operator can withdraw before a victim's claim lands, and nothing stops
+them. Slashing must be possible for violations committed while a bond was live, and a
+claim needs to survive expiry. Tracked in [`SPEC.md`](SPEC.md) §7.
