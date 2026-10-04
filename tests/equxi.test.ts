@@ -263,6 +263,102 @@ describe("equxi", () => {
     expect(config.totalBonds.toString()).to.equal("2");
   });
 
+  // Collateral that arrives after the bond was created used to be invisible:
+  // `bond.amount` only ever learned about `create_bond`. A later deposit now has
+  // a door - and only the bond's operator holds its key.
+  it("Records a later top-up in the bond ledger, and only for the operator", async () => {
+    const agentCName = "TopUpAgent";
+    const [agentCPDA] = PublicKey.findProgramAddressSync(
+      [Buffer.from("agent"), admin.publicKey.toBuffer(), Buffer.from(agentCName)],
+      program.programId
+    );
+    const [bondCPDA] = PublicKey.findProgramAddressSync(
+      [Buffer.from("bond"), agentCPDA.toBuffer()],
+      program.programId
+    );
+
+    await program.methods
+      .registerAgent(agentCName, { trader: {} })
+      .accounts({
+        config: configPDA,
+        agent: agentCPDA,
+        operator: admin.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .rpc();
+
+    await program.methods
+      .createBond(new BN(100_000_000), new BN(LONG_LOCK_SECONDS))
+      .accounts({
+        config: configPDA,
+        bond: bondCPDA,
+        agent: agentCPDA,
+        owner: admin.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .rpc();
+
+    // Zero is refused: a paid transaction that records nothing is not a top-up.
+    try {
+      await program.methods
+        .topUpBond(new BN(0))
+        .accounts({
+          bond: bondCPDA,
+          agent: agentCPDA,
+          operator: admin.publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .rpc();
+      expect.fail("Should have failed");
+    } catch (err) {
+      expect(String(err)).to.include("InvalidAmount");
+    }
+
+    // So is a stranger's deposit: authority over what the ledger records stays
+    // with the operator, even when the lamports would be a gift.
+    const intruder = Keypair.generate();
+    await provider.connection.confirmTransaction(
+      await provider.connection.requestAirdrop(intruder.publicKey, LAMPORTS_PER_SOL)
+    );
+    try {
+      await program.methods
+        .topUpBond(new BN(1))
+        .accounts({
+          bond: bondCPDA,
+          agent: agentCPDA,
+          operator: intruder.publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([intruder])
+        .rpc();
+      expect.fail("Should have failed");
+    } catch (err) {
+      expect(String(err)).to.match(/Unauthorized|custom program error/);
+    }
+
+    const bondBefore = await provider.connection.getBalance(bondCPDA);
+
+    await program.methods
+      .topUpBond(new BN(50_000_000))
+      .accounts({
+        bond: bondCPDA,
+        agent: agentCPDA,
+        operator: admin.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .rpc();
+
+    // Both halves matter: the lamports moved AND the recorded amount learned
+    // about them. Sending SOL to the account without the instruction would
+    // satisfy the first assertion and fail the second.
+    expect(
+      (await provider.connection.getBalance(bondCPDA)) - bondBefore
+    ).to.equal(50_000_000);
+    const bond = await program.account.bond.fetch(bondCPDA);
+    expect(bond.amount.toString()).to.equal("150000000");
+    expect(bond.isActive).to.be.true;
+  });
+
   // Regression: the owner used to be checked only by address without signing,
   // so anyone could occupy an agent's single bond PDA with a dust bond.
   it("Rejects a bond created by someone who is not the agent owner", async () => {

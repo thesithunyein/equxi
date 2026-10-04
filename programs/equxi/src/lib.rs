@@ -57,6 +57,11 @@ pub mod equxi {
         instructions::create_bond::handler(ctx, amount, lock_duration)
     }
 
+    /// Record additional collateral into an existing bond (operator only)
+    pub fn top_up_bond(ctx: Context<TopUpBond>, amount: u64) -> Result<()> {
+        instructions::top_up_bond::handler(ctx, amount)
+    }
+
     /// Withdraw bond after lock period expires
     pub fn withdraw_bond(ctx: Context<WithdrawBond>) -> Result<()> {
         instructions::withdraw_bond::handler(ctx)

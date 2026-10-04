@@ -156,6 +156,7 @@ jobs:
           test -f programs/equxi/src/lib.rs || exit 1
           test -f programs/equxi/src/state.rs || exit 1
           test -f programs/equxi/src/error.rs || exit 1
+          test -f programs/equxi/src/instructions/top_up_bond.rs || exit 1
           test -f sdk/src/index.ts || exit 1
           test -f sdk/src/idl/equxi.json || exit 1
           test -f eliza-plugin/src/coder.ts || exit 1
