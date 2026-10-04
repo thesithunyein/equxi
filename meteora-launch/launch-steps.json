@@ -1,0 +1,57 @@
+{
+  "cluster": "devnet",
+  "ranAt": "2026-10-04",
+  "summary": "Ten devnet transactions: a DBC config and pool, a partial-fill buy that stops exactly at the graduation threshold, migration to DAMM v2, the graduation-proceeds claims, and the posting of those proceeds as an Equxi agent's bond.",
+  "steps": [
+    {
+      "label": "createConfig",
+      "detail": "DBC config: 1B supply, SOL quote, 1% base fee, 50% of trading fees to the creator, 10% migration fee with 50% to the creator.",
+      "tx": "4UNyVwWKsBGAeRjfdGMbjjtkoHBqJXPtxPfBMFipVVdUZvgsjmbZKyL1KxjuEiLkRFRFUzyGsFoP2UA98f3ZMstQ"
+    },
+    {
+      "label": "createPool",
+      "detail": "The token (EAGT) and its DBC pool. Graduation threshold: 0.698 SOL.",
+      "tx": "5VgjsKAuX5x4Wt8juSGjn9CJtz2CPMjsRHTAHV9FRxcHBDSz2oPw4hENtJNnYGGHqmKkPGrGq478nZ5SYq5xS32n"
+    },
+    {
+      "label": "buy (partial fill)",
+      "detail": "The final buy stops exactly at the threshold — DBC refuses a buy that would overshoot it, so it is sent as a partial fill. Curve: 100%.",
+      "tx": "63XKG1HKGGBz76paU2dS8K6MzUqQEzfNMfnLtdHc9KjCWJcWmXeA6gV1Bg7MFR9eBwqAct4VmtmiY1FakJ6DkmxB"
+    },
+    {
+      "label": "migrateToDammV2",
+      "detail": "Graduation into DAMM v2 with the dynamic-fee config — the pool moves to permanent liquidity.",
+      "tx": "z7k3EcSpJJAVNJ8rkkQUP55acbWrSNV2VLgsV23HpjToWrRDfKWU2dL9rVVdv2GcMVP7KuZ5b7sQJyeBEjGwCxm"
+    },
+    {
+      "label": "open fee account",
+      "detail": "The wrapped-SOL account the quote fees land in. It must exist before any claim or the token program rejects the credit.",
+      "tx": "a3SS74ownhe3wnwUqG4Ddxp1NLwo2PuvT8WS2kucPD2MQYaTGYL4u7XC4Xfty4ng3Dh52Ge96id7rW24Ms5CLag"
+    },
+    {
+      "label": "creatorWithdrawMigrationFee",
+      "detail": "The graduation proceeds, creator half: 10% of the graduated quote, split with the partner. This wallet moved +0.0698 SOL.",
+      "tx": "QsA82W9bR1GMxJLBujL6yXrkt26XQSZ8KLjsdR2TyUivLbB7EVUtjCLQd2RDjMYxqAzxreHi69MxHvpQiynavXN"
+    },
+    {
+      "label": "partnerWithdrawMigrationFee",
+      "detail": "The partner half of the same 10% migration fee.",
+      "tx": "5DeRbeU5rjwnz2XM28pkStjmhBXUqRLuX2NiWJAka2heELWyunvwjqYigrZEqxMYsURzPwj3X38K5Agi9YqmPrn9"
+    },
+    {
+      "label": "register_agent",
+      "detail": "The launched token's agent on Equxi — the identity that will hold the collateral.",
+      "tx": "2coSpGkfX63Z23YioZ7U9uB3qUsewjpZpRquBvgUh66yac56ePnPiMEjAz8FzeMQKW2y9KgZh5tnL9gPrmCykp98"
+    },
+    {
+      "label": "unwrapWSOL",
+      "detail": "The proceeds come back as lamports so they can be handed to Equxi as SOL.",
+      "tx": "Euu2je2Leh6iFy1Wfw1SJZ16VcQJXrHJ3YHmbE8Z2BCPo6bj5i6heEt9zxeemfJn5oETbQQNyCWMQatP6WcRs8a"
+    },
+    {
+      "label": "create_bond",
+      "detail": "The launch proceeds become collateral: a 0.1 SOL Equxi bond, read back with the agent graded A / 92.",
+      "tx": "4EFJktKiuYgzZhLWZ63R9eAERbdtqvbccei6MgY72g7Kd8QrtKTRd5f3T2AFv8ZTbvAdtQPj8C3P7EL4WpRQx8pe"
+    }
+  ]
+}

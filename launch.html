@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Equxi — Launch with safety escrow</title>
+  <meta name="description" content="A token launch on Meteora's Dynamic Bonding Curve whose graduation proceeds become the launch's own Equxi bond — ten devnet transactions, every step linked." />
+  <link rel="icon" type="image/webp" href="assets/logo.webp" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .lx-section { position: relative; z-index: 1; width: 100%; padding: 8px 32px 72px; }
+    .lx-inner { max-width: 860px; margin: 0 auto; }
+
+    .lx-steps { list-style: none; margin: 26px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+    .lx-step {
+      display: flex; gap: 14px; padding: 16px 18px;
+      border: 1px solid #1a1a1a; border-radius: 14px; background: #080808;
+    }
+    .lx-step-n {
+      flex: 0 0 28px; height: 28px; line-height: 28px; text-align: center;
+      border-radius: 50%; background: rgba(153, 69, 255, 0.16); color: #cfc0ee;
+      font-weight: 600; font-size: 13px;
+    }
+    .lx-step-body { min-width: 0; }
+    .lx-step-head { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .lx-step-head code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 13px; color: var(--green);
+    }
+    .lx-step p { margin: 6px 0 0; font-size: 13.5px; color: var(--muted); line-height: 1.6; }
+    .lx-link { color: var(--purple); text-decoration: none; font-size: 12.5px; }
+    .lx-link:hover { text-decoration: underline; }
+
+    .lx-states { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 22px; }
+    .lx-state {
+      display: flex; justify-content: space-between; gap: 12px; align-items: baseline;
+      padding: 11px 14px; border: 1px solid #1a1a1a; border-radius: 11px;
+      background: #080808; text-decoration: none; min-width: 0;
+    }
+    .lx-state span { color: var(--muted); font-size: 12.5px; white-space: nowrap; }
+    .lx-state code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 12.5px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .lx-state:hover { border-color: rgba(153, 69, 255, 0.5); }
+
+    .lx-card { margin-top: 22px; padding: 20px; border: 1px solid #1a1a1a; border-radius: 16px; background: #080808; }
+    .lx-agent-head { display: flex; justify-content: space-between; gap: 16px; align-items: center; flex-wrap: wrap; }
+    .lx-agent-name { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+    .lx-agent-sub {
+      margin-top: 4px; font-size: 12.5px; color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    .lx-grade {
+      display: inline-block; min-width: 30px; text-align: center; padding: 3px 9px;
+      border-radius: 8px; font-weight: 700; font-size: 13px; vertical-align: 3px;
+    }
+    .lx-grade.g-A, .lx-grade.g-B { background: rgba(20, 241, 149, 0.14); color: var(--green); }
+    .lx-grade.g-C { background: rgba(240, 180, 41, 0.14); color: #f0b429; }
+    .lx-grade.g-D, .lx-grade.g-F { background: rgba(255, 84, 84, 0.14); color: #ff5454; }
+    .lx-grade.g-ungraded { background: #171717; color: var(--muted); }
+    .lx-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
+    .lx-row { display: flex; justify-content: space-between; gap: 12px; padding: 10px 13px; border: 1px solid #161616; border-radius: 10px; }
+    .lx-row span { color: var(--muted); font-size: 12.5px; }
+    .lx-row strong { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .lx-links { margin-top: 16px; display: flex; gap: 14px; flex-wrap: wrap; }
+    .lx-notice { margin-top: 14px; font-size: 13px; color: var(--muted); line-height: 1.6; }
+    .lx-notice.bad { color: #ff9d9d; }
+
+    @media (max-width: 768px) {
+      .lx-section { padding: 8px 20px 64px; }
+      .lx-states, .lx-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <a href="index.html" class="logo">
+        <img src="assets/logo.webp" alt="Equxi" width="40" height="40" />
+        <span class="logo-text">Equxi</span>
+      </a>
+      <nav class="nav" id="desktopNav">
+        <a href="docs.html" class="nav-link">Docs</a>
+        <a href="app.html" class="nav-link">Dashboard</a>
+        <a href="explorer.html" class="nav-link">Explorer</a>
+        <a href="launch.html" class="nav-link" style="color: var(--text);">Launch</a>
+        <a href="https://github.com/thesithunyein/equxi" class="nav-link" target="_blank">GitHub</a>
+        <a href="https://x.com/equxi_ai" class="nav-link" target="_blank"><i class="fa-brands fa-x-twitter"></i></a>
+      </nav>
+      <a href="app.html" class="btn-primary desktop-only">Register an agent</a>
+      <button class="menu-toggle" id="menuToggle" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </header>
+    <div class="mobile-nav" id="mobileNav">
+      <a href="docs.html" class="mobile-nav-link">Docs</a>
+      <a href="app.html" class="mobile-nav-link">Dashboard</a>
+      <a href="explorer.html" class="mobile-nav-link">Explorer</a>
+      <a href="launch.html" class="mobile-nav-link">Launch</a>
+      <a href="https://github.com/thesithunyein/equxi" class="mobile-nav-link" target="_blank">GitHub</a>
+      <a href="https://x.com/equxi_ai" class="mobile-nav-link" target="_blank"><i class="fa-brands fa-x-twitter"></i></a>
+      <a href="app.html" class="btn-primary" style="width:100%;margin-top:12px;">Register an agent</a>
+    </div>
+
+    <main class="hero">
+      <div class="badge">
+        <span class="badge-dot"></span>
+        Equxi × Meteora DBC — devnet
+      </div>
+      <h1 class="headline">Launch with<br />safety escrow</h1>
+      <p class="subhead">
+        A token launch whose graduation proceeds become the collateral behind the agent that
+        runs it. Ten transactions — every one on chain, none of them a mock.
+      </p>
+      <div class="cta-row">
+        <a href="#steps" class="btn-primary btn-lg">See the transactions</a>
+        <a href="#agent" class="btn-outline btn-lg">Read the agent →</a>
+      </div>
+    </main>
+  </div>
+
+  <section class="lx-section" id="idea">
+    <div class="lx-inner">
+      <div class="how-tag"><span class="badge-dot"></span> The Idea</div>
+      <h2 class="how-title">A launch that creates its own consequence</h2>
+      <p class="how-sub">The same transaction trail that creates the token creates the collateral.</p>
+      <div class="how-grid">
+        <div class="how-card">
+          <div class="how-icon"><i class="fa-solid fa-chart-line"></i></div>
+          <h3>Launch on DBC</h3>
+          <p>The token discovers its price on Meteora's Dynamic Bonding Curve. The config routes 50% of trading fees — and half of the 10% migration fee — back to the launch.</p>
+        </div>
+        <div class="how-card">
+          <div class="how-icon"><i class="fa-solid fa-water"></i></div>
+          <h3>Graduate into DAMM v2</h3>
+          <p>The final buy is a partial fill, so the curve stops exactly at the threshold and graduates into permanent liquidity instead of overshooting.</p>
+        </div>
+        <div class="how-card">
+          <div class="how-icon"><i class="fa-solid fa-lock"></i></div>
+          <h3>Post it as a bond</h3>
+          <p>The claimed proceeds become the launched agent's Equxi bond — slashable collateral, with the bond's ledger, lock and unbonding window all enforced on chain.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="lx-section" id="steps">
+    <div class="lx-inner">
+      <div class="how-tag"><span class="badge-dot"></span> The Launch, On Chain</div>
+      <h2 class="how-title">Ten transactions, no privileged steps</h2>
+      <p class="how-sub" id="stepsSummary">Every step below is a devnet transaction you can open in the explorer.</p>
+      <ol class="lx-steps" id="launchSteps"></ol>
+      <div class="lx-notice" id="stepsNotice"></div>
+      <div class="lx-states" id="launchState"></div>
+    </div>
+  </section>
+
+  <section class="lx-section" id="agent">
+    <div class="lx-inner">
+      <div class="how-tag"><span class="badge-dot"></span> Read It Back Yourself</div>
+      <h2 class="how-title">The launched agent, graded live</h2>
+      <p class="how-sub">This card is rendered from the public read API on every page load — not from a screenshot taken during the run.</p>
+      <div class="lx-card" id="agentCard"></div>
+      <div class="lx-notice" id="agentNotice"></div>
+    </div>
+  </section>
+
+  <section class="lx-section" id="limits">
+    <div class="lx-inner">
+      <div class="how-tag"><span class="badge-dot"></span> Honest Limits</div>
+      <h2 class="how-title">What this does not prove</h2>
+      <p class="how-sub">Stated here so nobody has to discover it from the chain.</p>
+      <div class="how-grid">
+        <div class="how-card">
+          <div class="how-icon"><i class="fa-solid fa-network-wired"></i></div>
+          <h3>Devnet, not mainnet</h3>
+          <p>Every transaction ran on devnet. Meteora's production migration keepers run on mainnet, so here the migration was executed manually — the step is linked above.</p>
+        </div>
+        <div class="how-card">
+          <div class="how-icon"><i class="fa-solid fa-scale-balanced"></i></div>
+          <h3>0.0698 + 0.0302</h3>
+          <p>The launch's claimed proceeds were 0.0698 SOL; Equxi's minimum bond is 0.1 SOL, so the remaining 0.0302 SOL is a disclosed top-up, not launch proceeds.</p>
+        </div>
+        <div class="how-card">
+          <div class="how-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+          <h3>0.0056 SOL left unclaimed</h3>
+          <p>Trading fees must be claimed before migration — after <code>migrate_to_damm_v2</code> the fee vaults are gone. This run learned that too late; the README says so.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img src="assets/logo.webp" alt="Equxi" width="28" height="28" style="border-radius: 6px;" />
+        <span style="font-weight: 600;">Equxi</span>
+      </div>
+      <nav class="footer-links">
+        <a href="docs.html">Docs</a>
+        <a href="app.html">Dashboard</a>
+        <a href="explorer.html">Explorer</a>
+        <a href="launch.html">Launch</a>
+        <a href="https://github.com/thesithunyein/equxi" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+      <div class="footer-copy">Built on Solana. Open source under MIT.</div>
+    </div>
+  </footer>
+
+  <script src="main.js"></script>
+  <script src="launch.js"></script>
+</body>
+</html>
