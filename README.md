@@ -391,7 +391,7 @@ normalizes them into one flat list. It never custodies or signs anything.
 
 **Powered by Panta** — the attribution Panta's Terms of Use require wherever
 Panta-powered functionality appears. It is carried in the JSON payload
-(`attribution`) and rendered by the Explorer card.
+(`attribution`), and the Explorer card will render it once the card lands.
 
 ```bash
 # The feed itself (200 even when the integration is switched off — see below)

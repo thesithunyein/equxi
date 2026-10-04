@@ -119,7 +119,7 @@ async function buildResponse(query, deps) {
       configured: false,
       source: "panta",
       // Required by Panta's Terms of Use wherever Panta-powered functionality
-      // appears; the Explorer card renders this too.
+      // appears; the Explorer card will render it once the card lands.
       attribution: "Powered by Panta",
       base: PANTA_BASE,
       generatedAt: now,
