@@ -66,13 +66,15 @@ counterparty reads the bond and slash history from one endpoint before dealing.
 
 ## On-Chain Proof
 
-The program executes 8 instructions on devnet. All transactions confirmed.
+The program's eleven instructions are live on devnet. All transactions confirmed.
 
 | Instruction | Description |
 |-------------|-------------|
 | `initialize` | Creates config + escrow vault; admin is bound to the program upgrade authority |
+| `create_vault` | One-time migration: creates the escrow vault on an older config (upgrade authority + admin) |
 | `register_agent` | Creates agent identity with name, type, and trust score |
 | `create_bond` | Locks SOL as collateral — the agent owner must sign |
+| `top_up_bond` | Records collateral added after creation — operator-only, updates `bond.amount` |
 | `withdraw_bond` | Returns and closes the bond after the lock period **and a 7-day unbonding window** |
 | `add_constraint` | Adds a behavioral rule; agents may hold many |
 | `execute_slash` | Seizes collateral into the program-owned escrow vault |
@@ -175,7 +177,7 @@ layout change that is not mirrored in every client fails immediately.
 equxi/
 ├── programs/equxi/           Solana program (Rust/Anchor)
 │   └── src/
-│       ├── lib.rs            9 instructions (8 on devnet: create_vault is v0.2)
+│       ├── lib.rs            11 instructions, all live on devnet
 │       ├── state.rs          Account structs
 │       ├── error.rs          Error codes
 │       └── instructions/     Instruction handlers

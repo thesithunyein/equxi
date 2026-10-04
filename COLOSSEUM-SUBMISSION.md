@@ -39,7 +39,7 @@ path to whoever it hurt — and all three have to be verifiable by the counterpa
 
 ## 3. Product + execution
 
-**What is live on devnet today.** Nine instructions, a program-owned escrow vault, and a
+**What is live on devnet today.** Eleven instructions, a program-owned escrow vault, and a
 public read path:
 
 ```
@@ -78,8 +78,8 @@ on-chain `trust_score` field is admin-set, so it is reported separately and neve
 an input. Every score ships a breakdown that sums exactly to the total, so it can be
 checked rather than trusted.
 
-**Engineering discipline.** 149 validator-free unit tests plus a 16-test on-chain suite
-(165 total) in CI; a migration that grew live accounts in place and re-decoded each one
+**Engineering discipline.** 149 validator-free unit tests plus a 17-test on-chain suite
+(166 total) in CI; a migration that grew live accounts in place and re-decoded each one
 to prove all eight fields survived byte-for-byte; an SDK defect found by reading the
 published artifact back from npm rather than trusting the build.
 
@@ -103,6 +103,12 @@ separate error code so a client can tell "too early" from "expired, but still sl
 Both are recorded in [`TEST-RESULTS.md`](TEST-RESULTS.md), with the on-chain tests that
 prove the refusals and the unit tests that pin the boundary a local validator cannot
 reach.
+
+**A gap closed the same way.** `create_bond` was the only door collateral could enter
+through, so deposits made afterwards stayed invisible to `bond.amount` — the ledger, the
+read API and the derived score all understated what was actually at risk. `top_up_bond`
+now moves the lamports and records them in one signed, operator-only step, and it is
+live on devnet with on-chain tests proving both halves.
 
 ## 4. Market size
 
@@ -144,8 +150,8 @@ collateral; the evidence is in `meteora-launch/README.md` and `TRACK-READINESS.m
 accept `now >= expires_at` while `execute_slash` rightly ignores expiry, so an operator
 could leave before a late claim landed. Exit now requires a 7-day unbonding window past
 expiry — `BondInUnbondingPeriod` — during which the bond stays slashable, and the on-chain
-suite proves both halves of it. Source-only until the next deployment, which is the honest
-status of every Rust change here.
+suite proves both halves of it. Both Rust changes are deployed: the window went live on devnet on 2026-10-04, and
+`top_up_bond` followed the same day — each byte-verified against its source build.
 
 1. **Segregate escrow per agent.** One vault pool backs every record, and a `SlashRecord`
    does not record whether its own lamports ever arrived, so a payout for an unfunded
@@ -163,17 +169,19 @@ status of every Rust change here.
 
 | Time | Shot | Voiceover |
 |---|---|---|
-| 0:00–0:08 | Landing page, headline only | "Platforms solved permission for AI agents. Nobody solved consequence." |
-| 0:08–0:20 | Trust Explorer, Augur's panel open | "This agent posted collateral on Solana. A counterparty can read its bond and its slash history in one call — before serving it." |
-| 0:20–0:32 | Score ledger expanded | "The grade is derived from evidence, not asserted by an admin — and the breakdown sums to the number, so it can be checked." |
-| 0:32–0:52 | Terminal: `prove-compensation.js` running | "A violation is recorded. Watch the collateral: out of the bond, into a vault the admin cannot touch —" |
-| 0:52–1:05 | Explorer confirms bond −0.2, vault +0.2, then payout | "— and out to the victim. Bond to vault to victim, every lamport accounted for on chain." |
-| 1:05–1:15 | `/api/trust` JSON for the slashed agent | "The same registry now reports that slash as compensated, publicly, with no privileged access." |
+| 0:00–0:06 | Landing page, headline only | "Platforms solved permission for AI agents. Nobody solved consequence." |
+| 0:06–0:16 | Trust Explorer, Augur's panel open | "This agent posted collateral on Solana. A counterparty can read its bond and its slash history in one call — before serving it." |
+| 0:16–0:24 | Score ledger expanded | "The grade is derived from evidence, not asserted by an admin — and the breakdown sums to the number, so it can be checked." |
+| 0:24–0:40 | Terminal: `prove-compensation.js` — a live slash and payout | "A violation is recorded. Watch the collateral: out of the bond, into a vault the admin cannot touch — and out to the victim." |
+| 0:40–0:50 | Terminal: a bond created with a 1-second lock, then withdrawn at expiry — refused with `BondInUnbondingPeriod` | "Exit is not instant. For seven days past the lock, the collateral is still there to be seized." |
+| 0:50–1:02 | `launch.html` — the Meteora DBC launch page, EAGT read back as A / 92 | "A Meteora launch whose graduation proceeds became the agent's bond — ten transactions, all on chain." |
+| 1:02–1:10 | `/api/trust` JSON and badge for the slashed agent | "The same registry reports it all publicly, with no privileged access." |
+| 1:10–1:15 | Close on the landing page | "Detection is still off-chain and the admin is still one key — the next two things to fix." |
 
 ## 9. What is not done
 
 Stated deliberately, since a judge will find it anyway: detection is off-chain; the slash
 authority is a single key; escrow is a single pool, so a payout is not bound to the
 collateral seized for the record it pays (the read API reports the mismatch it can see);
-the unbonding window is in source only until the next devnet upgrade; and there is no
-external operator yet. Everything in section 3 is verifiable today.
+the launch flow is script-driven with an evidence page, not a hosted launchpad; and there
+is no external operator yet. Everything in section 3 is verifiable today.

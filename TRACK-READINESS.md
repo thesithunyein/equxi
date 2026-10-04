@@ -8,14 +8,14 @@ Measured for the audits that ask for scope:
 
 | Asset | Size |
 |---|---|
-| `programs/equxi/src` (production Rust, audit target) | **1,133 lines**, 14 files, 9 instructions + state + errors |
-| Inline Rust unit tests in that crate | 130 lines |
-| On-chain test suite `tests/equxi.test.ts` | 567 lines (16 cases) |
+| `programs/equxi/src` (production Rust, audit target) | **1,216 lines**, 15 files, 11 instructions + state + errors |
+| Inline Rust unit tests in that crate | 167 lines |
+| On-chain test suite `tests/equxi.test.ts` | 664 lines (17 cases) |
 | Validator-free unit tests `tests/unit/*` | 2,904 lines (149 cases) |
 | `sdk/src` (TypeScript SDK) | 1,011 lines |
 | `eliza-plugin/src` | 1,329 lines |
 | Deployment | **devnet only** — `D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc` |
-| CI | 5 jobs green: build + `anchor test` (165 passing), Rust unit tests, wire-format, lint, structure |
+| CI | 5 jobs green: build + `anchor test` (166 passing), Rust unit tests, wire-format, lint, structure |
 
 ## 0. Cross-track blockers, in the order they must happen
 
@@ -32,9 +32,10 @@ Measured for the audits that ask for scope:
    link, Panta requires submission to both, RPC Fast requires submission to both, and
    Adevar's *first eligibility rule* is a Colosseum submission. Nothing else can be filed
    until that link exists.
-3. **The unbonding window is source-only.** Devnet still runs the pre-window program, so a
-   judge who tries to withdraw at expiry on the live deployment can do what the site says
-   is impossible. Deploy the CI-built artifact before recording the demo.
+3. ~~**The unbonding window is source-only.**~~ **Closed 2026-10-04.** Devnet now runs the
+   unbonding window (upgrade tx `5tK2dMyR…`, slot 507390281) and `top_up_bond`
+   (`QsbAk8qw…`, slot 507402154); each upgrade was byte-verified against its build, and the
+   live read API still decodes every agent.
 
 ## 1. Colosseum main track (primary submission)
 
@@ -44,7 +45,7 @@ Measured for the audits that ask for scope:
 | Live product | ✅ https://equxi.sithunyein.com — static HTML/JS + two dependency-free serverless routes |
 | Working demo video | ❌ **lost — must re-record** |
 | Submitted before Oct 12 | ⬜ you |
-| Claims match the chain | ⚠️ deploy the unbonding window first |
+| Claims match the chain | ✅ upgrades live on devnet 2026-10-04 — `5tK2dMyR…` (unbonding window), `QsbAk8qw…` (top_up_bond) |
 
 Copy for the form is already written: `COLOSSEUM-SUBMISSION.md` §1–§9, including the
 honest "what is not done" section.
@@ -55,7 +56,7 @@ honest "what is not done" section.
 |---|---|
 | Colosseum submission link + public repo (or access instructions) | ⬜ Colosseum link once submitted. Repo is **public**, so no access instructions are needed |
 | Description, problem, target users | See `COLOSSEUM-SUBMISSION.md` §1–2, §4 — paste as-is: consequence (not permission) is unsolved for wallet-holding agents; users are API/MCP providers, marketplaces, agent frameworks |
-| Programs/contracts to audit, approximate line count | `programs/equxi/src` — **~1,133 lines of Rust**, 14 files, Anchor 0.31.2, 9 instructions. Risk-bearing surfaces: `execute_slash`, `compensate_victim`, `withdraw_bond`, `create_vault` + `state.rs` | 
+| Programs/contracts to audit, approximate line count | `programs/equxi/src` — **~1,216 lines of Rust**, 15 files, Anchor 0.31.2, 11 instructions. Risk-bearing surfaces: `execute_slash`, `compensate_victim`, `withdraw_bond`, `create_vault` + `state.rs` | 
 | Target mainnet launch date | **Q1 2027 if funded** — mainnet is gated on post-hackathon funding, which is precisely what this track's audit credit is for. Say it that way: the track exists to get projects to mainnet |
 | 6–12 month roadmap | Draft in §7 of `COLOSSEUM-SUBMISSION.md` (escrow segregation → on-chain violation proofs → dispute window → decentralised slash authority → registry paging); needs a month-by-month version ⬜ |
 | Team: names, roles, X/GitHub, full-time? | Sithu Nyein — solo: Anchor program, SDK, elizaOS plugin, read API, explorer, and the tests. Built alongside other work, not full-time. GitHub `thesithunyein`, X `@thesithunyein` |
@@ -88,7 +89,7 @@ GitHub UI yourself and choose an explicit permission.
 | Meaningful use of DBC / DAMM v2 | ✅ **working devnet integration, every step on chain** — `meteora-launch/` builds the DBC config (creator trading fee 50%, migration fee 10% with 50% to the creator), creates the pool with metadata, swaps through the curve with a partial fill that stops exactly at the graduation boundary, migrates the pool to **DAMM v2**, claims the graduation proceeds, and posts them as an Equxi agent's bond. Ten transactions, all linked in `meteora-launch/README.md` |
 | Novel launch mechanics (their "Ideas we'd love to see") | ✅ "launch with safety escrow": the token launched on DBC (`EAGT`) created an agent whose bond is read back as **A / 92** by Equxi's public API. A launchpad built on this would make a token's graduation fund the collateral that backstops its own agent |
 | Traction/volume | not required ("we prefer"); honest numbers on devnet: graduation threshold **0.698 SOL**, proceeds **0.0698 SOL**, bond **0.1 SOL** |
-| What remains for this track | ⬜ a launch UI (this is a CLI today), ⬜ mainnet (Meteora's migration keepers only run there), ⬜ an Equxi `top_up_bond` instruction so *later* deposits are recorded rather than merely held |
+| What remains for this track | ✅ a launch page (`launch.html`, nav-linked) renders the ten transactions and the live read-back; ✅ `top_up_bond` is live on devnet so *later* deposits are recorded rather than merely held; ⬜ mainnet (Meteora's migration keepers only run there) |
 
 **What the build already proves** (and what it does not — the README states both): the
 integration is real DBC, not a mock. Two findings came out of running it rather than
@@ -103,9 +104,9 @@ says so). The bond is Equxi's 0.1 SOL minimum: 0.0698 SOL from the launch plus a
 | Requirement | Status |
 |---|---|
 | Submitted to Colosseum | ⬜ (blocker #2) |
-| Solana/Rust submission | ✅ Rust/Anchor program, 1,133 lines + 130 inline test lines |
+| Solana/Rust submission | ✅ Rust/Anchor program, 1,216 production lines + 167 inline test lines |
 | Apply through the Superteam Earn bounty | ⬜ you |
-| Answer their short questions on complexity/architecture | ✅ material ready: `SPEC.md` (AAS-1 invariants), `TEST-RESULTS.md`, the exit-race fix, the migration, 165 tests |
+| Answer their short questions on complexity/architecture | ✅ material ready: `SPEC.md` (AAS-1 invariants), `TEST-RESULTS.md`, the exit-race fix, the migration, 166 tests |
 | **Tweet about the application + follow @AdevarLabs** | ✅ account exists — `@thesithunyein`. Still **required**: post the copy below and follow @AdevarLabs, or the application is not eligible |
 
 Suggested tweet (their template, repo link filled in):
@@ -174,7 +175,7 @@ API, RPC-endpoint parameterised".
 | # | Action | Owner | Why now |
 |---|---|---|---|
 | 1 | Re-record the 75s demo, including the terminal segment (`prove-compensation.js`) | you + me | every track needs it; currently nothing exists on disk |
-| 2 | Deploy the CI-built program to devnet so the unbonding window is live | me | stops the site from under-promising vs chain |
+| 2 | ~~Deploy the CI-built program to devnet~~ **Done 2026-10-04** — unbonding window + `top_up_bond` live, byte-verified | me | the site and the chain now agree |
 | 3 | Submit on Colosseum (main track) | you | unlocks CertiK / Panta / RPC Fast / Adevar |
 | 4 | CertiK form (answers ready in §2) + Meteora form | you | forms are on Colosseum |
 | 5 | Adevar: apply on Superteam Earn, post the tweet from `@thesithunyein`, follow @AdevarLabs | you | the tweet is a hard requirement, not a bonus |

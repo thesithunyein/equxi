@@ -31,14 +31,17 @@
 | Read API against live devnet | ✅ **returned real data** | See “Live devnet read” below |
 | Trust Explorer rendered | ✅ **verified in a browser** | Screenshot reproduced below in prose; served by `dev-server.js` |
 | `anchor build` | ✅ **compiled** | CI run [34983589484](https://github.com/thesithunyein/equxi/actions/runs/34983589484), `Build program` took 201s |
-| `anchor test` | ✅ **165 passing, 0 failing** | 16 on-chain tests + 149 unit tests on a real local validator |
-| Unbonding window | ✅ **on-chain + unit** | Withdrawal inside the window is refused with the bond intact, a violation observed after expiry still seizes the whole bond, and every boundary of the pure gate is unit-tested — see “The exit race” below. Source-only until the next devnet upgrade |
+| `anchor test` | ✅ **166 passing, 0 failing** | 17 on-chain tests + 149 unit tests on a real local validator |
+| Unbonding window | ✅ **on-chain + unit** | Withdrawal inside the window is refused with the bond intact, a violation observed after expiry still seizes the whole bond, and every boundary of the pure gate is unit-tested — see “The exit race” below. Live on devnet since 2026-10-04 — see the upgrade rows |
 | CI (Wire-format Unit Tests) | ✅ **149 passing** | Runs on every push |
 | `GET /api/badge` against live devnet | ✅ **returned a real badge** | `x-equxi-status: graded`, `x-equxi-grade: D`, `x-equxi-score: 48` for agent Augur — see below |
 | Explorer: search, sort, filter, ledger, embed | ✅ **verified in a browser against live devnet** | See below |
 | SDK scorer vs. API scorer agreement | ✅ **149 passing** | Both implementations asserted equal across six scenarios, including the floored one |
 | CI (Build & Test Program) | ✅ **green** | Compiles the program and runs the on-chain suite |
 | Devnet redeploy of v0.2 | ✅ **Deployed and migrated** | Program replaced at `D7akK…` (slot 499249941), vault created, live agent grown 116 → 118 bytes with all 8 preserved fields verified identical — see below |
+| Devnet upgrade — unbonding window (v0.3) | ✅ **Deployed live** | Upgrade tx `5tK2dMyR…` at slot 507390281; on-chain bytes byte-verified against the source build |
+| Devnet upgrade — `top_up_bond` (v0.4) | ✅ **Deployed live** | 10,240-byte program-data extension first (the loader refuses smaller growth), then tx `QsbAk8qw…` at slot 507402154; on-chain bytes byte-verified |
+| `top_up_bond` behaviour | ✅ **on-chain + unit** | Lamports move AND `bond.amount` learns about them; zero and non-operator deposits refused; ledger arithmetic pinned by unit tests |
 
 Update this table as each check passes, with the actual command output.
 

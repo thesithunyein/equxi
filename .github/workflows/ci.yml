@@ -167,6 +167,9 @@ jobs:
           test -f lib/equxi-layout.js || exit 1
           test -f explorer.html || exit 1
           test -f explorer.js || exit 1
+          test -f launch.html || exit 1
+          test -f launch.js || exit 1
+          test -f meteora-launch/launch-steps.json || exit 1
           test -f landing.js || exit 1
           test -f dev-server.js || exit 1
           # The upgrade path: a broken migration tool is worse than none, and it
