@@ -1,6 +1,6 @@
 # SECURITY-AUDIT.md — strict review for the Colosseum sidetracks
 
-Audited 2026-10-05 against the code at commit `2b8bf5b` (the repairs below land on
+Audited 2026-10-05 against the code at commit `4b3c3cd` (the repairs below land on
 top of it). Method: read the program, the API functions, the scripts and the
 frontend; grep for the claimed mechanisms before reviewing them; run the unit
 suite, typecheck, and the live-state checks already recorded in
