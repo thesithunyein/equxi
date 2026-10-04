@@ -4,6 +4,7 @@
 > when it breaks a rule, the money moves — from the bond, into escrow, to the victim —
 > on chain, with no custodian in the loop.
 
+- **Builder:** Sithu Nyein — [GitHub](https://github.com/thesithunyein), [X](https://x.com/thesithunyein)
 - **Live:** https://equxi.sithunyein.com
 - **Program (devnet):** `D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc`
 - **Repo:** https://github.com/thesithunyein/equxi

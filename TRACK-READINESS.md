@@ -58,7 +58,7 @@ honest "what is not done" section.
 | Programs/contracts to audit, approximate line count | `programs/equxi/src` — **~1,133 lines of Rust**, 14 files, Anchor 0.31.2, 9 instructions. Risk-bearing surfaces: `execute_slash`, `compensate_victim`, `withdraw_bond`, `create_vault` + `state.rs` | 
 | Target mainnet launch date | **Q1 2027 if funded** — mainnet is gated on post-hackathon funding, which is precisely what this track's audit credit is for. Say it that way: the track exists to get projects to mainnet |
 | 6–12 month roadmap | Draft in §7 of `COLOSSEUM-SUBMISSION.md` (escrow segregation → on-chain violation proofs → dispute window → decentralised slash authority → registry paging); needs a month-by-month version ⬜ |
-| Team: names, roles, X/GitHub, full-time? | Sithu Nyein — solo: Anchor program, SDK, elizaOS plugin, read API, explorer, and the tests. Built alongside other work, not full-time. GitHub `thesithunyein`; X handle ⬜ |
+| Team: names, roles, X/GitHub, full-time? | Sithu Nyein — solo: Anchor program, SDK, elizaOS plugin, read API, explorer, and the tests. Built alongside other work, not full-time. GitHub `thesithunyein`, X `@thesithunyein` |
 | Fundraising status | Bootstrapped. A **200 USDG Superteam grant** was awarded and payout is in progress; no external round raised and none in progress |
 | Scoping-call contact | Email `sithunyein.mailto@gmail.com` ✅ — their form accepts email, so Telegram is optional |
 
@@ -104,7 +104,7 @@ end-to-end launch flow using their stack, which is the thing they say they are l
 | Solana/Rust submission | ✅ Rust/Anchor program, 1,133 lines + 130 inline test lines |
 | Apply through the Superteam Earn bounty | ⬜ you |
 | Answer their short questions on complexity/architecture | ✅ material ready: `SPEC.md` (AAS-1 invariants), `TEST-RESULTS.md`, the exit-race fix, the migration, 165 tests |
-| **Tweet about the application + follow @AdevarLabs** | ⬜ you — **required**. There is no email alternative in their rules, so an X account is a prerequisite for this bounty |
+| **Tweet about the application + follow @AdevarLabs** | ✅ account exists — `@thesithunyein`. Still **required**: post the copy below and follow @AdevarLabs, or the application is not eligible |
 
 Suggested tweet (their template, repo link filled in):
 
@@ -175,7 +175,7 @@ API, RPC-endpoint parameterised".
 | 2 | Deploy the CI-built program to devnet so the unbonding window is live | me | stops the site from under-promising vs chain |
 | 3 | Submit on Colosseum (main track) | you | unlocks CertiK / Panta / RPC Fast / Adevar |
 | 4 | CertiK form (answers ready in §2) + Meteora form | you | forms are on Colosseum |
-| 5 | Adevar: apply on Superteam Earn, post the tweet, follow @AdevarLabs — create an X account first if you do not have one | you | the tweet is a hard requirement, not a bonus |
+| 5 | Adevar: apply on Superteam Earn, post the tweet from `@thesithunyein`, follow @AdevarLabs | you | the tweet is a hard requirement, not a bonus |
 | 6 | Panta: mint an API key, then build `/api/markets` + the agent market card | me (needs your key) | the only track where the product is missing, not the paperwork |
 | 7 | RPC Fast: claim Focus plan → point the read layer at their endpoint → record the proof; follow + join + 2 posts | you + me | needs their endpoint URL, which comes from the form |
 
