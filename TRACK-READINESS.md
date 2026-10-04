@@ -19,12 +19,15 @@ Measured for the audits that ask for scope:
 
 ## 0. Cross-track blockers, in the order they must happen
 
-1. **The demo video does not exist anymore.** `C:\Users\sithu\equxi-demo\` is gone, and
-   there are no `.webm`/`.mp4` files in the repository, the home directory, Desktop,
-   Videos, Downloads, or any other drive. The 0:32–0:52 terminal segment was never
-   recorded even before that. Every track judges a working demo, and Colosseum requires a
-   video URL at submission — **this is now the single highest-risk item**, and it needs
-   the admin key and a live slash run to recapture the money-moving segment.
+1. **The demo video does not exist anymore.** `C:\Users\sithu\equxi-demo\` is gone, and an
+   exhaustive search of `C:\Users\sithu` plus every other drive finds no Equxi clip — the
+   only `.webm`/`.mp4` files on the machine belong to other projects. **Before
+   re-recording, look wherever the clips were sent** (Telegram, Viber, Drive): three of the
+   four segments existed as finished files (01-landing 24.6s, 02-explorer 109s, 03-api
+   46s), and only the 0:32–0:52 terminal segment was never recorded. A recovery would
+   leave exactly that one segment to shoot; either way it needs the admin key and a live
+   slash run to show the collateral actually moving. Every track judges a working demo, and
+   Colosseum requires a video URL at submission — **this is the highest-risk item**.
 2. **Submit on the Colosseum dashboard first.** CertiK asks for the Colosseum submission
    link, Panta requires submission to both, RPC Fast requires submission to both, and
    Adevar's *first eligibility rule* is a Colosseum submission. Nothing else can be filed
