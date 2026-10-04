@@ -118,6 +118,9 @@ async function buildResponse(query, deps) {
       ok: true,
       configured: false,
       source: "panta",
+      // Required by Panta's Terms of Use wherever Panta-powered functionality
+      // appears; the Explorer card renders this too.
+      attribution: "Powered by Panta",
       base: PANTA_BASE,
       generatedAt: now,
       note:
@@ -167,6 +170,7 @@ async function buildResponse(query, deps) {
     ok: true,
     configured: true,
     source: "panta",
+    attribution: "Powered by Panta",
     base: PANTA_BASE,
     generatedAt: now,
     counts: { markets: items.length },

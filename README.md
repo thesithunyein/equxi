@@ -389,6 +389,10 @@ trades are the other half of the picture. `GET /api/markets` reads the
 operator's own markets live from [Panta's](https://panta.market) API and
 normalizes them into one flat list. It never custodies or signs anything.
 
+**Powered by Panta** — the attribution Panta's Terms of Use require wherever
+Panta-powered functionality appears. It is carried in the JSON payload
+(`attribution`) and rendered by the Explorer card.
+
 ```bash
 # The feed itself (200 even when the integration is switched off — see below)
 curl https://equxi.sithunyein.com/api/markets

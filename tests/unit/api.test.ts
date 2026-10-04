@@ -876,6 +876,7 @@ describe("markets API (api/markets.js)", () => {
     expect(payload.markets).to.deep.equal([]);
     expect(payload.counts.markets).to.equal(0);
     expect(payload.note).to.include("PANTA_API_KEY");
+    expect(payload.attribution).to.equal("Powered by Panta");
     expect(calls.length).to.equal(0); // It must not call Panta without a key.
   });
 
@@ -887,6 +888,7 @@ describe("markets API (api/markets.js)", () => {
     expect(calls[0].url).to.equal("https://live-api.panta.market/api/v1/markets/");
     expect(calls[0].init.headers["X-Api-Key"]).to.equal("pk_test_abc");
     expect(payload.configured).to.equal(true);
+    expect(payload.attribution).to.equal("Powered by Panta");
     expect(payload.counts.markets).to.equal(1);
     expect(payload.nextCursor).to.equal("cursor_2");
     expect(payload.markets[0].marketId).to.equal("mkt_ed_1");

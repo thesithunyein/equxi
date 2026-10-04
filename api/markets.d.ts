@@ -90,6 +90,8 @@ declare namespace markets {
     /** False when `PANTA_API_KEY` is unset: the feed is off, and says so. */
     configured: boolean;
     source: "panta";
+    /** Required by Panta's Terms of Use wherever the feed appears. */
+    attribution: string;
     /** Panta's live API base URL, so a reader can verify the provenance. */
     base: string;
     generatedAt: number;
