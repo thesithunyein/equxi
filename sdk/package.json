@@ -1,6 +1,6 @@
 {
   "name": "@equxi/sdk",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "TypeScript SDK for Equxi — slashable collateral and accountability for AI agents on Solana",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

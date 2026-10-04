@@ -3,6 +3,11 @@ import { BN } from "@coral-xyz/anchor";
 
 export interface Agent {
   owner: PublicKey;
+  /**
+   * UTF-8 name, NUL-padded to 32 bytes on chain. Anchor's coder returns the raw
+   * byte array, so `EquxiClient.listAgents()` decodes it — a name read through
+   * the SDK is a string, not `[65, 117, 103, 117, 114, 0, …]`.
+   */
   name: string;
   agentType: AgentType;
   trustScore: number;

@@ -128,6 +128,19 @@ export interface TrustProfile {
     stats: TrustStats;
     warnings: string[];
 }
+/**
+ * Decode a fixed-size on-chain name into the string it represents.
+ *
+ * `Agent.name` is a NUL-padded `[u8; 32]` on chain, and Anchor's account coder
+ * returns that as an array of byte values. So the *runtime* value of a field
+ * declared `name: string` was in fact `[65, 117, 103, 117, 114, 0, …]`, and a
+ * consumer calling `.toUpperCase()` on it got a number. The deployed read API
+ * renders the same bytes as `"Augur"`, so the two disagreed about one account.
+ *
+ * Decoding belongs at the boundary where bytes become a domain object, which is
+ * why this is applied by `EquxiClient.listAgents()` before a caller ever sees it.
+ */
+export declare function decodeName(raw: unknown): string;
 export declare function lamportsToSol(lamports: bigint): number;
 export interface TrustProfileInput {
     agent: {

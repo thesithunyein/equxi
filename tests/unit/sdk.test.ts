@@ -14,7 +14,7 @@ import * as anchor from "@coral-xyz/anchor";
 import { PublicKey } from "@solana/web3.js";
 
 import RAW_IDL from "../../sdk/src/idl/equxi.json";
-import { EquxiClient } from "../../sdk/src/index";
+import { EquxiClient, decodeName } from "../../sdk/src/index";
 import {
   ACCOUNT_DISCRIMINATORS,
   AgentStatus,
@@ -540,5 +540,45 @@ describe("equxi SDK", () => {
       expect(a.bumped).to.equal(249);
       expect(Object.keys(a.constraintType)[0]).to.equal("spendLimit");
     });
+  });
+});
+
+/**
+ * Anchor's account coder returns `Agent.name` — a NUL-padded `[u8; 32]` — as an
+ * array of byte values, while every TypeScript surface describes it as a string
+ * and the deployed read API renders it as one.
+ *
+ * Published `@equxi/sdk@0.1.0` handed callers those bytes, so `.toUpperCase()`
+ * on a field typed `string` returned a number. These tests pin the decode rather
+ * than trusting the annotation.
+ */
+describe("agent names decode at the boundary", () => {
+  /** Exactly the 32 bytes devnet holds for the agent the read API calls "Augur". */
+  const onChainName = Array.from(
+    Buffer.concat([Buffer.from("Augur", "utf8"), Buffer.alloc(27)])
+  );
+
+  it("turns the on-chain byte array into the name the read API reports", () => {
+    expect(Array.isArray(onChainName)).to.equal(true);
+    expect(onChainName.length).to.equal(32);
+    expect(typeof onChainName[0]).to.equal("number");
+    expect(decodeName(onChainName)).to.equal("Augur");
+  });
+
+  it("accepts every shape a caller might already be holding", () => {
+    expect(decodeName(Buffer.from("AlphaTrader\0\0"))).to.equal("AlphaTrader");
+    expect(decodeName(Uint8Array.from(onChainName))).to.equal("Augur");
+    expect(decodeName("already a string")).to.equal("already a string");
+    expect(decodeName(null)).to.equal("");
+    // Only NUL padding is stripped — real spaces are part of a name.
+    expect(decodeName("two words")).to.equal("two words");
+  });
+
+  it("decodes a full-width name without truncating it", () => {
+    const long = "A".repeat(32);
+    expect(decodeName(Buffer.from(long, "utf8"))).to.equal(long);
+    expect(decodeName(Buffer.from("B".repeat(32) + "\0".repeat(4)))).to.equal(
+      "B".repeat(32)
+    );
   });
 });

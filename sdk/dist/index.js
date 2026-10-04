@@ -284,9 +284,22 @@ class EquxiClient {
             slashRecord: (d) => this.program.coder.accounts.decode("slashRecord", d),
         };
     }
-    /** Every agent this program has registered. */
+    /**
+     * Every agent this program has registered.
+     *
+     * `data.name` is normalised to a string here. The account stores a NUL-padded
+     * `[u8; 32]` and Anchor's coder hands back raw byte values, so without this a
+     * caller would receive `[65, 117, 103, 117, 114, 0, …]` from a field the
+     * account type declares as `string`.
+     */
     async listAgents() {
-        return (0, read_1.listAgents)(this.getAccountFetcher(), this.getProgramId(), this.decoders, { Agent: this.accountDiscriminator("Agent") });
+        const agents = await (0, read_1.listAgents)(this.getAccountFetcher(), this.getProgramId(), this.decoders, { Agent: this.accountDiscriminator("Agent") });
+        return agents.map(({ address, data }) => {
+            // The decoders are passed as `never` above, so the generic slot is unknown
+            // here even though Anchor always hands back an account object.
+            const record = data;
+            return { address, data: { ...record, name: (0, read_1.decodeName)(record.name) } };
+        });
     }
     /** Every bond in existence. */
     async listBonds() {
@@ -321,7 +334,7 @@ class EquxiClient {
             agent: {
                 address: agentPDA,
                 owner: agent.owner,
-                name: agent.name,
+                name: (0, read_1.decodeName)(agent.name),
                 trustScore: agent.trustScore,
                 status: agent.status,
             },

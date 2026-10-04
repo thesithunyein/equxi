@@ -7,6 +7,7 @@ import {
   Located,
   TrustProfile,
   buildTrustProfile,
+  decodeName,
   listAgents,
   listBonds,
   listConstraints,
@@ -351,14 +352,27 @@ export class EquxiClient {
     };
   }
 
-  /** Every agent this program has registered. */
+  /**
+   * Every agent this program has registered.
+   *
+   * `data.name` is normalised to a string here. The account stores a NUL-padded
+   * `[u8; 32]` and Anchor's coder hands back raw byte values, so without this a
+   * caller would receive `[65, 117, 103, 117, 114, 0, …]` from a field the
+   * account type declares as `string`.
+   */
   async listAgents(): Promise<Located<Record<string, unknown>>[]> {
-    return listAgents(
+    const agents = await listAgents(
       this.getAccountFetcher(),
       this.getProgramId(),
       this.decoders as never,
       { Agent: this.accountDiscriminator("Agent") }
     );
+    return agents.map(({ address, data }) => {
+      // The decoders are passed as `never` above, so the generic slot is unknown
+      // here even though Anchor always hands back an account object.
+      const record = data as Record<string, unknown>;
+      return { address, data: { ...record, name: decodeName(record.name) } };
+    });
   }
 
   /** Every bond in existence. */
@@ -416,7 +430,7 @@ export class EquxiClient {
       agent: {
         address: agentPDA,
         owner: agent.owner as PublicKey,
-        name: agent.name as string,
+        name: decodeName(agent.name),
         trustScore: agent.trustScore as number,
         status: agent.status as unknown as number,
       },

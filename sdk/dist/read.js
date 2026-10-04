@@ -7,6 +7,7 @@ exports.listAgents = listAgents;
 exports.listBonds = listBonds;
 exports.listSlashRecords = listSlashRecords;
 exports.listConstraints = listConstraints;
+exports.decodeName = decodeName;
 exports.lamportsToSol = lamportsToSol;
 exports.buildTrustProfile = buildTrustProfile;
 /**
@@ -105,6 +106,32 @@ async function listConstraints(fetcher, programId, decoders, accountDiscriminato
 }
 const LAMPORTS_PER_SOL = 1000000000;
 const SECONDS_PER_MONTH = 30 * 24 * 60 * 60;
+/**
+ * Decode a fixed-size on-chain name into the string it represents.
+ *
+ * `Agent.name` is a NUL-padded `[u8; 32]` on chain, and Anchor's account coder
+ * returns that as an array of byte values. So the *runtime* value of a field
+ * declared `name: string` was in fact `[65, 117, 103, 117, 114, 0, …]`, and a
+ * consumer calling `.toUpperCase()` on it got a number. The deployed read API
+ * renders the same bytes as `"Augur"`, so the two disagreed about one account.
+ *
+ * Decoding belongs at the boundary where bytes become a domain object, which is
+ * why this is applied by `EquxiClient.listAgents()` before a caller ever sees it.
+ */
+function decodeName(raw) {
+    if (typeof raw === "string")
+        return raw.replace(/\0+$/, "");
+    if (raw == null)
+        return "";
+    const bytes = raw instanceof Uint8Array
+        ? raw
+        : Array.isArray(raw)
+            ? Uint8Array.from(raw)
+            : null;
+    if (!bytes)
+        return String(raw);
+    return Buffer.from(bytes).toString("utf8").replace(/\0+$/, "");
+}
 function lamportsToSol(lamports) {
     return Number(lamports) / LAMPORTS_PER_SOL;
 }

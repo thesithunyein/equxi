@@ -88,7 +88,14 @@ export declare class EquxiClient {
     private accountDiscriminator;
     /** Decoders backed by Anchor's own account coder, so layouts come from the IDL. */
     private get decoders();
-    /** Every agent this program has registered. */
+    /**
+     * Every agent this program has registered.
+     *
+     * `data.name` is normalised to a string here. The account stores a NUL-padded
+     * `[u8; 32]` and Anchor's coder hands back raw byte values, so without this a
+     * caller would receive `[65, 117, 103, 117, 114, 0, …]` from a field the
+     * account type declares as `string`.
+     */
     listAgents(): Promise<Located<Record<string, unknown>>[]>;
     /** Every bond in existence. */
     listBonds(): Promise<Located<Record<string, unknown>>[]>;
