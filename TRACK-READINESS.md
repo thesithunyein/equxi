@@ -1,8 +1,9 @@
 # Track readiness audit — where Equxi stands against each track's own rules
 
-Checked 2026-10-04 against the six listings (Colosseum main track, CertiK, Meteora DBC,
-Adevar Labs, Panta, RPC Fast). Every "status" below is a fact measured in this repository,
-not an intention. Placeholders marked **⬜** are things only you can supply.
+Checked 2026-10-04, re-checked 2026-10-05 against the seven listings (Colosseum main track,
+CertiK, Meteora DBC, Adevar Labs, Panta, RPC Fast, Solami). Every "status" below is a fact
+measured in this repository, not an intention. Placeholders marked **⬜** are things only
+you can supply.
 
 Measured for the audits that ask for scope:
 
@@ -164,22 +165,55 @@ create a market for the demo.
 
 ## 6. RPC Fast Sidetrack (~$10,500 in RPC infrastructure credits)
 
+Rules re-read from `rpcfast.com/blog/rpc-fast-colosseum-crypto-worlds-fair-hackathon` on
+2026-10-05. Two tracks, both running **Sep 15 – Nov 15** (i.e. *after* the hackathon):
+
+- **Track 1 — free infrastructure.** Every Colosseum participant gets the Focus plan free
+  for up to two months. Five steps: submit to Colosseum → create an rpcfast.com account →
+  complete their form → follow @rpcfast → join Telegram + Discord.
+- **Track 2 — the sidetrack itself.** $10,500 pool, **21 teams selected at ~$500 in
+  credits each** (1 month of Aperture or 2 months of Stream). Judged on four areas:
+  project (concept/originality/execution), meaningful infrastructure use, community
+  presence, and impact — their rules say plainly that it is *not* a post-count exercise.
+  The 2–3 posts/month guideline is how you show substance, not a hard gate.
+
 | Requirement | Status |
 |---|---|
-| Submit to Colosseum + RPC Fast sidetrack | ⬜ |
-| Claim the Focus plan via their form | ⬜ you |
-| **Use RPC Fast infrastructure during and after the hackathon** | ⚠️ wired, one env var away: the read layer now honours `EQUXI_RPC` as the deployment-wide default (`?rpc=` still wins), so switching to their endpoint is a config change, not a rewrite — endpoint URL pending from their form |
+| Submit to Colosseum + RPC Fast sidetrack | ⬜ (step 1 is the Colosseum submission itself) |
+| Create the rpcfast.com account + their form | ⬜ you |
 | Follow @rpcfast; join Telegram + Discord | ⬜ you |
-| Publish 2–3 posts/month about RPC Fast for two months | ⬜ you (their "community presence" criterion) |
+| **Use RPC Fast infrastructure during the window** | ⚠️ wired, one env var away: the read layer honours `EQUXI_RPC`, so switching is config, not a rewrite — the endpoint URL comes from their form |
+| Post substantive updates through November | ⬜ you + me (drafts) |
 
-Two constraints to be honest about: their endpoints are **mainnet-only** and hosted in
-Frankfurt, while Equxi's deployment is devnet-only. So the truthful claim is: the read API
-is cluster-agnostic and already parameterised by RPC endpoint; pointing it at RPC Fast is
-what the live site will do for mainnet reads after launch, and it can be demonstrated now.
+Honest constraint, unchanged: their endpoints are **mainnet-only** (Frankfurt FRA) while
+Equxi's deployment is devnet-only, so "meaningful infrastructure use" is the weakest of the
+four areas — the truthful claim is that the read API is cluster-agnostic and already
+parameterised by RPC endpoint, and it becomes load-bearing at mainnet. Because judging runs
+on the Nov 15 window, this is a file-it-and-post play, not an Oct 12 one.
+
 **Do not say "Next.js dashboard"** — there is no Next.js anywhere in this repo (no
-`next.config`, zero dependencies in the root `package.json`); it is static HTML/JS plus two
+`next.config`, zero dependencies in the root `package.json`); it is static HTML/JS plus
 dependency-free serverless functions. Say "static site + dependency-free serverless read
 API, RPC-endpoint parameterised".
+
+## 6b. Solami Track ($3,000 across 4 winners) — open, one answer needed
+
+Discovered 2026-10-05: Solami runs a Superteam Earn sidetrack ("Build something live on
+Solana data") on their stack — RPC, gRPC streams, Mirage (Yellowstone frames over
+WebSocket), Blur, Webhook, Beam. Free tier: 10 RPS RPC, no card; gRPC has a 2-day trial;
+streaming tiers are paid.
+
+| Requirement | Status |
+|---|---|
+| Enter the sidetrack on Superteam Earn (Colosseum submission is step one) | ⬜ you |
+| Mint the free Solami API key | ⬜ you (no card) |
+| **Answer first: does Solami serve devnet?** Their stack reads mainnet-first and the docs do not say; the free tier carries no WS/gRPC at all | ⬜ ask their Discord (`discord.gg/EGyCHpphtt` — engineer-led) |
+| Build "something live" honestly | ⬜ **only if devnet works**: stream the Equxi program's accounts and push a live slash/bond feed into the Explorer; the read API can also point at Solami RPC via `EQUXI_RPC` |
+
+Honest read: if Solami is mainnet-only, the remaining integrations are cosmetic (an RPC
+swap for a program that is not on mainnet), so the build decision waits on that one answer.
+The key costs nothing, which is why asking is the cheap first move — and the sidetrack is
+still open, so this is enterable, not closed.
 
 ## 7. Ordered actions to Oct 12
 
@@ -190,8 +224,9 @@ API, RPC-endpoint parameterised".
 | 3 | Submit on Colosseum (main track) | you | unlocks CertiK / Panta / RPC Fast / Adevar |
 | 4 | CertiK form (answers ready in §2) + Meteora form | you | forms are on Colosseum |
 | 5 | Adevar: apply on Superteam Earn, post the tweet from `@thesithunyein`, follow @AdevarLabs | you | the tweet is a hard requirement, not a bonus |
-| 6 | Panta: set `PANTA_API_KEY` (mint a `pk_test_` key) — `/api/markets` is built, tested and verified in unconfigured + rejected-key states; Explorer card remains | you (key) + me (card) | integration no longer missing: only the key |
-| 7 | RPC Fast: claim Focus plan → point the read layer at their endpoint → record the proof; follow + join + 2 posts | you + me | needs their endpoint URL, which comes from the form |
+| 6 | Panta: mint the free `pk_test_` key → set `PANTA_API_KEY` — `/api/markets` + the create/buy flows are built and tested; `canCreateMarkets` defaults to true per the docs; Explorer card remains | you (key) + me (card) | integration no longer missing: only the key; `--dry-run` proves the flow for free |
+| 7 | RPC Fast: file the 5-step sidetrack application (Colosseum first), claim free Focus, follow/join, post through Nov 15 | you + me (drafts) | judged post-hackathon; 21 teams selected |
+| 8 | Solami: mint the free key, ask whether they serve devnet, then decide the live-feed build | you + me | $3,000 / 4 winners; build only on a yes |
 
 ## 8. What I can build next, by payoff
 
@@ -202,3 +237,6 @@ API, RPC-endpoint parameterised".
 3. **Meteora DBC safety-escrow launch script** — turns the Meteora pitch into code with tx
    signatures, which is what that track actually judges.
 4. **Re-record the demo** — the only item that no amount of code can substitute for.
+5. **Solami live feed** — only if their stack serves devnet: program-account streaming
+   into the Explorer. That is a real product feature (a slash appears in a slot, not on
+   refresh), and it converts a track that was written off into an entry.

@@ -24,8 +24,8 @@ reachable**, and not spending hours where the rules make it unreachable this cyc
 | **Panta** | **Plausible, and 9+ with the key** (7.5 → 9) | A real market with a real price and a reported trade; four paid places in a small field | key → Discord question → create → buy → report trade; Explorer card | you (key) + me (card) |
 | **Main track** | **Shortlist realistic; 1st needs traction** (7.5/10) | Two strong judged videos, a real validation signal, every optional form field filled | record the two videos; one quote | you + me |
 | **Adevar** | **Low but free** (6/10) | Codebase complexity + architectural clarity + repo completeness — all present; the tweet is a hard eligibility gate | apply on Superteam Earn, post the tweet, follow | you |
-| **RPC Fast** | **Not winnable this cycle** (4.5/10) | 2–3 RPC Fast posts/month for two months, on mainnet-only endpoints | none — time-gated by their own rules; give it one form, not hours | you (5 min) |
-| **Solami** | **Not entered** — do not claim it | — | — | — |
+| **RPC Fast** | **Cheap, and it runs to Nov 15, not Oct 12** (~6/10) | Their own rules (verified 2026-10-05): free Focus plan Sep 15 – Nov 15, plus a **post-hackathon sidetrack — 21 teams selected, ~$500 credits each, $10,500 pool** — judged on project, meaningful infrastructure use, community presence *and* impact, with the posting guideline (2–3/month) explicitly "not raw posting volume" | file the 5-step application, claim the free plan, post technical updates through November | you (form) + me (drafts) |
+| **Solami** | **Open — can still be entered; one answer decides the build** (~5/10) | Sidetrack is live on Superteam Earn: **$3,000 across 4 winners** for "something live on Solana data" built on their stack (RPC / gRPC / Mirage / Blur / Webhook / Beam). Free key + free RPC tier (no card); streaming tiers are paid/2-day trial, and the stack reads **mainnet-first** | mint the free key, ask whether they serve **devnet** — build the live feed only if they do | you (key) + me (build) |
 
 ### The five moves that change the outcome, in expected-value order
 
@@ -51,10 +51,10 @@ reachable**, and not spending hours where the rules make it unreachable this cyc
 
 | When | What |
 |---|---|
-| Oct 5–6 | Mint the Panta `pk_test_` key; ask Panta Discord whether test USDC covers create + trade; `--dry-run` the create flow; Explorer market card lands **[me]** |
+| Oct 5–6 | Mint the Panta `pk_test_` key (free, no card); ask Panta Discord whether test USDC covers create + trade; `--dry-run` the create flow; mint the free Solami key and ask whether they serve devnet; Explorer market card lands **[me]** |
 | Oct 6–7 | Create the agent-risk market and buy in it (after their answer); report the trade; price renders next to the bond |
 | Oct 7–9 | Record pitch + technical video (`PITCH-SCRIPT.md`, b-roll per `DEMO-RUNBOOK.md`); collect one quote |
-| Oct 9 | Submit on Colosseum with everything linked; file CertiK + Meteora; Adevar apply + tweet; RPC Fast form (minutes, not hours) |
+| Oct 9 | Submit on Colosseum with everything linked; file CertiK + Meteora; Adevar apply + tweet; RPC Fast 5-step application (minutes, judged to Nov 15); Solami filing only if devnet is confirmed |
 | Oct 10–12 | Buffer: judge replies within 24 h, a short "what shipped since submission" update, final claim audit against the chain |
 
 ### What "1st" cannot be
@@ -62,8 +62,11 @@ reachable**, and not spending hours where the rules make it unreachable this cyc
 - **Guaranteed.** These are judged by people; nothing here is a promise.
 - **Won with more code.** Every remaining point lives in filming, filing, and one real
   market — not in another instruction.
-- **Claimed on RPC Fast or Solami.** RPC Fast's criteria are time-gated; Solami was
-  never entered. Say neither, lose nothing.
+- **Won on infrastructure tracks by beating a deadline.** RPC Fast is judged in a
+  post-hackathon window that closes Nov 15 with 21 selected teams — file it now and let
+  the posts run. Solami is winnable only if their stack serves devnet (unverified); the
+  key is free, the question is one Discord message, and the build is one honest
+  integration (a live feed of Equxi's program events), not a rewrite.
 - **Inflated.** No invented users or volume. The reconciliation warnings, the published
   defect log and `SECURITY-AUDIT.md` are why a judge should believe the rest.
 
@@ -134,8 +137,8 @@ Applied in this commit to the `/api/markets` payload (`attribution` field) and R
 
 ### Action list to Oct 12 (Panta)
 
-- [ ] **Mint `pk_test_` key** (free, 5 min): register → `POST /account/keys/ {"env":"test"}` → set `PANTA_API_KEY` in Vercel + locally. **[you]**
-- [ ] Ask in **Panta Discord #dev-chat** whether `pk_test_` keys get a test/devnet USDC environment for create + trade, and whether `canCreateMarkets` is enabled. Decide real-USDC (50 USDC fee) only after their answer. **[you]**
+- [ ] **Mint `pk_test_` key** (free, no card, 5 min — verified against `docs.panta.market` 2026-10-05): register → `POST /account/keys/ {"env":"test"}` → set `PANTA_API_KEY` in Vercel + locally. `pk_test_` and `pk_live_` keys are **both accepted on the public API**; the secret is shown once. **[you or me]**
+- [ ] **`canCreateMarkets` is answered by the docs:** it *defaults to true on signup* (operators may disable it → `CREATE_NOT_PERMITTED`). The only open question is whether a test key gets test USDC — the docs show **no faucet and no separate testnet host**, so the market's ~50 USDC fee is presumably real USDC. Ask in **Panta Discord #dev-chat**; until then `--dry-run` validates auth + quote for free. **[you]**
 - [x] **Built 2026-10-05** — `lib/panta.js` + `panta-agent-market.js`: create (quote → build → sign → register) and buy (quote → build → submit → attribute), with `--dry-run` validating auth/params/fee for free, and unit tests pinning every documented route, body and error code. Positions/claim views remain. **[me]**
 - [ ] Explorer market card: price, phase, claim eligibility, "Powered by Panta". **[me]**
 - [ ] Create the first agent-risk market for a live Equxi agent (value at risk is 1.4 SOL across 6 agents — pick one with a recorded slash for a compelling question). **[you + me]**
