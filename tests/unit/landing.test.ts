@@ -8,7 +8,7 @@
  *     later "improvement" cannot quietly paste the wall of prose back in.
  *   * **Its numbers are live.** The tiles and the collateral board are filled
  *     by `landing.js` from `/api/trust`. The HTML and the script agree on a set
- *     of `data-fill` keys; a typo in either leaves a tile reading `—` forever
+ *     of `data-fill` keys; a typo in either leaves a tile reading `N/A` forever
  *     with no error anywhere. The keys are asserted to match exactly.
  *
  * These are static checks on the two files because the site ships unbuilt: a
@@ -87,13 +87,15 @@ describe("landing page", () => {
     expect(scriptKeys).to.deep.equal(htmlKeys);
   });
 
-  it("shows an em dash, not a zero, before the read lands", () => {
+  it("shows a placeholder, not a zero, before the read lands", () => {
     // A failed fetch and an empty cluster must never render the same way, and
     // a zero on first paint is the failure mode that looks like real data.
+    // The placeholder is the text N/A, not a dash: a lone dash reads as
+    // typography, and "no value yet" should read as no value.
     const fills = html.match(/data-fill="[a-zA-Z0-9_-]+">([^<]*)</g) || [];
     expect(fills.length).to.be.at.least(4);
     fills.forEach((block) => {
-      expect(block, `placeholder is not an em dash: ${block}`).to.match(/—<$/);
+      expect(block, `placeholder is not N/A: ${block}`).to.match(/N\/A<$/);
     });
   });
 

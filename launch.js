@@ -78,7 +78,7 @@
     var steps = payload && payload.steps;
     if (!Array.isArray(steps) || !steps.length) {
       el.steps.innerHTML = "";
-      fail(el.notice, "The step list did not load — shown as a failure, not as an empty launch.");
+      fail(el.notice, "The step list did not load; it is shown as a failure, not as an empty launch.");
       return;
     }
     el.steps.innerHTML = steps

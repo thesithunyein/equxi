@@ -93,12 +93,12 @@
     set("bonded", sol(totals.bondedLamports) + " SOL");
     set("slashes", totals.slashCount);
     set("slashesSub", totals.openSlashes + " unresolved");
-    set("escrow", vault ? sol(vault.availableLamports) + " SOL" : "—");
+    set("escrow", vault ? sol(vault.availableLamports) + " SOL" : "N/A");
   }
 
   function renderFailure(message) {
     ["agents", "bonded", "slashes", "escrow"].forEach(function (key) {
-      set(key, "—");
+      set(key, "N/A");
     });
     if (notice) {
       notice.className = "live-notice bad";

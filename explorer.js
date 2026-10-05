@@ -114,11 +114,11 @@
   }
 
   function when(unixSeconds) {
-    if (!unixSeconds) return "—";
+    if (!unixSeconds) return "N/A";
     try {
       return new Date(unixSeconds * 1000).toISOString().slice(0, 10);
     } catch (e) {
-      return "—";
+      return "N/A";
     }
   }
 
@@ -359,7 +359,7 @@
         ? '<div class="x-sub">This page calls <code>' +
           esc(API) +
           "</code>, which is a Vercel serverless function. If you are serving the site as " +
-          "static files, that function is not served — deploy it, or run " +
+          "static files, that function is not served. Deploy it, or run " +
           "<code>node dev-server.js</code>. A failure here is reported as a failure, never " +
           "as \u201Cno agents found\u201D.</div>"
         : "";
@@ -394,7 +394,7 @@
       { k: "Slashes recorded", v: t.slashCount, s: t.openSlashes + " unresolved" },
       {
         k: "Escrow balance",
-        v: vault ? sol(vault.availableLamports) + " SOL" : "—",
+        v: vault ? sol(vault.availableLamports) + " SOL" : "N/A",
         s: vault ? "awaiting victims" : "vault not initialised",
       },
     ];
@@ -565,7 +565,7 @@
         copy =
           "Nothing is registered at <span class=\"x-mono\">" +
           esc(short(state.miss)) +
-          "</span> — it is not an agent account, and it owns no agents on this cluster.";
+          "</span>: it is not an agent account, and it owns no agents on this cluster.";
       } else if (state.request.mode === "owner") {
         copy =
           "That wallet owns no Equxi agents on this cluster. Agents are owned by the wallet that " +
@@ -691,7 +691,7 @@
 
     return (
       '<h2 style="margin-top:22px;font-size:15px;">Embed this agent\u2019s live grade</h2>' +
-      '<div class="x-sub">The badge is not a certificate — it re-reads the chain on every request, ' +
+      '<div class="x-sub">The badge is not a certificate: it re-reads the chain on every request, ' +
       "so it cannot go stale or be faked by copying markup.</div>" +
       '<div class="x-embed-preview"><img src="' +
       esc(badgePath) +

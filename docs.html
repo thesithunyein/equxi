@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Equxi: Documentation</title>
   <meta name="description" content="Equxi documentation: slashable collateral and on-chain accountability for AI agents on Solana. Bond, enforce, slash, compensate." />
-  <meta property="og:title" content="Equxi — Documentation" />
+  <meta property="og:title" content="Equxi · Documentation" />
   <meta property="og:description" content="Slashable collateral and on-chain accountability for AI agents on Solana." />
   <meta property="og:image" content="https://equxi.sithunyein.com/assets/logo.webp" />
   <meta property="og:url" content="https://equxi.sithunyein.com/docs.html" />
@@ -405,7 +405,7 @@ console.log("Trust score:", agent.trustScore);</code></pre>
 
       <!-- Instructions -->
       <h2 id="instructions">Program Instructions</h2>
-      <p>The Equxi program exposes 11 instructions, and the devnet deployment runs all 11 — the escrow vault, the agent migration, the unbonding window and <code>top_up_bond</code> were each deployed in place and byte-verified against the CI build.</p>
+      <p>The Equxi program exposes 11 instructions, and the devnet deployment runs all 11: the escrow vault, the agent migration, the unbonding window and <code>top_up_bond</code> were each deployed in place and byte-verified against the CI build.</p>
 
       <div class="table-wrap">
         <table>
@@ -415,7 +415,7 @@ console.log("Trust score:", agent.trustScore);</code></pre>
           <tbody>
             <tr><td>initialize</td><td>Create config + escrow vault; admin is bound to the upgrade authority</td><td>Upgrade authority</td></tr>
             <tr><td>register_agent</td><td>Register a new AI agent on-chain (PDA account)</td><td>Operator</td></tr>
-            <tr><td>create_bond</td><td>Lock SOL as collateral — the agent owner must sign</td><td>Agent owner</td></tr>
+            <tr><td>create_bond</td><td>Lock SOL as collateral; the agent owner must sign</td><td>Agent owner</td></tr>
             <tr><td>withdraw_bond</td><td>Return and close the bond after the lock period plus the 7-day unbonding window</td><td>Agent owner</td></tr>
             <tr><td>add_constraint</td><td>Add a behavioral rule to an agent (many allowed)</td><td>Agent owner</td></tr>
             <tr><td>execute_slash</td><td>Seize collateral into the escrow vault</td><td>Admin</td></tr>
