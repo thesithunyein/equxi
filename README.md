@@ -438,6 +438,16 @@ PANTA_API_KEY=pk_test_… node panta-agent-market.js buy \
   --market <marketId> --side yes --amount 20.00 --key <keypair.json>
 ```
 
+**Test keys are a sandbox — verified with a real key on 2026-10-05, not inferred.**
+A `pk_test_` key is free to mint, and Panta answers it with fixtures: the create
+quote returns `cr_sandbox_test` / `TestMarket1111…`, the build returns a
+zero-length transaction with `recentBlockhash: SandboxBlockhash…`, and every
+response says *“Test mode: this response uses sandbox fixtures and does not
+access Solana mainnet.”* The CLI detects that and stops with exactly that
+explanation instead of trying to sign a fixture. A real, tradable market needs a
+`pk_live_` key and ~50 USDC (40 platform + 10 liquidity) on a funded mainnet
+wallet.
+
 The question is mechanical and public — *“Will Equxi agent <name> be slashed
 before <date>?”* — and it resolves from the same `/api/trust?agent=` evidence
 anyone can curl, so the market prices the exact risk this repo exists to make

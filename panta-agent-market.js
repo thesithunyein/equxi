@@ -18,6 +18,11 @@
  * `--dry-run` stops after the quote: it validates the integration end to end
  * (auth, params, fee) without paying the creation fee or moving USDC.
  *
+ * A `pk_test_` key is a SANDBOX: Panta answers with fixtures and never touches
+ * Solana mainnet (its own disclaimer says so). Both flows detect that and stop
+ * before signing anything, instead of trying to broadcast a fixture. A real
+ * market needs a `pk_live_` key and ~50 USDC — 40 platform + 10 liquidity.
+ *
  * Environment:
  *   PANTA_API_KEY   pk_test_… or pk_live_… (required; mint one in the Panta
  *                   dashboard — register, then POST /account/keys/)
@@ -60,6 +65,27 @@ for (let i = 1; i < args.length; i++) {
 }
 
 const sol = (usdc) => (Number(usdc) / 1_000_000).toFixed(2) + " USDC";
+
+/**
+ * Panta answers pk_test_ keys with sandbox fixtures: an empty transaction or
+ * instruction list, a 2099 expiry, and a disclaimer that says "does not access
+ * Solana mainnet". Signing those would only produce a confusing crash (or a
+ * broadcast we cannot pay for), so stop here and say exactly what happened.
+ */
+function sandboxStop(payload) {
+  const disclaimer = typeof payload.disclaimer === "string" ? payload.disclaimer : "";
+  const sandbox =
+    /sandbox/i.test(disclaimer) ||
+    (typeof payload.transaction === "string" && payload.transaction.length === 0) ||
+    (Array.isArray(payload.instructions) && payload.instructions.length === 0);
+  if (!sandbox) return false;
+  console.log("\nPanta answered with sandbox fixtures — this is a pk_test_ key, and test");
+  console.log("mode does not touch Solana mainnet (Panta's own disclaimer). Nothing was");
+  console.log("signed, broadcast or paid. For a real market, mint a pk_live_ key and fund");
+  console.log("the wallet with ~50 USDC (40 platform + 10 liquidity) plus SOL for fees.");
+  console.log("\nPowered by Panta.");
+  return true;
+}
 
 /** Same loader as the proof scripts: CLI JSON, or the base58 Phantom export. */
 function loadKeypair(path) {
@@ -165,6 +191,7 @@ async function create() {
   console.log("\n[2/4] build");
   console.log("      transaction     :", build.transaction.length, "base64 chars");
   console.log("      build fingerprint:", build.buildFingerprint);
+  if (sandboxStop(build)) return;
 
   // ------------------------------------------------ 3. sign and broadcast
   const transaction = VersionedTransaction.deserialize(Buffer.from(build.transaction, "base64"));
@@ -248,6 +275,8 @@ async function buy() {
     userId: "equxi",
     maxSlippageBps: Number(opt("--slippage", "100")),
   });
+
+  if (sandboxStop(build)) return;
 
   const instructions = build.instructions.map(
     (ix) =>

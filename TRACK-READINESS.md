@@ -124,7 +124,7 @@ Their judging is codebase complexity + architectural clarity + repo completeness
 ecosystem impact — all four are already evidenced (11-instruction program with a PDA
 migration executed against live state, 5 green CI jobs, LICENSE, SECURITY.md, SPEC).
 
-## 5. Panta API Track ($5,000 pool) — built; the key is the gate
+## 5. Panta API Track ($5,000 pool) — built; sandbox proven, live market is a spend decision
 
 | Requirement | Status |
 |---|---|
@@ -158,10 +158,20 @@ trust data becomes *priced*.
 markets into a flat list, caches for 30s, and maps Panta's error codes onto honest statuses
 (`RATE_LIMITED` → 429, `INVALID_MARKET_PARAMS` → 400, rejected key → 502). With no key set
 it answers `200 { configured: false, note: … }` — never a fake-empty list, never a 500 that
-reads like an outage — so the endpoint is demoable before the key lands.**Still open:** the Explorer market card, and one live market created + traded (needs your key; `--dry-run` needs nothing).
+reads like an outage — so the endpoint is demoable before the key lands.**Verified 2026-10-05 with a real key (not inferred from docs):** `pk_test_` is a
+**sandbox**. The create quote returns `cr_sandbox_test` / `TestMarket1111…`, the build
+returns a zero-length transaction with `SandboxBlockhash…`, and responses carry
+*"Test mode: this response uses sandbox fixtures and does not access Solana mainnet."*
+Discovery with the key serves one fixture market ("Sandbox test market"). `pk_live_` plus
+~50 USDC (40 platform + 10 liquidity) on a funded mainnet wallet is what a real,
+tradable market costs. `panta-agent-market.js` now detects fixtures and stops with that
+explanation rather than trying to sign one — so the test key can be demoed honestly.
 
-Needs from you: a Panta API key (start with `pk_test_`), and a USDC wallet if we want to
-create a market for the demo.
+**Still open:** the Explorer market card, and the live-market spend decision.
+
+Needs from you now: **nothing for the sandbox** — the `pk_test_` key is minted and stored
+outside the repo. What remains is the `pk_live_` + ~50 USDC decision if the demo needs a
+real price rather than labeled fixtures.
 
 ## 6. RPC Fast Sidetrack (~$10,500 in RPC infrastructure credits)
 

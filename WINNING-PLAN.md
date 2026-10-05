@@ -112,10 +112,11 @@ The existing **75 s shot list stays** as the product-truth clip (and feeds both 
 Judged on: **Panta API integration, technical execution, product/UX, originality, impact, traction.**
 Four winners (2,000 / 1,000 / 1,000 / 1,000 USDG) — a small field with four paid places.
 
-Honest current state: `/api/markets` covers discovery, and the create/buy/attribute
-flows are built and tested (`lib/panta.js`, `panta-agent-market.js`, `--dry-run` works
-without spending). Until a key exists and one market is created + traded on chain, the
-integration is still *unproven end to end* — which is the difference between 8 and 9+.
+Honest current state (updated 2026-10-05): `/api/markets` covers discovery; the
+create/buy/attribute flows are built, tested, and now exercised against the live API
+with a real key — but a `pk_test_` key is a **sandbox** (Panta's own disclaimer), so a
+*real* market with a *real* price still needs a `pk_live_` key and ~50 USDC. The sandbox
+is integration proof; it is not traction, and it must never be presented as if it were.
 The 9+ move is the one nobody else can copy: **turn an agent's on-chain bond and slash record into a live, tradable prediction market** — *"Will agent X be slashed before <date>?"* — and show its YES/NO price right next to the collateral it prices.
 
 ### The integration map (what to build, endpoint by endpoint)
@@ -137,8 +138,10 @@ Applied in this commit to the `/api/markets` payload (`attribution` field) and R
 
 ### Action list to Oct 12 (Panta)
 
-- [ ] **Mint `pk_test_` key** (free, no card, 5 min — verified against `docs.panta.market` 2026-10-05): register → `POST /account/keys/ {"env":"test"}` → set `PANTA_API_KEY` in Vercel + locally. `pk_test_` and `pk_live_` keys are **both accepted on the public API**; the secret is shown once. **[you or me]**
-- [ ] **`canCreateMarkets` is answered by the docs:** it *defaults to true on signup* (operators may disable it → `CREATE_NOT_PERMITTED`). The only open question is whether a test key gets test USDC — the docs show **no faucet and no separate testnet host**, so the market's ~50 USDC fee is presumably real USDC. Ask in **Panta Discord #dev-chat**; until then `--dry-run` validates auth + quote for free. **[you]**
+- [x] **Minted 2026-10-05** — `pk_test_` key created for `sithunyein.mailto@gmail.com`, stored **outside the repo** (`~/.config/panta/equxi.json`). `/account/` returns `canCreateMarkets: true`, status `active`. Key creation is genuinely free — no card, no payment. **[done]**
+- [x] **The test-USDC question is answered by the API itself, not the docs — and the answer is sandbox.** The create quote returns `cr_sandbox_test` + `TestMarket1111…`, the build returns `transaction: ""` with `recentBlockhash: SandboxBlockhash…`, and every response carries *“Test mode: this response uses sandbox fixtures and does not access Solana mainnet.”* Discovery with the key serves one fixture market, “Sandbox test market”. The CLI now detects fixtures and stops with that explanation instead of signing one. **[done]**
+- [ ] **Spend decision (only you):** a real, tradable market needs a `pk_live_` key and ~50 USDC (40 platform + 10 liquidity) on a funded mainnet wallet. The sandbox already proves the whole create path; the live market buys a *real price next to a real bond* — the 9+ artifact. **[you]**
+- [ ] Set `PANTA_API_KEY` in Vercel — with the test key, `/api/markets` serves the labeled sandbox catalog instead of `configured:false`, which is honest, visible integration evidence. **[you or me]**
 - [x] **Built 2026-10-05** — `lib/panta.js` + `panta-agent-market.js`: create (quote → build → sign → register) and buy (quote → build → submit → attribute), with `--dry-run` validating auth/params/fee for free, and unit tests pinning every documented route, body and error code. Positions/claim views remain. **[me]**
 - [ ] Explorer market card: price, phase, claim eligibility, "Powered by Panta". **[me]**
 - [ ] Create the first agent-risk market for a live Equxi agent (value at risk is 1.4 SOL across 6 agents — pick one with a recorded slash for a compelling question). **[you + me]**
