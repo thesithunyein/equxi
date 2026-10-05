@@ -78,8 +78,8 @@ on-chain `trust_score` field is admin-set, so it is reported separately and neve
 an input. Every score ships a breakdown that sums exactly to the total, so it can be
 checked rather than trusted.
 
-**Engineering discipline.** 155 validator-free unit tests plus a 17-test on-chain suite
-(166 total) in CI; a migration that grew live accounts in place and re-decoded each one
+**Engineering discipline.** 163 validator-free unit tests plus a 17-test on-chain suite
+(180 total) in CI; a migration that grew live accounts in place and re-decoded each one
 to prove all eight fields survived byte-for-byte; an SDK defect found by reading the
 published artifact back from npm rather than trusting the build.
 

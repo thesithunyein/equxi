@@ -1,4 +1,4 @@
-# WINNING-PLAN.md — the honest checklist for 9+ on Main and Panta
+# WINNING-PLAN.md — the honest plan to take 1st where 1st is reachable
 
 Sources checked live on 2026-10-05: `colosseum.com/hackathon` (judging factors),
 Colosseum's own submission workshop recap (`blog.colosseum.com/perfecting-your-hackathon-submission/`),
@@ -10,6 +10,65 @@ each line is either done, buildable this week, or owned by you.
 
 ---
 
+## 0. How to win 1st — the odds, ranked (read this first)
+
+There is no combined leaderboard. The **main track** has its own prizes ($30k grand,
+~$300k across ~20 projects; shortlist → 15-minute Zoom interviews), and every sidetrack
+has its own winners. "Winning overall" therefore means **taking 1st where 1st is
+reachable**, and not spending hours where the rules make it unreachable this cycle.
+
+| Track | Realistic 1st-place odds | What 1st actually requires | Leverage left | Owner |
+|---|---|---|---|---|
+| **Meteora DBC** | **Strongest** (9.5/10 material) | A judge who follows the on-chain trail: config → curve → partial-fill to the graduation boundary → DAMM v2 migration → claimed proceeds → bond, plus the "a launch funds its own safety escrow" idea | File the form; `launch.html` already renders it | you |
+| **CertiK** | **High** (8.5/10) | Testnet-ready code that moves value, an invariant set, and security as a foundation — this repo is evidence, not claims | File the form; link `SECURITY-AUDIT.md` | you |
+| **Panta** | **Plausible, and 9+ with the key** (7.5 → 9) | A real market with a real price and a reported trade; four paid places in a small field | key → Discord question → create → buy → report trade; Explorer card | you (key) + me (card) |
+| **Main track** | **Shortlist realistic; 1st needs traction** (7.5/10) | Two strong judged videos, a real validation signal, every optional form field filled | record the two videos; one quote | you + me |
+| **Adevar** | **Low but free** (6/10) | Codebase complexity + architectural clarity + repo completeness — all present; the tweet is a hard eligibility gate | apply on Superteam Earn, post the tweet, follow | you |
+| **RPC Fast** | **Not winnable this cycle** (4.5/10) | 2–3 RPC Fast posts/month for two months, on mainnet-only endpoints | none — time-gated by their own rules; give it one form, not hours | you (5 min) |
+| **Solami** | **Not entered** — do not claim it | — | — | — |
+
+### The five moves that change the outcome, in expected-value order
+
+1. **Record the two judged videos** (pitch 2:00, technical demo 2:30). It is both a
+   scored factor (Founder Communication) and the **gate on every submission** —
+   Colosseum requires a video URL, and no sidetrack can be filed without a Colosseum
+   submission. Nothing else is worth starting first.
+2. **Submit on Colosseum the day the videos exist.** Complete and early beats perfect
+   and late: judging runs in multiple rounds, and the submission link unlocks every
+   sidetrack form.
+3. **File CertiK and Meteora in the same sitting.** The answers are written
+   (`CERTIK-BRIEF.md`, `meteora-launch/README.md`); together under an hour, and these
+   are the two strongest 1st-place positions.
+4. **Turn Panta from *built* into *used*.** Mint the key, ask the Discord question,
+   `--dry-run`, then create one agent-risk market, buy in it, and report the trade.
+   A live market price next to the bond it prices is the one thing no other entry can
+   copy.
+5. **Get one validation signal into the pitch.** One permissioned quote from a real
+   builder ("I'd require this before letting an agent touch our API") — Traction is
+   the only scored factor with no evidence today, and it is the cheapest point left.
+
+### The schedule that fits Oct 5 → Oct 12
+
+| When | What |
+|---|---|
+| Oct 5–6 | Mint the Panta `pk_test_` key; ask Panta Discord whether test USDC covers create + trade; `--dry-run` the create flow; Explorer market card lands **[me]** |
+| Oct 6–7 | Create the agent-risk market and buy in it (after their answer); report the trade; price renders next to the bond |
+| Oct 7–9 | Record pitch + technical video (`PITCH-SCRIPT.md`, b-roll per `DEMO-RUNBOOK.md`); collect one quote |
+| Oct 9 | Submit on Colosseum with everything linked; file CertiK + Meteora; Adevar apply + tweet; RPC Fast form (minutes, not hours) |
+| Oct 10–12 | Buffer: judge replies within 24 h, a short "what shipped since submission" update, final claim audit against the chain |
+
+### What "1st" cannot be
+
+- **Guaranteed.** These are judged by people; nothing here is a promise.
+- **Won with more code.** Every remaining point lives in filming, filing, and one real
+  market — not in another instruction.
+- **Claimed on RPC Fast or Solami.** RPC Fast's criteria are time-gated; Solami was
+  never entered. Say neither, lose nothing.
+- **Inflated.** No invented users or volume. The reconciliation warnings, the published
+  defect log and `SECURITY-AUDIT.md` are why a judge should believe the rest.
+
+---
+
 ## 1. Main track — what Colosseum actually scores
 
 The judged factors (verbatim from `colosseum.com/hackathon`):
@@ -18,7 +77,7 @@ The judged factors (verbatim from `colosseum.com/hackathon`):
 |---|---|---|---|
 | **Founder + Market Fit** | Solo builder who shipped the whole stack: Anchor program, migration, SDK, elizaOS plugin, dependency-free API, site, tests. Say *why you* — this is a rare full-stack fit for an infra product. | ✅ talk track exists | 30 s of the pitch video |
 | **Insight** | The one-liner that proves you see something others don't: *"Platforms solved permission; nobody solved consequence. And now the consequence has a price."* | ✅ unique | Say it in the first 20 s |
-| **Product + Execution** | 11-instruction program live on devnet, 172 CI tests, both upgrades byte-verified, read API + badge + explorer + launch page live, both terminal demo flows rehearsed (13/13, 7/7). | ✅ strong | show it, don't describe it |
+| **Product + Execution** | 11-instruction program live on devnet, 180 CI tests, both upgrades byte-verified, read API + badge + explorer + launch page live, both terminal demo flows rehearsed (13/13, 7/7). | ✅ strong | show it, don't describe it |
 | **Potential Market Size** | Agent economy risk transfer: every marketplace/framework that serves third-party agents is the user. Bond history → credit file → underwriting. | ⚠️ stated in docs | one slide / 20 s |
 | **Founder Communication** | The pitch video *is* the score here. Colosseum's workshop says the pitch video is **the first and most important item**, and a clean narrative beats production value. | ❌ not recorded | record it (below) |
 | **Viability** | Bond + slash history as a credit file; the Panta market now *prices* the risk live → the business is risk infrastructure, not a dashboard. | ⚠️ newly concrete | 20 s + the market on screen |
@@ -58,17 +117,15 @@ The 9+ move is the one nobody else can copy: **turn an agent's on-chain bond and
 
 ### The integration map (what to build, endpoint by endpoint)
 
-| Capability | Endpoint (docs.panta.market) | Equxi use |
+| Capability | Endpoint (verified against `docs.panta.market`, 2026-10-05) | Equxi use |
 |---|---|---|
 | Browse | `GET /markets/` | ✅ built (`/api/markets`) |
-| Detail + prices | `GET /markets/{marketId}` | card shows YES/NO price |
-| Create — quote | `POST /markets/quote/` | fee quote for the agent-risk market (USDC base units) |
-| Create — build → sign → broadcast | `POST /markets/build/` (unsigned tx) → wallet → RPC | **originality piece**: market titled with the agent name + Equxi program/bond refs |
-| Register | `POST /markets/register/` | after broadcast, with the signature |
-| Primary buy | `POST /orders/quote/` → `POST /orders/build/` → sign → submit/verify | trading YES/NO on the agent-risk market |
-| Positions | `GET /positions/?wallet=` | Explorer shows a reader's position + claim eligibility |
-| Claim winnings / creator fees | `POST /claims/build/` · `POST /claims/creator-fees/build/` | claimable state surfaced in the card |
-| Trade attribution | `POST /trades/` · `GET /trades/{signature}/` | report each demo trade so Panta's metrics see real usage = traction |
+| Create — quote | `POST /markets/create/quote/` | fee quote for the agent-risk market, in USDC base units (`"50000000"` = 50 USDC) |
+| Create — build → sign → broadcast | `POST /markets/create/build/` (unsigned VersionedTransaction) → wallet → RPC | **originality piece**: market titled with the agent name + Equxi bond refs |
+| Register | `POST /markets/register/` | after broadcast, with the signature → `marketId` |
+| Primary buy | `POST /primaryorderquote/` → `POST /primaryorderbuild/` → sign → `POST /primaryordersubmit/` | trading YES/NO on the agent-risk market |
+| Trade attribution | `POST /trades/` | report each demo trade so Panta's metrics see real usage = traction |
+| Market detail, positions, claims | exist in Panta's API index, not yet pinned by this repo's tests | wire them when the key lands — do not quote a route this repo has not verified |
 
 ### Compliance item (required by their Terms — do not skip)
 
@@ -99,7 +156,7 @@ Applied in this commit to the `/api/markets` payload (`attribution` field) and R
 |---|---|---|
 | 0:00–0:15 | Who | Solo builder, full-stack shipped: Rust program, migration, SDK, plugin, API, site. Why me: I built and verified every layer. |
 | 0:15–0:45 | Problem | Permission vs consequence. Agents now hold wallets and call tools; when they misbehave, nobody pays. Counterparties can't verify risk before dealing. |
-| 0:45–1:15 | Insight + product | Collateral, slashable, no custodian: bond → vault → victim, on chain. 11 instructions, live on devnet, 172 CI tests, both upgrades byte-verified. Show `prove-compensation.js` result for 10 s. |
+| 0:45–1:15 | Insight + product | Collateral, slashable, no custodian: bond → vault → victim, on chain. 11 instructions, live on devnet, 180 CI tests, both upgrades byte-verified. Show `prove-compensation.js` result for 10 s. |
 | 1:15–1:45 | Market + validation | Who pays for this: API/MCP providers, marketplaces, frameworks. Signal: Superteam grant awarded; CertiK + Adevar pre-audit applications; live registry read by anyone. New: risk is now *priced* — an agent-slash market on Panta. |
 | 1:45–2:00 | Vision + honesty | Bond history becomes a credit file; underwriting for agents. What's deliberately open: off-chain detection, single admin key, single escrow pool — roadmap item 1 is escrow segregation. |
 

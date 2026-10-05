@@ -4,7 +4,7 @@
 > be confused:
 >
 > * **JavaScript/TypeScript** checks — these have been **executed** and the results
->   are recorded below. `npm run test:unit` runs **149** assertions over the wire
+>   are recorded below. `npm run test:unit` runs **163** assertions over the wire
 >   formats, PDA seeds, IDL, SDK, read layer, and read API with no validator. The
 >   read API additionally has **live devnet evidence** (below), which is the one
 >   place a real network was involved.
@@ -22,7 +22,7 @@
 
 | Check | Status | Notes |
 |-------|--------|-------|
-| `npm run test:unit` | ✅ **149 passing** | Wire formats, PDA seeds, IDL, SDK, read layer, read API, badge, reconciliation |
+| `npm run test:unit` | ✅ **163 passing** | Wire formats, PDA seeds, IDL, SDK, read layer, read API, badge, reconciliation, Panta flows |
 | `tsc --noEmit` (tests) | ✅ **0 errors** | |
 | `tsc --noEmit` (SDK) | ✅ **0 errors** | |
 | `tsc --noEmit` (elizaOS plugin) | ✅ **0 errors** | Was **16 errors** before the rewrite |
@@ -31,12 +31,12 @@
 | Read API against live devnet | ✅ **returned real data** | See “Live devnet read” below |
 | Trust Explorer rendered | ✅ **verified in a browser** | Screenshot reproduced below in prose; served by `dev-server.js` |
 | `anchor build` | ✅ **compiled** | CI run [34983589484](https://github.com/thesithunyein/equxi/actions/runs/34983589484), `Build program` took 201s |
-| `anchor test` | ✅ **166 passing, 0 failing** | 17 on-chain tests + 149 unit tests on a real local validator |
+| `anchor test` | ✅ **180 passing, 0 failing** | 17 on-chain tests + 163 unit tests on a real local validator |
 | Unbonding window | ✅ **on-chain + unit** | Withdrawal inside the window is refused with the bond intact, a violation observed after expiry still seizes the whole bond, and every boundary of the pure gate is unit-tested — see “The exit race” below. Live on devnet since 2026-10-04 — see the upgrade rows |
-| CI (Wire-format Unit Tests) | ✅ **149 passing** | Runs on every push |
+| CI (Wire-format Unit Tests) | ✅ **163 passing** | Runs on every push |
 | `GET /api/badge` against live devnet | ✅ **returned a real badge** | `x-equxi-status: graded`, `x-equxi-grade: D`, `x-equxi-score: 48` for agent Augur — see below |
 | Explorer: search, sort, filter, ledger, embed | ✅ **verified in a browser against live devnet** | See below |
-| SDK scorer vs. API scorer agreement | ✅ **149 passing** | Both implementations asserted equal across six scenarios, including the floored one |
+| SDK scorer vs. API scorer agreement | ✅ **163 passing** | Both implementations asserted equal across six scenarios, including the floored one |
 | CI (Build & Test Program) | ✅ **green** | Compiles the program and runs the on-chain suite |
 | Devnet redeploy of v0.2 | ✅ **Deployed and migrated** | Program replaced at `D7akK…` (slot 499249941), vault created, live agent grown 116 → 118 bytes with all 8 preserved fields verified identical — see below |
 | Devnet upgrade — unbonding window (v0.3) | ✅ **Deployed live** | Upgrade tx `5tK2dMyR…` at slot 507390281; on-chain bytes byte-verified against the source build |
@@ -386,8 +386,8 @@ only exists in the source: the devnet deployment predates it.
 
 ## Test Coverage (v0.2 suite, executed)
 
-`anchor test` ran this suite against a local validator: **113 passing, 0 failing**
-(13 on-chain + 100 unit). The first execution failed exactly one assertion — the
+`anchor test` ran this suite against a local validator: **180 passing, 0 failing**
+(17 on-chain + 163 unit). The first execution failed exactly one assertion — the
 test's own, which compared the fixed-width `[u8; 32]` `Agent.name` to a JS
 string; it now asserts the stored bytes and their NUL padding, which is the
 contract every decoder depends on.
@@ -399,7 +399,10 @@ contract every decoder depends on.
 | initialize creates config + vault | happy path |
 | initialize rejects a non-upgrade-authority | negative |
 | register agents | happy path |
+| **migration refuses an agent already in the v0.2 layout** | negative |
+| **migration refuses a 116-byte account that is not an agent record** | negative |
 | create bonds | happy path |
+| **a later top-up is recorded in the bond ledger, and only for the operator** | regression (ledger vs. lamports) |
 | **bond rejected when the signer is not the agent owner** | regression (squatting) |
 | **slash moves funds into the vault, admin does not profit** | regression (custody) |
 | slash rejected when larger than the bond | negative |

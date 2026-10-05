@@ -10,12 +10,12 @@ Measured for the audits that ask for scope:
 |---|---|
 | `programs/equxi/src` (production Rust, audit target) | **1,216 lines**, 15 files, 11 instructions + state + errors |
 | Inline Rust unit tests in that crate | 167 lines |
-| On-chain test suite `tests/equxi.test.ts` | 664 lines (17 cases) |
-| Validator-free unit tests `tests/unit/*` | 2,904 lines (149 cases) |
+| On-chain test suite `tests/equxi.test.ts` | 663 lines (17 cases) |
+| Validator-free unit tests `tests/unit/*` | 3,280 lines (163 cases) |
 | `sdk/src` (TypeScript SDK) | 1,011 lines |
 | `eliza-plugin/src` | 1,329 lines |
 | Deployment | **devnet only** — `D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc` |
-| CI | 5 jobs green: build + `anchor test` (166 passing), Rust unit tests, wire-format, lint, structure |
+| CI | 5 jobs green: build + `anchor test` (180 passing), Rust unit tests, wire-format, lint, structure |
 
 ## 0. Cross-track blockers, in the order they must happen
 
@@ -109,7 +109,7 @@ says so). The bond is Equxi's 0.1 SOL minimum: 0.0698 SOL from the launch plus a
 | Submitted to Colosseum | ⬜ (blocker #2) |
 | Solana/Rust submission | ✅ Rust/Anchor program, 1,216 production lines + 167 inline test lines |
 | Apply through the Superteam Earn bounty | ⬜ you — paste-ready answers in [`ADEVAR-APPLICATION.md`](ADEVAR-APPLICATION.md) |
-| Answer their short questions on complexity/architecture | ✅ material ready: `SPEC.md` (AAS-1 invariants), `TEST-RESULTS.md`, the exit-race fix, the migration, 172 tests |
+| Answer their short questions on complexity/architecture | ✅ material ready: `SPEC.md` (AAS-1 invariants), `TEST-RESULTS.md`, the exit-race fix, the migration, 180 tests |
 | **Tweet about the application + follow @AdevarLabs** | ✅ account exists — `@thesithunyein`. Still **required**: post the copy below and follow @AdevarLabs, or the application is not eligible |
 
 Suggested tweet (their template, repo link filled in):
@@ -120,15 +120,15 @@ Suggested tweet (their template, repo link filled in):
 > project. https://github.com/thesithunyein/equxi
 
 Their judging is codebase complexity + architectural clarity + repo completeness +
-ecosystem impact — all four are already evidenced (9-instruction program with a PDA
+ecosystem impact — all four are already evidenced (11-instruction program with a PDA
 migration executed against live state, 5 green CI jobs, LICENSE, SECURITY.md, SPEC).
 
-## 5. Panta API Track ($5,000 pool) — needs to be built
+## 5. Panta API Track ($5,000 pool) — built; the key is the gate
 
 | Requirement | Status |
 |---|---|
 | Submit to Colosseum + Panta sidetrack | ⬜ |
-| **Meaningfully integrate the Panta API** | ✅ `GET /api/markets` built 2026-10-04 — dependency-free, 6 unit tests, all three states (unconfigured / accepted / rejected key) verified against the live Panta API; switches on when `PANTA_API_KEY` is set |
+| **Meaningfully integrate the Panta API** | ✅ `GET /api/markets` built 2026-10-04, plus the create → buy → attribute flows (`lib/panta.js`, `panta-agent-market.js`, 7 unit tests) — all three discovery states (unconfigured / accepted / rejected key) verified against the live Panta API; switches on when `PANTA_API_KEY` is set |
 | Working demonstration of the product | ⚠️ demo video must be re-recorded anyway |
 
 Facts verified from `docs.panta.market` (2026-10-04), so the build plan below is against
@@ -157,8 +157,7 @@ trust data becomes *priced*.
 markets into a flat list, caches for 30s, and maps Panta's error codes onto honest statuses
 (`RATE_LIMITED` → 429, `INVALID_MARKET_PARAMS` → 400, rejected key → 502). With no key set
 it answers `200 { configured: false, note: … }` — never a fake-empty list, never a 500 that
-reads like an outage — so the endpoint is demoable before the key lands. **Still open:** the
-Explorer market card, and the tier-2 market-per-agent creation flow.
+reads like an outage — so the endpoint is demoable before the key lands.**Still open:** the Explorer market card, and one live market created + traded (needs your key; `--dry-run` needs nothing).
 
 Needs from you: a Panta API key (start with `pk_test_`), and a USDC wallet if we want to
 create a market for the demo.
@@ -196,7 +195,7 @@ API, RPC-endpoint parameterised".
 
 ## 8. What I can build next, by payoff
 
-1. **Panta market panel** (`/api/markets` done; Explorer card remains) — converts the weakest track into
+1. **Panta market panel** (`/api/markets` and the create/buy flows are done; Explorer card remains) — converts the weakest track into
    a real integration and gives the demo a second act.
 2. **Deploy the unbonding window** — removes the one place where the live site contradicts
    the live program.
