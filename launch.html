@@ -12,12 +12,53 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
   <link rel="stylesheet" href="styles.css" />
   <style>
-    .lx-section { position: relative; z-index: 1; width: 100%; padding: 8px 32px 72px; }
-    .lx-inner { max-width: 860px; margin: 0 auto; }
+    /* The hero is the first screen, not the whole page: this is an evidence
+       page, and the content should start where a reader expects it to. */
+    .page { min-height: auto; }
+    .hero { padding: 64px 0 44px; gap: 20px; }
 
-    .lx-steps { list-style: none; margin: 26px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+    /* Launch-page sections own their layout. They used to borrow the landing
+       page's five-step grid, which left three cards sitting in the left 60%
+       of the row with a column of empty background beside them. */
+    .lx-section {
+      position: relative; z-index: 1; width: 100%;
+      padding: 64px 32px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .lx-inner { max-width: 900px; margin: 0 auto; }
+
+    /* One header rhythm: tag, title and sub share a centre line. The cards
+       below it stay left-aligned, which is what makes them readable. */
+    .lx-head { text-align: center; margin-bottom: 34px; }
+    .lx-head .how-sub { max-width: 560px; margin: 0 auto; }
+
+    .lx-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .lx-tile {
+      border: 1px solid #1c1c1c; border-radius: 16px; background: #080808;
+      padding: 20px 20px 22px; text-align: left;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .lx-tile:hover { border-color: rgba(153, 69, 255, 0.35); transform: translateY(-2px); }
+    .lx-tile-top { display: flex; align-items: center; justify-content: space-between; }
+    .lx-tile-n { font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: 0.08em; }
+    .lx-tile-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: rgba(153, 69, 255, 0.12); border: 1px solid rgba(153, 69, 255, 0.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; color: var(--purple);
+    }
+    .lx-tile h3 { font-size: 15px; font-weight: 600; margin: 14px 0 6px; color: #fff; }
+    .lx-tile p { font-size: 13px; line-height: 1.6; color: rgba(255,255,255,0.65); }
+    .lx-tile code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 12px; color: var(--text);
+      background: rgba(255,255,255,0.05); padding: 1px 5px; border-radius: 5px;
+    }
+
+    /* The ten transactions, one row each: label, explorer link, what it did. */
+    .lx-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
     .lx-step {
-      display: flex; gap: 14px; padding: 16px 18px;
+      display: flex; gap: 14px; padding: 15px 18px;
       border: 1px solid #1a1a1a; border-radius: 14px; background: #080808;
     }
     .lx-step-n {
@@ -35,7 +76,8 @@
     .lx-link { color: var(--purple); text-decoration: none; font-size: 12.5px; }
     .lx-link:hover { text-decoration: underline; }
 
-    .lx-states { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 22px; }
+    .lx-caption { margin: 26px 0 10px; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+    .lx-states { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
     .lx-state {
       display: flex; justify-content: space-between; gap: 12px; align-items: baseline;
       padding: 11px 14px; border: 1px solid #1a1a1a; border-radius: 11px;
@@ -48,12 +90,14 @@
     }
     .lx-state:hover { border-color: rgba(153, 69, 255, 0.5); }
 
-    .lx-card { margin-top: 22px; padding: 20px; border: 1px solid #1a1a1a; border-radius: 16px; background: #080808; }
+    /* The live read-back card — filled by launch.js from /api/trust. */
+    .lx-card { padding: 22px; border: 1px solid #1a1a1a; border-radius: 16px; background: #080808; }
     .lx-agent-head { display: flex; justify-content: space-between; gap: 16px; align-items: center; flex-wrap: wrap; }
     .lx-agent-name { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
     .lx-agent-sub {
       margin-top: 4px; font-size: 12.5px; color: var(--muted);
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      overflow-wrap: anywhere;
     }
     .lx-grade {
       display: inline-block; min-width: 30px; text-align: center; padding: 3px 9px;
@@ -72,8 +116,10 @@
     .lx-notice.bad { color: #ff9d9d; }
 
     @media (max-width: 768px) {
-      .lx-section { padding: 8px 20px 64px; }
-      .lx-states, .lx-grid { grid-template-columns: 1fr; }
+      .hero { padding: 40px 0 32px; }
+      .lx-section { padding: 48px 20px; }
+      .lx-head { margin-bottom: 26px; }
+      .lx-cards, .lx-states, .lx-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -93,7 +139,7 @@
         <a href="https://x.com/equxi_ai" class="nav-link" target="_blank"><i class="fa-brands fa-x-twitter"></i></a>
       </nav>
       <a href="app.html" class="btn-primary desktop-only">Register an agent</a>
-      <button class="menu-toggle" id="menuToggle" aria-label="Menu">
+      <button class="menu-toggle" id="menuToggle" aria-label="Menu" aria-controls="mobileNav" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
     </header>
@@ -110,12 +156,11 @@
     <main class="hero">
       <div class="badge">
         <span class="badge-dot"></span>
-        Equxi × Meteora DBC — devnet
+        Meteora DBC · devnet
       </div>
       <h1 class="headline">Launch with<br />safety escrow</h1>
       <p class="subhead">
-        A token launch whose graduation proceeds become the collateral behind the agent that
-        runs it. Ten transactions — every one on chain, none of them a mock.
+        A token launch whose graduation proceeds become the collateral behind the agent that runs it.
       </p>
       <div class="cta-row">
         <a href="#steps" class="btn-primary btn-lg">See the transactions</a>
@@ -126,24 +171,35 @@
 
   <section class="lx-section" id="idea">
     <div class="lx-inner">
-      <div class="how-tag"><span class="badge-dot"></span> The Idea</div>
-      <h2 class="how-title">A launch that creates its own consequence</h2>
-      <p class="how-sub">The same transaction trail that creates the token creates the collateral.</p>
-      <div class="how-grid">
-        <div class="how-card">
-          <div class="how-icon"><i class="fa-solid fa-chart-line"></i></div>
+      <div class="lx-head">
+        <div class="how-tag"><span class="badge-dot"></span> How It Works</div>
+        <h2 class="how-title">A launch that creates its own consequence</h2>
+        <p class="how-sub">The same transaction trail that creates the token creates the collateral.</p>
+      </div>
+      <div class="lx-cards">
+        <div class="lx-tile">
+          <div class="lx-tile-top">
+            <div class="lx-tile-icon"><i class="fa-solid fa-chart-line"></i></div>
+            <div class="lx-tile-n">01</div>
+          </div>
           <h3>Launch on DBC</h3>
-          <p>The token discovers its price on Meteora's Dynamic Bonding Curve. The config routes 50% of trading fees — and half of the 10% migration fee — back to the launch.</p>
+          <p>The token discovers its price on Meteora's Dynamic Bonding Curve. Half of the trading fees — and half of the 10% migration fee — route back to the launch.</p>
         </div>
-        <div class="how-card">
-          <div class="how-icon"><i class="fa-solid fa-water"></i></div>
+        <div class="lx-tile">
+          <div class="lx-tile-top">
+            <div class="lx-tile-icon"><i class="fa-solid fa-water"></i></div>
+            <div class="lx-tile-n">02</div>
+          </div>
           <h3>Graduate into DAMM v2</h3>
-          <p>The final buy is a partial fill, so the curve stops exactly at the threshold and graduates into permanent liquidity instead of overshooting.</p>
+          <p>The final buy is a partial fill, so the curve stops exactly at the graduation threshold and moves into permanent liquidity instead of overshooting.</p>
         </div>
-        <div class="how-card">
-          <div class="how-icon"><i class="fa-solid fa-lock"></i></div>
+        <div class="lx-tile">
+          <div class="lx-tile-top">
+            <div class="lx-tile-icon"><i class="fa-solid fa-lock"></i></div>
+            <div class="lx-tile-n">03</div>
+          </div>
           <h3>Post it as a bond</h3>
-          <p>The claimed proceeds become the launched agent's Equxi bond — slashable collateral, with the bond's ledger, lock and unbonding window all enforced on chain.</p>
+          <p>The claimed proceeds become the launched agent's bond — slashable collateral, with the ledger, lock and unbonding window enforced on chain.</p>
         </div>
       </div>
     </div>
@@ -151,20 +207,25 @@
 
   <section class="lx-section" id="steps">
     <div class="lx-inner">
-      <div class="how-tag"><span class="badge-dot"></span> The Launch, On Chain</div>
-      <h2 class="how-title">Ten transactions, no privileged steps</h2>
-      <p class="how-sub" id="stepsSummary">Every step below is a devnet transaction you can open in the explorer.</p>
+      <div class="lx-head">
+        <div class="how-tag"><span class="badge-dot"></span> The Launch, On Chain</div>
+        <h2 class="how-title">Ten transactions, no privileged steps</h2>
+        <p class="how-sub" id="stepsSummary">Every step below is a devnet transaction you can open in the explorer.</p>
+      </div>
       <ol class="lx-steps" id="launchSteps"></ol>
       <div class="lx-notice" id="stepsNotice"></div>
+      <div class="lx-caption">Addresses recorded by this run</div>
       <div class="lx-states" id="launchState"></div>
     </div>
   </section>
 
   <section class="lx-section" id="agent">
     <div class="lx-inner">
-      <div class="how-tag"><span class="badge-dot"></span> Read It Back Yourself</div>
-      <h2 class="how-title">The launched agent, graded live</h2>
-      <p class="how-sub">This card is rendered from the public read API on every page load — not from a screenshot taken during the run.</p>
+      <div class="lx-head">
+        <div class="how-tag"><span class="badge-dot"></span> Live Read-Back</div>
+        <h2 class="how-title">The launched agent, graded live</h2>
+        <p class="how-sub">This card is read from the public API on every page load.</p>
+      </div>
       <div class="lx-card" id="agentCard"></div>
       <div class="lx-notice" id="agentNotice"></div>
     </div>
@@ -172,24 +233,35 @@
 
   <section class="lx-section" id="limits">
     <div class="lx-inner">
-      <div class="how-tag"><span class="badge-dot"></span> Honest Limits</div>
-      <h2 class="how-title">What this does not prove</h2>
-      <p class="how-sub">Stated here so nobody has to discover it from the chain.</p>
-      <div class="how-grid">
-        <div class="how-card">
-          <div class="how-icon"><i class="fa-solid fa-network-wired"></i></div>
+      <div class="lx-head">
+        <div class="how-tag"><span class="badge-dot"></span> Limits</div>
+        <h2 class="how-title">What this run does not prove</h2>
+        <p class="how-sub">Stated in the same place as the proof, so nobody has to find it on the chain.</p>
+      </div>
+      <div class="lx-cards">
+        <div class="lx-tile">
+          <div class="lx-tile-top">
+            <div class="lx-tile-icon"><i class="fa-solid fa-network-wired"></i></div>
+            <div class="lx-tile-n">01</div>
+          </div>
           <h3>Devnet, not mainnet</h3>
-          <p>Every transaction ran on devnet. Meteora's production migration keepers run on mainnet, so here the migration was executed manually — the step is linked above.</p>
+          <p>Every transaction ran on devnet. Meteora's production migration keepers are mainnet-only, so the migration in this run was executed manually — the transaction is linked above.</p>
         </div>
-        <div class="how-card">
-          <div class="how-icon"><i class="fa-solid fa-scale-balanced"></i></div>
-          <h3>0.0698 + 0.0302</h3>
-          <p>The launch's claimed proceeds were 0.0698 SOL; Equxi's minimum bond is 0.1 SOL, so the remaining 0.0302 SOL is a disclosed top-up, not launch proceeds.</p>
+        <div class="lx-tile">
+          <div class="lx-tile-top">
+            <div class="lx-tile-icon"><i class="fa-solid fa-scale-balanced"></i></div>
+            <div class="lx-tile-n">02</div>
+          </div>
+          <h3>0.0698 + 0.0302 SOL</h3>
+          <p>The launch claimed 0.0698 SOL in proceeds. Equxi's minimum bond is 0.1 SOL, so the remaining 0.0302 SOL is a disclosed top-up, not launch proceeds.</p>
         </div>
-        <div class="how-card">
-          <div class="how-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        <div class="lx-tile">
+          <div class="lx-tile-top">
+            <div class="lx-tile-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <div class="lx-tile-n">03</div>
+          </div>
           <h3>0.0056 SOL left unclaimed</h3>
-          <p>Trading fees must be claimed before migration — after <code>migrate_to_damm_v2</code> the fee vaults are gone. This run learned that too late; the README says so.</p>
+          <p>Trading fees have to be claimed before migration — after <code>migrate_to_damm_v2</code> the fee vaults are gone. This run learned that too late; the README says so.</p>
         </div>
       </div>
     </div>

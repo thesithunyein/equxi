@@ -79,6 +79,7 @@ same set. Nothing needs to be taken on faith:
 | The program moves value, not just compiles | [`TEST-RESULTS.md`](TEST-RESULTS.md) — the live devnet compensation run with balances asserted |
 | An operator cannot exit before a late violation lands | [`withdraw_bond.rs`](programs/equxi/src/instructions/withdraw_bond.rs) — the unbonding window, rehearsed live by [`prove-unbonding.js`](prove-unbonding.js) |
 | The security posture is real, including its gaps | [`SECURITY-AUDIT.md`](SECURITY-AUDIT.md) — five risk areas, the three repairs it produced, and the one deploy-gated patch |
+| An auditor can start from a written scope, not an invitation | [`CERTIK-BRIEF.md`](CERTIK-BRIEF.md) — scope, trust boundaries and a month-by-month roadmap |
 | A token launch can fund its own collateral | [`meteora-launch/README.md`](meteora-launch/README.md) — ten linked devnet transactions through DBC and DAMM v2 |
 | Agent risk can be priced | [`panta-agent-market.js`](panta-agent-market.js) + [`api/markets.js`](api/markets.js) — the Panta integration; test mode is fixtures and is labelled as such |
 | Reads are not tied to one provider | [`api/trust.js`](api/trust.js) — `EQUXI_RPC` selects the RPC endpoint; `?rpc=` still wins |
