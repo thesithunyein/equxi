@@ -17,6 +17,11 @@
  *   `PANTA_API_KEY` set, the endpoint still answers 200 with
  *   `configured: false` and an explanatory `note`, rather than a 500 that looks
  *   like an outage or a fabricated empty list that looks like data.
+ * * **A test key is labelled as a sandbox.** Panta answers a `pk_test_…` key
+ *   with fixtures that never touch Solana mainnet, so the payload carries
+ *   `sandbox: true` and passes Panta's own `disclaimer` through verbatim. A
+ *   fixture that reads as a live market is a lie about the data; the Explorer
+ *   renders the label instead of hiding it.
  * * **Panta errors keep their meaning.** `RATE_LIMITED` becomes a 429 so
  *   callers back off; `INVALID_MARKET_PARAMS` becomes a 400; a rejected key
  *   (`UNAUTHORIZED`) becomes a 502, because that is this deployment's config
@@ -117,9 +122,10 @@ async function buildResponse(query, deps) {
     return {
       ok: true,
       configured: false,
+      sandbox: false,
       source: "panta",
       // Required by Panta's Terms of Use wherever Panta-powered functionality
-      // appears; the Explorer card will render it once the card lands.
+      // appears; the Explorer renders it on the markets card.
       attribution: "Powered by Panta",
       base: PANTA_BASE,
       generatedAt: now,
@@ -174,10 +180,15 @@ async function buildResponse(query, deps) {
   return {
     ok: true,
     configured: true,
+    // A `pk_test_` key is Panta's sandbox: fixtures only, never mainnet. The
+    // feed says which mode it is reading in, so a visitor cannot mistake a
+    // fixture for a live market, and Panta's own disclaimer ships verbatim.
+    sandbox: /^pk_test_/.test(deps.apiKey),
     source: "panta",
     attribution: "Powered by Panta",
     base: PANTA_BASE,
     generatedAt: now,
+    disclaimer: typeof payload.disclaimer === "string" ? payload.disclaimer : null,
     counts: { markets: items.length },
     nextCursor: (payload && payload.nextCursor) || null,
     markets: items.map(normalizeMarket),

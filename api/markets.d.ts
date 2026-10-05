@@ -24,6 +24,8 @@ declare namespace markets {
     json: () => Promise<{
       items?: markets.PantaMarket[];
       nextCursor?: string | null;
+      /** Present on every Panta mode; test mode says the data is sandboxed. */
+      disclaimer?: string;
       error?: string;
       code?: string;
     }>;
@@ -89,6 +91,12 @@ declare namespace markets {
     ok: true;
     /** False when `PANTA_API_KEY` is unset: the feed is off, and says so. */
     configured: boolean;
+    /**
+     * True when the configured key is a `pk_test_…` key. Panta answers those
+     * with fixtures that never touch Solana mainnet, so the Explorer labels
+     * them instead of presenting them as live markets.
+     */
+    sandbox: boolean;
     source: "panta";
     /** Required by Panta's Terms of Use wherever the feed appears. */
     attribution: string;
@@ -96,6 +104,8 @@ declare namespace markets {
     base: string;
     generatedAt: number;
     note?: string;
+    /** Panta's own wording for the current mode, passed through verbatim. */
+    disclaimer?: string | null;
     counts: { markets: number };
     nextCursor: string | null;
     markets: NormalizedMarket[];

@@ -244,6 +244,10 @@ jobs:
           node --check panta-agent-market.js || exit 1
           node --check lib/equxi-layout.js || exit 1
           node --check explorer.js || exit 1
+          # The Explorer's markets card is wired to the read API; renaming one
+          # side would leave a card that can never load.
+          grep -q 'id="markets"' explorer.html || exit 1
+          grep -q '"/api/markets"' explorer.js || exit 1
           node --check landing.js || exit 1
           node --check dev-server.js || exit 1
           grep -q 'module.exports' api/trust.js || exit 1

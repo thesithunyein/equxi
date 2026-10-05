@@ -73,6 +73,15 @@ jobs:
           check "/ (live stats)" "$BASE/" 'data-fill="bonded"' || fail=1
           check "/landing.js" "$BASE/landing.js" "api/trust" || fail=1
 
+          # The Panta feed is optional to the site's core function, but a
+          # silently unset key leaves a markets card that never appears. Warn
+          # rather than fail: a third-party outage must not redden the build.
+          markets=$(curl -s --max-time 20 -H 'cache-control: no-cache' "$BASE/api/markets" || true)
+          case "$markets" in
+            *'"configured":true'*) echo "Panta feed: configured" ;;
+            *) echo "::warning title=Panta feed::/api/markets is not configured on production." ;;
+          esac
+
           title=$(curl -s --max-time 20 -H 'cache-control: no-cache' "$BASE/" | grep -o '<title>[^<]*</title>' || true)
           echo "Live title: $title"
           case "$title" in

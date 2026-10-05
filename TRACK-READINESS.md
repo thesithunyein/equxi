@@ -124,12 +124,12 @@ Their judging is codebase complexity + architectural clarity + repo completeness
 ecosystem impact — all four are already evidenced (11-instruction program with a PDA
 migration executed against live state, 5 green CI jobs, LICENSE, SECURITY.md, SPEC).
 
-## 5. Panta API Track ($5,000 pool) — built; sandbox proven, no live-market spend (decided 2026-10-05)
+## 5. Panta API Track ($5,000 pool) — live on production with a sandbox key; no live-market spend (decided 2026-10-05)
 
 | Requirement | Status |
 |---|---|
 | Submit to Colosseum + Panta sidetrack | ⬜ |
-| **Meaningfully integrate the Panta API** | ✅ `GET /api/markets` built 2026-10-04, plus the create → buy → attribute flows (`lib/panta.js`, `panta-agent-market.js`, 7 unit tests) — all three discovery states (unconfigured / accepted / rejected key) verified against the live Panta API; switches on when `PANTA_API_KEY` is set |
+| **Meaningfully integrate the Panta API** | ✅ `GET /api/markets` built 2026-10-04, plus the create → buy → attribute flows (`lib/panta.js`, `panta-agent-market.js`) — all three discovery states (unconfigured / accepted / rejected key) verified against the live Panta API. **Live on production since 2026-10-05:** the free `pk_test_` key is set in Vercel (production/preview/development), so the endpoint answers `configured: true`; because it is a test key it is labeled `sandbox: true` with Panta's disclaimer, and the Explorer renders the labeled fixture in a markets card. |
 | Working demonstration of the product | ⚠️ demo video must be re-recorded anyway |
 
 Facts verified from `docs.panta.market` (2026-10-04), so the build plan below is against
@@ -167,7 +167,7 @@ Discovery with the key serves one fixture market ("Sandbox test market"). `pk_li
 tradable market costs. `panta-agent-market.js` now detects fixtures and stops with that
 explanation rather than trying to sign one — so the test key can be demoed honestly.
 
-**Still open:** the Explorer market card, and the live-market spend decision.
+**Shipped 2026-10-05:** the markets card (global + per-agent) and the key. The card matches a market to an agent by name or address, so it lights up the day a real market names an agent; with the sandbox key it says so instead of passing the fixture off as that agent's. **Still open:** the `pk_live_` + ~50 USDC decision for one real tradable market.
 
 Needs from you now: **nothing for the sandbox** — the `pk_test_` key is minted and stored
 outside the repo. What remains is the `pk_live_` + ~50 USDC decision if the demo needs a
@@ -234,14 +234,13 @@ still open, so this is enterable, not closed.
 | 3 | Submit on Colosseum (main track) | you | unlocks CertiK / Panta / RPC Fast / Adevar |
 | 4 | CertiK form (answers ready in §2) + Meteora form | you | forms are on Colosseum |
 | 5 | Adevar: apply on Superteam Earn, post the tweet from `@thesithunyein`, follow @AdevarLabs | you | the tweet is a hard requirement, not a bonus |
-| 6 | Panta: mint the free `pk_test_` key → set `PANTA_API_KEY` — `/api/markets` + the create/buy flows are built and tested; `canCreateMarkets` defaults to true per the docs; Explorer card remains | you (key) + me (card) | integration no longer missing: only the key; `--dry-run` proves the flow for free |
+| 6 | ~~Panta: mint the free `pk_test_` key → set `PANTA_API_KEY`; build the Explorer markets card~~ **Done 2026-10-05** — key set in Vercel (all environments), card shipped (global + per-agent, sandbox labeled) | me (key was already minted) | integration is now visible on production; only the `pk_live_` + ~50 USDC decision remains |
 | 7 | RPC Fast: file the 5-step sidetrack application (Colosseum first), claim free Focus, follow/join, post through Nov 15 | you + me (drafts) | judged post-hackathon; 21 teams selected |
 | 8 | Solami: mint the free key, ask whether they serve devnet, then decide the live-feed build | you + me | $3,000 / 4 winners; build only on a yes |
 
 ## 8. What I can build next, by payoff
 
-1. **Panta market panel** (`/api/markets` and the create/buy flows are done; Explorer card remains) — converts the weakest track into
-   a real integration and gives the demo a second act.
+1. ~~**Panta market panel**~~ **Done 2026-10-05** — the Explorer renders the labeled sandbox feed, and the per-agent section lights up when a market names an agent.
 2. **Deploy the unbonding window** — removes the one place where the live site contradicts
    the live program.
 3. **Meteora DBC safety-escrow launch script** — turns the Meteora pitch into code with tx

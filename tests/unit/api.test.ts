@@ -873,6 +873,7 @@ describe("markets API (api/markets.js)", () => {
     const payload = await markets.buildResponse({}, deps(calls, ""));
 
     expect(payload.configured).to.equal(false);
+    expect(payload.sandbox).to.equal(false);
     expect(payload.markets).to.deep.equal([]);
     expect(payload.counts.markets).to.equal(0);
     expect(payload.note).to.include("PANTA_API_KEY");
@@ -888,6 +889,8 @@ describe("markets API (api/markets.js)", () => {
     expect(calls[0].url).to.equal("https://live-api.panta.market/api/v1/markets/");
     expect(calls[0].init.headers["X-Api-Key"]).to.equal("pk_test_abc");
     expect(payload.configured).to.equal(true);
+    expect(payload.sandbox).to.equal(true);
+    expect(payload.disclaimer).to.equal(null);
     expect(payload.attribution).to.equal("Powered by Panta");
     expect(payload.counts.markets).to.equal(1);
     expect(payload.nextCursor).to.equal("cursor_2");
@@ -895,6 +898,30 @@ describe("markets API (api/markets.js)", () => {
     expect(payload.markets[0].phase).to.equal("primary");
     expect(payload.markets[0].volumeUsdc).to.equal("1234.56");
     expect("internalRiskScore" in payload.markets[0]).to.equal(false);
+  });
+
+  it("labels a pk_test_ key as a sandbox and passes Panta's disclaimer through", async () => {
+    const calls: Call[] = [];
+    const sandboxed = await markets.buildResponse(
+      {},
+      deps(calls, "pk_test_abc", {
+        body: {
+          items: [ITEM],
+          nextCursor: null,
+          disclaimer:
+            "Test mode: this response uses sandbox fixtures and does not access Solana mainnet.",
+        },
+      })
+    );
+
+    expect(sandboxed.sandbox).to.equal(true);
+    expect(sandboxed.disclaimer).to.include("sandbox fixtures");
+
+    // A live key is not labelled as a sandbox, even if Panta sends no
+    // disclaimer of its own.
+    const live = await markets.buildResponse({}, deps([], "pk_live_xyz"));
+    expect(live.sandbox).to.equal(false);
+    expect(live.disclaimer).to.equal(null);
   });
 
   it("forwards the allow-listed params and clamps limit to 50", async () => {

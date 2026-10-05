@@ -30,6 +30,7 @@
   "use strict";
 
   var API = "/api/trust";
+  var MARKETS = "/api/markets";
   var BADGE = "/api/badge";
   var EXPLORER = "https://explorer.solana.com";
   var SITE = "https://equxi.sithunyein.com";
@@ -43,6 +44,7 @@
     status: document.getElementById("status"),
     summary: document.getElementById("summary"),
     registry: document.getElementById("registry"),
+    markets: document.getElementById("markets"),
     controls: document.getElementById("controls"),
     cluster: document.getElementById("clusterName"),
   };
@@ -72,6 +74,9 @@
 
   var state = {
     payload: null,
+    /** The Panta markets feed, read independently of the chain registry. */
+    markets: null,
+    marketsError: null,
     error: null,
     /** True when the failure was the network, not a reply from our own API. */
     errorIsNetwork: false,
@@ -150,6 +155,49 @@
     var paid = Math.max(0, totals.slashCount - unpaid);
     if (!unpaid) return paid === 1 ? "1 paid to a victim" : "all paid to victims";
     return paid + " paid · " + unpaid + " still unpaid";
+  }
+
+  /** One market, rendered the same way in the registry card and per agent. */
+  function marketRow(m) {
+    var stats = [];
+    if (m.yesPrice != null && m.yesPrice !== "") stats.push("<span>YES " + esc(m.yesPrice) + "</span>");
+    if (m.noPrice != null && m.noPrice !== "") stats.push("<span>NO " + esc(m.noPrice) + "</span>");
+    if (m.volumeUsdc != null && m.volumeUsdc !== "") {
+      stats.push("<span>" + esc(m.volumeUsdc) + " USDC traded</span>");
+    }
+    if (m.category) stats.push("<span>" + esc(m.category) + "</span>");
+    var phase = m.phase || m.status || "";
+    return (
+      '<div class="x-market-row"><div class="x-market-head"><span class="x-market-title">' +
+      esc(m.title || m.marketId || "Untitled market") +
+      "</span>" +
+      (phase ? '<span class="x-market-phase">' + esc(phase) + "</span>" : "") +
+      "</div>" +
+      (m.description ? '<div class="x-sub">' + esc(m.description) + "</div>" : "") +
+      (stats.length ? '<div class="x-market-stats">' + stats.join("") + "</div>" : "") +
+      "</div>"
+    );
+  }
+
+  /** Markets that name this agent, by address or by name, in any field. */
+  function marketsFor(agent) {
+    var feed = state.markets;
+    if (!feed || !feed.configured) return [];
+    var list = feed.markets || [];
+    var name = String(agent.name || "").toLowerCase();
+    var address = String(agent.address || "").toLowerCase();
+    if (!name && !address) return [];
+    return list.filter(function (m) {
+      var haystack = (
+        String(m.title || "") +
+        " " +
+        String(m.description || "") +
+        " " +
+        String(m.marketId || "")
+      ).toLowerCase();
+      if (address && haystack.indexOf(address) !== -1) return true;
+      return name ? haystack.indexOf(name) !== -1 : false;
+    });
   }
 
   /** Base58, 32 bytes. Used only to decide *how* to look something up. */
@@ -237,6 +285,38 @@
         state.payload = null;
         state.error = error && error.message ? error.message : String(error);
         state.errorIsNetwork = !(error && error.fromApi);
+        render();
+      });
+  }
+
+  /**
+   * Read the Panta markets feed. It is a separate request from the chain read
+   * on purpose: a markets outage must not make the registry look empty, and a
+   * registry outage must not hide the markets.
+   */
+  function loadMarkets() {
+    fetch(MARKETS + "?limit=50", { headers: { accept: "application/json" } })
+      .then(function (response) {
+        return response
+          .json()
+          .catch(function () {
+            return null;
+          })
+          .then(function (body) {
+            if (!response.ok || !body || !body.ok) {
+              throw new Error(body && body.error ? body.error : "HTTP " + response.status);
+            }
+            return body;
+          });
+      })
+      .then(function (body) {
+        state.markets = body;
+        state.marketsError = null;
+        render();
+      })
+      .catch(function (error) {
+        state.markets = null;
+        state.marketsError = error && error.message ? error.message : String(error);
         render();
       });
   }
@@ -492,6 +572,54 @@
         .join("") +
       "</div>" +
       notes;
+  }
+
+  /**
+   * The Panta markets feed. Hidden when this deployment has no key; when the
+   * key is a test key the fixtures are labelled as fixtures, never presented
+   * as live markets.
+   */
+  function renderMarkets() {
+    if (!el.markets) return;
+
+    if (state.marketsError) {
+      el.markets.innerHTML =
+        '<div class="x-card"><div class="x-row"><h2>Markets on agents</h2>' +
+        '<span class="x-sub">Powered by Panta</span></div>' +
+        '<div class="x-sub">The Panta markets feed could not be read, so no market is ' +
+        "shown. The registry above is read separately and is unaffected.</div></div>";
+      return;
+    }
+
+    var feed = state.markets;
+    if (!feed || !feed.configured) {
+      el.markets.innerHTML = "";
+      return;
+    }
+
+    var list = feed.markets || [];
+    var sandbox = feed.sandbox === true;
+    var head =
+      '<div class="x-row"><h2>Markets on agents</h2><span class="x-sub">' +
+      esc(list.length) +
+      (list.length === 1 ? " market" : " markets") +
+      " from Panta · " +
+      '<a class="x-link" href="https://panta.market" target="_blank" rel="noopener">Powered by Panta</a></span></div>';
+
+    var banner = sandbox
+      ? '<div class="x-sandbox"><strong>Sandbox fixtures.</strong> ' +
+        esc(
+          feed.disclaimer ||
+            "This deployment reads Panta with a test key, so the markets below are fixtures and do not touch Solana mainnet."
+        ) +
+        "</div>"
+      : "";
+
+    var body = list.length
+      ? '<div class="x-market-list">' + list.map(marketRow).join("") + "</div>"
+      : '<div class="x-sub">No markets are open on Panta right now.</div>';
+
+    el.markets.innerHTML = '<div class="x-card">' + head + banner + body + "</div>";
   }
 
   /** Apply the reader's sort, grade filter, open-slash filter and name search. */
@@ -885,10 +1013,28 @@
   }
 
   /**
-   * The expanded panel for one agent. It renders inside the table, directly
-   * under the agent's own row, so opening it never moves the reader somewhere
-   * else on the page.
+   * The per-agent market section. Markets that name the agent are listed;
+   * when none do, that is said plainly instead of showing an empty box or a
+   * market that belongs to someone else.
    */
+  function marketBlock(agent) {
+    if (!state.markets || !state.markets.configured) return "";
+    var mine = marketsFor(agent);
+    if (mine.length) {
+      return (
+        '<h3 class="x-sec">Market on this agent</h3>' +
+        '<div class="x-market-list">' +
+        mine.map(marketRow).join("") +
+        "</div>"
+      );
+    }
+    var line =
+      state.markets.sandbox === true
+        ? "No Panta market references this agent yet. This deployment reads Panta in sandbox mode, so the markets feed is labeled fixtures, not live money."
+        : "No Panta market references this agent yet. When one opens on this agent, its live price appears here.";
+    return '<h3 class="x-sec">Market on this agent</h3><div class="x-sub">' + line + "</div>";
+  }
+
   /** What the lock state means, in a sentence rather than a badge. */
   function bondNote(p) {
     if (!p.bond || !p.bond.isActive) return "";
@@ -904,6 +1050,11 @@
     return "";
   }
 
+  /**
+   * The expanded panel for one agent. It renders inside the table, directly
+   * under the agent's own row, so opening it never moves the reader somewhere
+   * else on the page.
+   */
   function detailHtml(agent) {
     var p = agent.profile;
     var notes = p.warnings
@@ -1037,6 +1188,7 @@
       'score. The on-chain <span class="x-mono">trust_score</span> is admin-set and is deliberately ' +
       "not one of them.</div>" +
       renderBreakdown(p) +
+      marketBlock(agent) +
       renderBuilders(agent) +
       '<div class="x-actions" style="margin-top:18px;">' +
       '<a href="' +
@@ -1067,6 +1219,7 @@
     renderSummary();
     renderControls();
     renderRegistry();
+    renderMarkets();
     el.lookup.disabled = state.loading;
     if (el.refresh) {
       el.refresh.disabled = state.loading;
@@ -1108,6 +1261,7 @@
 
   if (el.refresh) {
     el.refresh.addEventListener("click", function () {
+      loadMarkets();
       load(state.request || { mode: "all", value: null }, { keepSelection: true });
     });
   }
@@ -1118,6 +1272,10 @@
       el.refresh.textContent = "Refresh · " + ago(state.loadedAt);
     }
   }, 15000);
+
+  // The markets feed does not depend on the lookup, so it loads once up front
+  // and again on Refresh.
+  loadMarkets();
 
   // Deep links: `explorer.html?agent=<pubkey>`, `?owner=<wallet>` and
   // `?q=<name>` all work, which is what a pitch, a README or a badge can hand

@@ -186,6 +186,30 @@
     .x-pill.owed { background: rgba(255, 84, 84, 0.13); color: #ff5454; }
     .x-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
     .x-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    /* Markets read from Panta. A fixture from a test key is labelled as one,
+       because a sandbox price that reads as live is a lie about the data. */
+    .x-sandbox {
+      border-left: 3px solid #f0b429; background: rgba(240, 180, 41, 0.06);
+      padding: 10px 14px; border-radius: 0 10px 10px 0; font-size: 13px;
+      color: #e7c98a; margin-top: 14px; line-height: 1.55;
+    }
+    .x-market-list { margin-top: 4px; }
+    .x-market-row { border-top: 1px solid #161616; padding: 13px 0 3px; }
+    .x-market-list .x-market-row:first-child { border-top: none; padding-top: 8px; }
+    .x-market-head {
+      display: flex; align-items: baseline; justify-content: space-between;
+      gap: 10px; flex-wrap: wrap;
+    }
+    .x-market-title { font-weight: 600; font-size: 14px; }
+    .x-market-phase {
+      font-size: 11px; padding: 3px 9px; border-radius: 999px; background: #171717;
+      color: var(--muted); white-space: nowrap;
+    }
+    .x-market-stats {
+      display: flex; gap: 8px 14px; flex-wrap: wrap; margin-top: 8px;
+      font-size: 12.5px; color: var(--muted);
+    }
     .x-actions a, .x-actions button {
       font-size: 12.5px; padding: 8px 13px; border-radius: 9px; border: 1px solid #262626;
       background: #0c0c0c; color: var(--text); cursor: pointer; font-family: var(--font);
@@ -318,6 +342,7 @@
       <div id="summary"></div>
       <div id="controls"></div>
       <div id="registry"></div>
+      <div id="markets"></div>
 
       <details class="x-fold" id="helpFold">
         <summary>
@@ -374,6 +399,12 @@
             <span class="x-mono">?agent=&lt;pda&gt;</span> reads one, and
             <span class="x-mono">?owner=&lt;wallet&gt;</span> reads by owner. Same numbers this page
             shows, in JSON.</p>
+          </div>
+          <div class="x-help-item">
+            <p><span class="x-help-title">Price the risk yourself.</span>
+            <span class="x-mono">GET /api/markets</span> lists the prediction markets that price
+            agent risk, read from Panta. Sandbox fixtures are labeled as fixtures.
+            Powered by Panta.</p>
           </div>
           <div class="x-help-item">
             <p><span class="x-help-title">Study the code.</span> The program, the read layer and the
