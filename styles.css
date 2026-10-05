@@ -279,6 +279,48 @@ a { text-decoration: none; color: inherit; }
 .how-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 8px; color: #fff; }
 .how-card p { font-size: 13px; color: rgba(255,255,255,0.65); line-height: 1.55; }
 
+/* Keyboard focus — one visible ring for everything interactive.
+   Without it, tabbing through the header and the cards is invisible. */
+a:focus-visible, button:focus-visible, input:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--purple);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* Motion here is all decoration — the background video, the cursor glow and
+   the entrance animations stop when the reader's system asks for less. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  html { scroll-behavior: auto !important; }
+  .bg-video, .cursor-glow { display: none; }
+}
+
+/* The record — one card per judged claim, linking the artifact behind it. */
+.record-section {
+  position: relative; z-index: 1; width: 100%; padding: 56px 32px 72px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.record-inner { max-width: 1000px; margin: 0 auto; text-align: center; }
+.record-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 28px; text-align: left; }
+.record-card { border: 1px solid #1e1e1e; border-radius: 14px; padding: 16px 18px; background: #080808; transition: border-color 0.2s, transform 0.2s; }
+.record-card:hover { border-color: rgba(153, 69, 255, 0.4); transform: translateY(-2px); }
+.record-card .k { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
+.record-card .t { font-size: 15px; font-weight: 600; margin: 6px 0 4px; color: #fff; }
+.record-card .d { font-size: 12.5px; color: rgba(255,255,255,0.62); line-height: 1.55; }
+.record-card .l { margin-top: 10px; display: flex; gap: 14px; flex-wrap: wrap; }
+.record-card .l a { font-size: 12.5px; color: var(--purple); }
+.record-card .l a:hover { text-decoration: underline; }
+.record-attribution { margin-top: 16px; font-size: 12px; color: rgba(255,255,255,0.45); }
+@media (max-width: 900px) { .record-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) {
+  .record-grid { grid-template-columns: 1fr; }
+  .record-section { padding: 40px 20px 56px; }
+}
+
 /* Footer */
 .site-footer {
   position: relative; z-index: 1;
@@ -293,4 +335,4 @@ a { text-decoration: none; color: inherit; }
 .footer-links { display: flex; gap: 24px; }
 .footer-links a { font-size: 13px; color: var(--muted); transition: color 0.2s; }
 .footer-links a:hover { color: var(--text); }
-.footer-copy { font-size: 12px; color: rgba(255,255,255,0.3); }
+.footer-copy { font-size: 12px; color: rgba(255,255,255,0.5); }

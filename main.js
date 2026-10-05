@@ -28,23 +28,35 @@
   }
 
   document.addEventListener("DOMContentLoaded", () => {
-    // Hamburger menu
+    // Hamburger menu. State lives in one place so the button's aria-expanded,
+    // the overlay and body scroll can never disagree — a screen reader asking
+    // "is it open?" gets the same answer as the pixels.
     var menuBtn = document.getElementById("menuToggle");
     var mobileNav = document.getElementById("mobileNav");
     if (menuBtn && mobileNav) {
+      var setMenu = function (open) {
+        menuBtn.classList.toggle("active", open);
+        mobileNav.classList.toggle("open", open);
+        menuBtn.setAttribute("aria-expanded", open ? "true" : "false");
+        document.body.style.overflow = open ? "hidden" : "";
+      };
       menuBtn.addEventListener("click", function () {
-        menuBtn.classList.toggle("active");
-        mobileNav.classList.toggle("open");
-        document.body.style.overflow = mobileNav.classList.contains("open") ? "hidden" : "";
+        setMenu(!mobileNav.classList.contains("open"));
       });
       mobileNav.querySelectorAll(".mobile-nav-link").forEach(function (link) {
-        link.addEventListener("click", function () {
-          menuBtn.classList.remove("active");
-          mobileNav.classList.remove("open");
-          document.body.style.overflow = "";
-        });
+        link.addEventListener("click", function () { setMenu(false); });
+      });
+      // Escape closes it, like every other overlay on the web.
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && mobileNav.classList.contains("open")) setMenu(false);
       });
     }
+
+    // Entrance animations are decoration. When the system asks for reduced
+    // motion, the CSS already collapses them; skip the JavaScript timers too.
+    var reduceMotion =
+      window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduceMotion) return;
 
     // Animate elements in
     const header = document.querySelector(".header");

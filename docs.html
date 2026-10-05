@@ -30,6 +30,12 @@
     }
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     html { -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
+    /* Keyboard focus and reduced motion, matching styles.css on the other pages. */
+    a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--purple); outline-offset: 2px; border-radius: 8px; }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+    }
     body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.7; }
     a { text-decoration: none; color: inherit; }
 
@@ -151,6 +157,9 @@
            landing page to find it. -->
       <a href="explorer.html" class="back-btn">
         <i class="fa-solid fa-magnifying-glass"></i> Explorer
+      </a>
+      <a href="launch.html" class="back-btn">
+        <i class="fa-solid fa-rocket"></i> Launch
       </a>
       <a href="https://x.com/equxi_ai" class="back-btn" target="_blank">
         <i class="fa-brands fa-x-twitter"></i>

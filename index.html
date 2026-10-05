@@ -142,7 +142,7 @@
            same button twice on one screen and left the supply side — the
            operator who bonds an agent — with no way in but a text link. -->
       <a href="app.html" class="btn-primary desktop-only">Register an agent</a>
-      <button class="menu-toggle" id="menuToggle" aria-label="Menu">
+      <button class="menu-toggle" id="menuToggle" aria-label="Menu" aria-controls="mobileNav" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
     </header>
@@ -289,6 +289,73 @@
     </div>
   </section>
 
+  <!-- The record: one card per judged claim, each linking the artifact behind
+       it. The same files judges are pointed to, placed where a visitor landing
+       from a submission can see nothing is asserted without a link. -->
+  <section class="record-section" id="record">
+    <div class="record-inner">
+      <h2 class="how-title">The record, not the pitch</h2>
+      <p class="how-sub">Every claim has a file behind it.</p>
+      <div class="record-grid">
+        <div class="record-card">
+          <div class="k">Main track</div>
+          <div class="t">Program + tests</div>
+          <div class="d">Eleven instructions live on devnet, 180 CI tests, both upgrades byte-verified.</div>
+          <div class="l">
+            <a href="https://github.com/thesithunyein/equxi/blob/main/SPEC.md">SPEC</a>
+            <a href="https://github.com/thesithunyein/equxi/blob/main/TEST-RESULTS.md">Test results</a>
+          </div>
+        </div>
+        <div class="record-card">
+          <div class="k">Security</div>
+          <div class="t">Posture, published</div>
+          <div class="d">The five risk areas audited in public, with the three repairs it produced.</div>
+          <div class="l">
+            <a href="https://github.com/thesithunyein/equxi/blob/main/SECURITY-AUDIT.md">Security audit</a>
+            <a href="https://github.com/thesithunyein/equxi/blob/main/SECURITY.md">SECURITY.md</a>
+          </div>
+        </div>
+        <div class="record-card">
+          <div class="k">Meteora DBC</div>
+          <div class="t">A launch that funds its own escrow</div>
+          <div class="d">Ten devnet transactions: config, curve, migration, proceeds, bond.</div>
+          <div class="l">
+            <a href="launch.html">Launch page</a>
+            <a href="https://github.com/thesithunyein/equxi/tree/main/meteora-launch">meteora-launch/</a>
+          </div>
+        </div>
+        <div class="record-card">
+          <div class="k">Audit-ready</div>
+          <div class="t">Dossiers for auditors</div>
+          <div class="d">Scope, trust boundaries and a month-by-month roadmap.</div>
+          <div class="l">
+            <a href="https://github.com/thesithunyein/equxi/blob/main/CERTIK-BRIEF.md">CertiK brief</a>
+            <a href="https://github.com/thesithunyein/equxi/blob/main/ADEVAR-APPLICATION.md">Pre-audit dossier</a>
+          </div>
+        </div>
+        <div class="record-card">
+          <div class="k">Markets</div>
+          <div class="t">Risk, priced</div>
+          <div class="d">An agent-slash market whose resolution rule cites the public slash record.</div>
+          <div class="l">
+            <a href="/api/markets">/api/markets</a>
+            <a href="https://github.com/thesithunyein/equxi/blob/main/panta-agent-market.js">Market CLI</a>
+          </div>
+        </div>
+        <div class="record-card">
+          <div class="k">Infrastructure</div>
+          <div class="t">Cluster-agnostic reads</div>
+          <div class="d">The read layer takes any Solana RPC endpoint — the provider is one variable.</div>
+          <div class="l">
+            <a href="/api/trust">/api/trust</a>
+            <a href="https://github.com/thesithunyein/equxi#read-api">Read API docs</a>
+          </div>
+        </div>
+      </div>
+      <div class="record-attribution">Market feed reads Panta's API — <strong>Powered by Panta</strong>.</div>
+    </div>
+  </section>
+
   <!-- Footer -->
   <footer class="site-footer">
     <div class="footer-inner">
@@ -302,6 +369,7 @@
         <a href="docs.html">Docs</a>
         <a href="app.html">Dashboard</a>
         <a href="explorer.html">Explorer</a>
+        <a href="launch.html">Launch</a>
         <a href="https://github.com/thesithunyein/equxi" target="_blank" rel="noopener">GitHub</a>
         <a href="https://x.com/equxi_ai" target="_blank" rel="noopener">X</a>
       </nav>

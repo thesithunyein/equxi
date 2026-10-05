@@ -420,3 +420,20 @@ button { border: none; background: none; cursor: pointer; font: inherit; color: 
   .agent-card { padding: 12px; }
   .bond-card { padding: 12px; }
 }
+
+/* Keyboard focus — the dashboard is forms and buttons, so a visible ring
+   matters more here than anywhere else on the site. */
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--purple);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* Motion is decoration; the wallet flow works without it. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

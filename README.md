@@ -11,6 +11,7 @@
   <a href="https://github.com/thesithunyein/equxi/actions"><img src="https://img.shields.io/github/actions/workflow/status/thesithunyein/equxi/ci.yml?style=for-the-badge" alt="CI" /></a>
   <a href="https://superteam.fun/earn/grants/agentic-engineering"><img src="https://img.shields.io/badge/Grant-Agentic%20Engineering-22c55e?style=for-the-badge" alt="Grant" /></a>
   <a href="https://explorer.solana.com/address/D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc?cluster=devnet"><img src="https://img.shields.io/badge/Program-Devnet-22c55e?style=for-the-badge" alt="Program" /></a>
+  <a href="TEST-RESULTS.md"><img src="https://img.shields.io/badge/Tests-180%20in%20CI-3b82f6?style=for-the-badge" alt="Tests" /></a>
 </p>
 
 ---
@@ -57,12 +58,30 @@ counterparty reads the bond and slash history from one endpoint before dealing.
 
 | Component | Link |
 |-----------|------|
-| Landing Page | [equxi.sithunyein.com](https://equxi.sithunyein.com) |
+| Landing page | [equxi.sithunyein.com](https://equxi.sithunyein.com) |
+| Trust Explorer | [equxi.sithunyein.com/explorer.html](https://equxi.sithunyein.com/explorer.html) |
 | Dashboard | [equxi.sithunyein.com/app.html](https://equxi.sithunyein.com/app.html) |
 | Documentation | [equxi.sithunyein.com/docs.html](https://equxi.sithunyein.com/docs.html) |
+| Launch (Meteora DBC) | [equxi.sithunyein.com/launch.html](https://equxi.sithunyein.com/launch.html) |
+| Read API | [`/api/trust`](https://equxi.sithunyein.com/api/trust) · [`/api/badge`](https://equxi.sithunyein.com/api/badge) · [`/api/markets`](https://equxi.sithunyein.com/api/markets) |
+| SDK | [`@equxi/sdk` on npm](https://www.npmjs.com/package/@equxi/sdk) |
 | Program | [`D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc`](https://explorer.solana.com/address/D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc?cluster=devnet) |
 | Network | Solana Devnet |
 | Repo | [github.com/thesithunyein/equxi](https://github.com/thesithunyein/equxi) |
+
+## Start with the proof
+
+Every claim here has a file behind it, and a counterparty, judge or auditor can check the
+same set. Nothing needs to be taken on faith:
+
+| Claim | Where it is checked |
+|---|---|
+| The program moves value, not just compiles | [`TEST-RESULTS.md`](TEST-RESULTS.md) — the live devnet compensation run with balances asserted |
+| An operator cannot exit before a late violation lands | [`withdraw_bond.rs`](programs/equxi/src/instructions/withdraw_bond.rs) — the unbonding window, rehearsed live by [`prove-unbonding.js`](prove-unbonding.js) |
+| The security posture is real, including its gaps | [`SECURITY-AUDIT.md`](SECURITY-AUDIT.md) — five risk areas, the three repairs it produced, and the one deploy-gated patch |
+| A token launch can fund its own collateral | [`meteora-launch/README.md`](meteora-launch/README.md) — ten linked devnet transactions through DBC and DAMM v2 |
+| Agent risk can be priced | [`panta-agent-market.js`](panta-agent-market.js) + [`api/markets.js`](api/markets.js) — the Panta integration; test mode is fixtures and is labelled as such |
+| Reads are not tied to one provider | [`api/trust.js`](api/trust.js) — `EQUXI_RPC` selects the RPC endpoint; `?rpc=` still wins |
 
 ## On-Chain Proof
 
