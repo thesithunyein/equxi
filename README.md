@@ -11,10 +11,18 @@
   <a href="https://github.com/thesithunyein/equxi/actions"><img src="https://img.shields.io/github/actions/workflow/status/thesithunyein/equxi/ci.yml?style=for-the-badge" alt="CI" /></a>
   <a href="https://superteam.fun/earn/grants/agentic-engineering"><img src="https://img.shields.io/badge/Grant-Agentic%20Engineering-22c55e?style=for-the-badge" alt="Grant" /></a>
   <a href="https://explorer.solana.com/address/D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc?cluster=devnet"><img src="https://img.shields.io/badge/Program-Devnet-22c55e?style=for-the-badge" alt="Program" /></a>
-  <a href="TEST-RESULTS.md"><img src="https://img.shields.io/badge/Tests-180%20in%20CI-3b82f6?style=for-the-badge" alt="Tests" /></a>
+  <a href="TEST-RESULTS.md"><img src="https://img.shields.io/badge/Tests-181%20in%20CI-3b82f6?style=for-the-badge" alt="Tests" /></a>
 </p>
 
 ---
+
+## Use it
+
+- **Check an agent:** [equxi.sithunyein.com/explorer.html](https://equxi.sithunyein.com/explorer.html). Search a name, an agent address or an owner wallet. No wallet connection, no account.
+- **Read the registry:** `curl https://equxi.sithunyein.com/api/trust`
+- **Embed a live grade:** `curl "https://equxi.sithunyein.com/api/badge?agent=<pda>"` returns an SVG that re-reads the chain on every request.
+
+Every number is read from the program when you ask for it, including the parts that do not flatter this project.
 
 ## The Problem
 
@@ -30,7 +38,7 @@ they don't deliver:
 - **Permission is solved; consequence isn't.** Wallets cap what an agent can spend. Nothing
   makes it *pay* when it breaks a rule anyway.
 
-Platforms solved **permission** — allowlists, spend caps, approvals. Equxi is the missing
+Platforms solved **permission**: allowlists, spend caps, approvals. Equxi is the missing
 half: **consequence**.
 
 Operators lock SOL as a bond for their agent. The program holds it in its own vault, and any
@@ -63,6 +71,7 @@ counterparty reads the bond and slash history from one endpoint before dealing.
 | Dashboard | [equxi.sithunyein.com/app.html](https://equxi.sithunyein.com/app.html) |
 | Documentation | [equxi.sithunyein.com/docs.html](https://equxi.sithunyein.com/docs.html) |
 | Launch (Meteora DBC) | [equxi.sithunyein.com/launch.html](https://equxi.sithunyein.com/launch.html) |
+| Pitch deck | [equxi.sithunyein.com/deck.html](https://equxi.sithunyein.com/deck.html) |
 | Read API | [`/api/trust`](https://equxi.sithunyein.com/api/trust) · [`/api/badge`](https://equxi.sithunyein.com/api/badge) · [`/api/markets`](https://equxi.sithunyein.com/api/markets) |
 | SDK | [`@equxi/sdk` on npm](https://www.npmjs.com/package/@equxi/sdk) |
 | Program | [`D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc`](https://explorer.solana.com/address/D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc?cluster=devnet) |
@@ -76,13 +85,13 @@ same set. Nothing needs to be taken on faith:
 
 | Claim | Where it is checked |
 |---|---|
-| The program moves value, not just compiles | [`TEST-RESULTS.md`](TEST-RESULTS.md) — the live devnet compensation run with balances asserted |
-| An operator cannot exit before a late violation lands | [`withdraw_bond.rs`](programs/equxi/src/instructions/withdraw_bond.rs) — the unbonding window, rehearsed live by [`prove-unbonding.js`](prove-unbonding.js) |
-| The security posture is real, including its gaps | [`SECURITY-AUDIT.md`](SECURITY-AUDIT.md) — five risk areas, the three repairs it produced, and the one deploy-gated patch |
-| An auditor can start from a written scope, not an invitation | [`CERTIK-BRIEF.md`](CERTIK-BRIEF.md) — scope, trust boundaries and a month-by-month roadmap |
-| A token launch can fund its own collateral | [`meteora-launch/README.md`](meteora-launch/README.md) — ten linked devnet transactions through DBC and DAMM v2 |
-| Agent risk can be priced | [`panta-agent-market.js`](panta-agent-market.js) + [`api/markets.js`](api/markets.js) — the Panta integration; test mode is fixtures and is labelled as such |
-| Reads are not tied to one provider | [`api/trust.js`](api/trust.js) — `EQUXI_RPC` selects the RPC endpoint; `?rpc=` still wins |
+| The program moves value, not just compiles | [`TEST-RESULTS.md`](TEST-RESULTS.md): the live devnet compensation run with balances asserted |
+| An operator cannot exit before a late violation lands | [`withdraw_bond.rs`](programs/equxi/src/instructions/withdraw_bond.rs): the unbonding window, rehearsed live by [`prove-unbonding.js`](prove-unbonding.js) |
+| The security posture is real, including its gaps | [`SECURITY-AUDIT.md`](SECURITY-AUDIT.md): five risk areas, the three repairs it produced, and the one deploy-gated patch |
+| An auditor can start from a written scope, not an invitation | [`CERTIK-BRIEF.md`](CERTIK-BRIEF.md): scope, trust boundaries and a month-by-month roadmap |
+| A token launch can fund its own collateral | [`meteora-launch/README.md`](meteora-launch/README.md): ten linked devnet transactions through DBC and DAMM v2 |
+| Agent risk can be priced | [`panta-agent-market.js`](panta-agent-market.js) + [`api/markets.js`](api/markets.js): the Panta integration, live on the Explorer; test-key fixtures are labelled as fixtures, never presented as live markets |
+| Reads are not tied to one provider | [`api/trust.js`](api/trust.js): `EQUXI_RPC` selects the RPC endpoint; `?rpc=` still wins |
 
 ## On-Chain Proof
 
@@ -93,8 +102,8 @@ The program's eleven instructions are live on devnet. All transactions confirmed
 | `initialize` | Creates config + escrow vault; admin is bound to the program upgrade authority |
 | `create_vault` | One-time migration: creates the escrow vault on an older config (upgrade authority + admin) |
 | `register_agent` | Creates agent identity with name, type, and trust score |
-| `create_bond` | Locks SOL as collateral — the agent owner must sign |
-| `top_up_bond` | Records collateral added after creation — operator-only, updates `bond.amount` |
+| `create_bond` | Locks SOL as collateral; the agent owner must sign |
+| `top_up_bond` | Records collateral added after creation; operator-only, updates `bond.amount` |
 | `withdraw_bond` | Returns and closes the bond after the lock period **and a 7-day unbonding window** |
 | `add_constraint` | Adds a behavioral rule; agents may hold many |
 | `execute_slash` | Seizes collateral into the program-owned escrow vault |
@@ -139,7 +148,7 @@ solana program deploy target/deploy/equxi.so
 Shipping new program code is only half an upgrade, and the other half is the
 part that bites. v0.2 added `constraint_count` to `Agent`, growing that account
 from 116 to 118 bytes. Anchor refuses to deserialize a shorter account, so once
-the new code is deployed the program cannot read its own pre-existing agents —
+the new code is deployed the program cannot read its own pre-existing agents,
 and nothing looks wrong from outside, because the website decodes accounts
 directly and keeps working.
 
@@ -175,7 +184,7 @@ anchor test
 
 `tests/unit/` is the contract for the account layouts in `SPEC.md`. It builds
 account buffers by hand, decodes them with the hand-written decoders, the read
-API's decoders, and Anchor's own coder, and asserts all of them agree — so a
+API's decoders, and Anchor's own coder, and asserts all of them agree, so a
 layout change that is not mirrored in every client fails immediately.
 
 | File | What it pins |
@@ -184,13 +193,17 @@ layout change that is not mirrored in every client fails immediately.
 | `tests/unit/sdk.test.ts` | The IDL shipped in `sdk/src/idl/equxi.json` |
 | `tests/unit/read.test.ts` | Query filters, decoding, the trust-scoring rules, and that the SDK scorer and the API scorer agree |
 | `tests/unit/api.test.ts` | `api/trust.js`, `api/badge.js` and `api/markets.js` end to end, against stubbed RPC and Panta responses |
+| `tests/unit/panta.test.ts` | The Panta routes, bodies and headers for the create, buy and attribute flows, plus the agent-market plan constraints |
+| `tests/unit/copy.test.ts` | Page copy limits, cross-page links, and one word per idea (a slash is a slash) |
+| `tests/unit/landing.test.ts` | The landing page's live stats: placeholders, error copy, and the textContent-only rule |
 
 > **Honest status:** the unit tests and all TypeScript typechecks pass, CI
 > compiles the Rust program and runs `anchor test` on a local validator, and the
-> 116 → 118 byte agent migration has its own Rust unit tests. **Devnet runs v0.2
-> as of 2026-09-16**, with the live agent migrated in place (all 8 preserved
-> fields verified byte-identical) and the escrow vault created — transactions in
-> [`TEST-RESULTS.md`](TEST-RESULTS.md).
+> 116 → 118 byte agent migration has its own Rust unit tests. **Devnet runs the
+> unbonding-window build as of 2026-10-04** (upgrade `5tK2dMyR…`, on-chain bytes
+> verified against the CI artifact), with the live agents migrated in place (all
+> 8 preserved fields verified byte-identical) and the escrow vault created;
+> transactions in [`TEST-RESULTS.md`](TEST-RESULTS.md).
 
 ## Architecture
 
@@ -205,12 +218,12 @@ equxi/
 ├── sdk/                      TypeScript SDK (src/idl/equxi.json is the IDL)
 │   └── src/read.ts           Query layer: list agents, bonds, slash history
 ├── eliza-plugin/             elizaOS plugin (IDL-free; encodes from coder.ts)
-├── api/trust.js              GET /api/trust — public read API (Vercel function)
-├── api/badge.js              GET /api/badge — embeddable SVG trust badge
-├── api/markets.js            GET /api/markets — Panta prediction markets feed
+├── api/trust.js              GET /api/trust, public read API (Vercel function)
+├── api/badge.js              GET /api/badge, embeddable SVG trust badge
+├── api/markets.js            GET /api/markets, Panta markets feed (sandbox labelled)
 ├── lib/equxi-layout.js       Account layouts + scoring for the API (no deps)
 ├── dev-server.js             Static server + read API for local development
-├── tests/unit/               Validator-free wire-format + SDK + read tests
+├── tests/unit/               Validator-free program, SDK, read API, Panta and copy tests
 ├── SPEC.md                   Agent Accountability Standard (AAS-1)
 ├── explorer.html             Trust Explorer (public, read-only)
 ├── explorer.js               Explorer logic
@@ -238,7 +251,7 @@ struct Vault {               // Program-owned escrow for slashed collateral
 }
 
 struct Agent {
-    owner: Pubkey,           // Operator wallet — must sign to create a bond
+    owner: Pubkey,           // Operator wallet, must sign to create a bond
     name: [u8; 32],
     agent_type: AgentType,   // Trader, Oracle, DeFi, etc.
     trust_score: u8,         // 0-100 reputation
@@ -297,7 +310,7 @@ Equxi is **non-custodial with respect to slashed funds**:
 - **Compensation is bounded.** A payout cannot exceed its slash amount, a slash can
   only be compensated once, and payouts cannot exceed the vault balance.
 
-> **Scope note.** Equxi does not yet *prevent* violations on chain — detection is
+> **Scope note.** Equxi does not yet *prevent* violations on chain: detection is
 > off-chain and a slash is asserted by the configured authority. The protocol
 > guarantees that once a violation is recorded, the money moves correctly. On-chain
 > violation proofs, dispute windows, and decentralized slashing are tracked as open
@@ -354,7 +367,7 @@ endpoint (for example RPC Fast's Focus plan); an explicit `?rpc=` still wins.
 ```
 
 **The score is derived, not read.** `grade` and `score` come only from
-observable on-chain evidence — whether a bond is posted, how large it is, and
+observable on-chain evidence: whether a bond is posted, how large it is, and
 whether each recorded violation was actually compensated. The on-chain
 `trust_score` field is admin-set, so it is reported separately and never used as
 an input. An agent with no bond is `ungraded`, not trustworthy.
@@ -388,7 +401,7 @@ attacker-controlled, so everything is XML-escaped before it reaches the markup.
 
 **Which layout it read is part of the response.** Devnet runs v0.2, whose
 `Agent` accounts are 118 bytes and whose slashed collateral is held in an escrow
-`vault` — but the reader still understands the 116-byte v0.1 layout, because a
+`vault`, but the reader still understands the 116-byte v0.1 layout, because a
 pre-migration agent on any deployment must stay readable. The decoder selects the
 layout from the account length and reports `layout: "v1" | "v2"`, adding a
 program-level `warnings` entry when a deployment is v0.1, so a reader can see
@@ -409,12 +422,12 @@ trades are the other half of the picture. `GET /api/markets` reads the
 operator's own markets live from [Panta's](https://panta.market) API and
 normalizes them into one flat list. It never custodies or signs anything.
 
-**Powered by Panta** — the attribution Panta's Terms of Use require wherever
+**Powered by Panta**: the attribution Panta's Terms of Use require wherever
 Panta-powered functionality appears. It is carried in the JSON payload
-(`attribution`), and the Explorer card will render it once the card lands.
+(`attribution`) and rendered on the Explorer's markets card.
 
 ```bash
-# The feed itself (200 even when the integration is switched off — see below)
+# The feed itself (200 even when the integration is switched off; see below)
 curl https://equxi.sithunyein.com/api/markets
 
 # Filtered, with Panta's cursor pagination forwarded
@@ -425,16 +438,19 @@ curl "https://equxi.sithunyein.com/api/markets?category=sports&status=open&creat
 {
   "ok": true,
   "configured": true,
+  "sandbox": true,
   "source": "panta",
+  "attribution": "Powered by Panta",
   "generatedAt": 1800000000,
+  "disclaimer": "Test mode: this response uses sandbox fixtures and does not access Solana mainnet.",
   "counts": { "markets": 1 },
-  "nextCursor": "cursor_2",
-  "markets": [ { "marketId": "…", "title": "…", "phase": "primary", "volumeUsdc": "1234.56" } ]
+  "nextCursor": null,
+  "markets": [ { "marketId": "TestMarket1111…", "title": "Sandbox test market", "phase": "primary", "volumeUsdc": "0.00" } ]
 }
 ```
 
 The endpoint is honest about being switched off: with **no `PANTA_API_KEY` set**
-it answers `200` with `configured: false` and a `note` saying what to set —
+it answers `200` with `configured: false` and a `note` saying what to set:
 never a 500 that reads like an outage, and never a made-up empty market list
 that reads like data. Upstream failures keep their meaning: `RATE_LIMITED`
 becomes a `429`, `INVALID_MARKET_PARAMS` a `400`, and a rejected key a `502`
@@ -458,7 +474,7 @@ PANTA_API_KEY=pk_test_… node panta-agent-market.js buy \
   --market <marketId> --side yes --amount 20.00 --key <keypair.json>
 ```
 
-**Test keys are a sandbox — verified with a real key on 2026-10-05, not inferred.**
+**Test keys are a sandbox. Verified with a real key on 2026-10-05, not inferred.**
 A `pk_test_` key is free to mint, and Panta answers it with fixtures: the create
 quote returns `cr_sandbox_test` / `TestMarket1111…`, the build returns a
 zero-length transaction with `recentBlockhash: SandboxBlockhash…`, and every
@@ -468,37 +484,50 @@ explanation instead of trying to sign a fixture. A real, tradable market needs a
 `pk_live_` key and ~50 USDC (40 platform + 10 liquidity) on a funded mainnet
 wallet.
 
-The question is mechanical and public — *“Will Equxi agent <name> be slashed
-before <date>?”* — and it resolves from the same `/api/trust?agent=` evidence
+**The live deployment reads Panta with a free test key.** `/api/markets`
+answers `configured: true` with `sandbox: true`, and the Trust Explorer renders
+the labelled fixture in a markets card. Each agent's panel also carries a
+"Market on this agent" section that matches markets by agent name or address,
+so it fills in the day a real market names an agent; until then it says so.
+
+The question is mechanical and public: *“Will Equxi agent <name> be slashed
+before <date>?”* It resolves from the same `/api/trust?agent=` evidence
 anyone can curl, so the market prices the exact risk this repo exists to make
 legible. Nothing is ever custodied: Panta cooks the transaction, the local
 wallet signs it, we broadcast on our RPC, then report the signature back.
 
 ## Trust Explorer
 
-[`explorer.html`](explorer.html) is the human-readable view of the same data —
-the page you can hand to someone who will not run `curl`. It is read-only and has
-no wallet connection.
+[`explorer.html`](explorer.html) is the human-readable view of the same data:
+the page you can hand to someone who will not run `curl`. It is read-only, needs
+no wallet connection, and explains itself on the page rather than in a repo
+folder. It answers the question a counterparty has, not the one a developer has:
 
-It answers the question a counterparty has, not the one a developer has:
-
-* **Search the way people know an agent** — by name, by agent address, or by the
-  owner wallet that controls it. A pubkey is tried as an agent account first and
-  then as an owner, so the reader does not have to know which they pasted.
+* **Search the way people know an agent** by name, agent address or owner wallet.
+  A pubkey is tried as an agent account first and then as an owner, so the reader
+  does not have to know which they pasted.
+* **Open a row, not a new page.** A click or `Enter` expands that agent's panel
+  inline: collateral and its lock state, slash history, the score ledger, the
+  market section and the badge snippets.
 * **Sort and filter the registry** by collateral, weakest score, slash count or
-  age, and narrow by grade or to agents with unpaid slashes.
-* **Audit the grade.** Each agent's panel renders the score ledger
+  age, and narrow by grade or to agents with unpaid slashes. The same layout
+  becomes one card per agent on a phone.
+* **Audit the grade.** Each panel renders the score ledger
   (`profile.breakdown`) so the deduction behind every point is visible, next to
   the on-chain `trust_score` it deliberately ignores.
-* **Count rules the honest way.** The on-chain constraint *counter* does not exist
-  on v0.1 accounts, so rule counts are read from the Constraint accounts
-  themselves and labelled `found (counter n/a)` — never a confident `0` that
+* **See the market, when one exists.** The page renders the Panta feed with a
+  `Sandbox fixtures` label when the deployment holds a test key, and each panel
+  lists the markets that name that agent; when none do, it says so instead of
+  showing someone else's market.
+* **Count rules the honest way.** Rules are read from the Constraint accounts
+  themselves, and a pre-migration agent gets a note that the on-chain counter
+  does not exist on its layout, so the count is never a confident `0` that
   contradicts the rules listed beside it.
 * **Embed it.** Every agent panel generates the Markdown, HTML and JSON URLs for
   that agent's live badge.
 
 Deep links work for all three lookups: `?agent=<pda>`, `?owner=<wallet>` and
-`?q=<name>`. A failed lookup is reported as a failure — the page never presents an
+`?q=<name>`. A failed lookup is reported as a failure: the page never presents an
 RPC error as “no agents found”.
 
 ## SDK
@@ -563,7 +592,7 @@ git clone https://github.com/thesithunyein/equxi.git
 #   "dependencies": { "@equxi/plugin-eliza": "file:../equxi/eliza-plugin" }
 ```
 
-Live on npm as [`@equxi/plugin-eliza`](https://www.npmjs.com/package/@equxi/plugin-eliza) — `npm install @equxi/plugin-eliza`.
+Live on npm as [`@equxi/plugin-eliza`](https://www.npmjs.com/package/@equxi/plugin-eliza): `npm install @equxi/plugin-eliza`.
 
 ```typescript
 import { equxiPlugin } from "@equxi/plugin-eliza";
@@ -587,6 +616,13 @@ Then talk to your agent naturally:
 | `"Slash 0.1 SOL for exceeding limit"` | `EQUXI_SLASH_BOND` |
 
 See [`eliza-plugin/README.md`](eliza-plugin/README.md) for full docs.
+
+## Status
+
+Live on devnet and readable by anyone. No external operators yet, and slashing
+is authority-signed today: on-chain violation proofs, dispute windows and
+decentralized slashing are the next roadmap items in [`SPEC.md`](SPEC.md).
+Everything above is checked by a test or by a real transaction.
 
 ## Built For
 
