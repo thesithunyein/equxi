@@ -22,7 +22,7 @@ reachable**, and not spending hours where the rules make it unreachable this cyc
 | **Meteora DBC** | **Strongest** (9.5/10 material) | A judge who follows the on-chain trail: config → curve → partial-fill to the graduation boundary → DAMM v2 migration → claimed proceeds → bond, plus the "a launch funds its own safety escrow" idea | File the form; `launch.html` already renders it | you |
 | **CertiK** | **High** (8.5/10) | Testnet-ready code that moves value, an invariant set, and security as a foundation — this repo is evidence, not claims | File the form; link `SECURITY-AUDIT.md` | you |
 | **Panta** | **Strong 8 on the sandbox; 9+ only with a paid live market** (7.5 → 8) | Four paid places in a small field. The integration is fully exercised against the live API — but a `pk_test_` key is fixtures, so with no real-USDC spend there is no market and no reported trade | Explorer market card; set `PANTA_API_KEY` so `/api/markets` serves the labeled sandbox catalog; submission copy that states fixture mode plainly | me (card) + you (Vercel env, form) |
-| **Main track** | **Shortlist realistic; 1st needs traction** (7.5/10) | Two strong judged videos, a real validation signal, every optional form field filled | record the two videos; one quote | you + me |
+| **Main track** | **Shortlist realistic; 1st needs traction** (7.5 now, **~8.6 ceiling without external demand**) | Two strong judged videos, a real validation signal, every optional form field filled | record the two videos; one external operator or quote | you + me |
 | **Adevar** | **Low but free** (6/10) | Codebase complexity + architectural clarity + repo completeness — all present; the tweet is a hard eligibility gate | apply on Superteam Earn, post the tweet, follow | you |
 | **RPC Fast** | **Cheap, and it runs to Nov 15, not Oct 12** (~6/10) | Their own rules (verified 2026-10-05): free Focus plan Sep 15 – Nov 15, plus a **post-hackathon sidetrack — 21 teams selected, ~$500 credits each, $10,500 pool** — judged on project, meaningful infrastructure use, community presence *and* impact, with the posting guideline (2–3/month) explicitly "not raw posting volume" | file the 5-step application, claim the free plan, post technical updates through November | you (form) + me (drafts) |
 | **Solami** | **Open — can still be entered; one answer decides the build** (~5/10) | Sidetrack is live on Superteam Earn: **$3,000 across 4 winners** for "something live on Solana data" built on their stack (RPC / gRPC / Mirage / Blur / Webhook / Beam). Free key + free RPC tier (no card); streaming tiers are paid/2-day trial, and the stack reads **mainnet-first** | mint the free key, ask whether they serve **devnet** — build the live feed only if they do | you (key) + me (build) |
@@ -94,6 +94,30 @@ The judged factors (verbatim from `colosseum.com/hackathon`):
 | **Viability** | Bond + slash history as a credit file; the Panta market now *prices* the risk live → the business is risk infrastructure, not a dashboard. | ⚠️ newly concrete | 20 s + the market on screen |
 | **Traction** | Real signals: 200 USDG Superteam grant awarded (external validation of the thesis), live product with real on-chain history, public filings (CertiK/Adevar). Zero external operators — say so, then say why that's the next 30 days. | ⚠️ modest | **get one validation signal before Oct 12** |
 
+### The 9+ rubric math — and the one factor that caps it
+
+Seven judged factors (verbatim above). Be honest about what each can reach by Oct 12:
+
+| Factor | Honest target | What a 9 looks like |
+|---|---|---|
+| Founder + Market Fit | **9** | 30 s of the pitch: one builder who shipped *and verified* every layer — program, migration, SDK, plugin, API, site. State why that fit is rare; don't apologise for solo. |
+| Insight | **9** | The first 20 s: "Permission was solved; consequence wasn't — and consequence now has a price." No buzzwords. |
+| Product + Execution | **9** | Show the money path and the refusal running (13/13 in 6.6 s, 7/7 in 7.3 s), the 180 tests, the byte-verified upgrades, and the defect log that proves the verification is real. |
+| Potential Market Size | **8.5** | One slide, bottom-up: every marketplace/framework that lets third-party agents act needs a bond before it can transact. Size it from agent counts × bonded value — never from "AI is big". |
+| Founder Communication | **9** | The 2:00 video, exactly as scripted. Clean narrative beats production; this is the cheapest 9 on the board. |
+| Viability | **8.5** | 20 s plus the priced-risk mechanism: bond history → credit file → underwriting; name who pays (bond fees, risk data, underwriting share) and what is deliberately unbuilt. |
+| Traction | **6.5–7** | 200 USDG Superteam grant, live product with real on-chain history, public filings — and **zero external operators**. Say that plainly, then change it if you can. |
+
+Perfect execution gives **(9 + 9 + 9 + 8.5 + 9 + 8.5 + 7) / 7 ≈ 8.6**. A literal 9+
+average is **not reachable with no external demand**: six factors would have to average 9.3
+to carry a 7 on Traction. Only one thing moves the ceiling:
+
+**One external operator or commitment — a second person.** A dev who registers an agent and
+bonds 0.1 devnet SOL appears in `/api/trust` as an operator that is not the founder, which
+turns Traction from "self-operated" into "one external user, verifiable on chain". A
+permissioned quote or pilot DM does the same job more cheaply. Either is worth more than
+any remaining line of code, and neither can be faked.
+
 ### The two videos (the actual 9+ lever)
 
 Colosseum's guide is explicit:
@@ -109,7 +133,7 @@ The existing **75 s shot list stays** as the product-truth clip (and feeds both 
 - [ ] Record pitch (2:00) with the outline in §3. **[you + me: script ready below]**
 - [ ] Record technical demo (2:30) walking `prove-compensation.js` → `api/trust` → `explorer.html` → `SPEC.md` gaps list. **[you + me]**
 - [ ] Record the 75 s product clip per `DEMO-RUNBOOK.md`. **[you]**
-- [ ] Get **one** validation signal: a builder quote ("I'd require this before letting an agent touch our API") from the elizaOS / Superteam communities, or a marketplace DM. Log it with permission in one line. **[you]**
+- [ ] Get **one external signal** — ideally an operator who is not you: a dev registers an agent and bonds the 0.1 SOL devnet minimum (it then shows up in `/api/trust`), or a permissioned quote / pilot DM ("I'd require this before letting an agent touch our API"). This is the only lever that can move Traction, and it is worth more than any remaining code. **[you: 5–10 DMs; me: make registration trivial]**
 - [ ] Fill **every optional field** in the Colosseum form; link repo, live site, videos (public/unlisted), `TEST-RESULTS.md`, `SPEC.md`. **[you]**
 - [ ] Post-submission: reply to judge questions within 24 h; a short "what shipped since submission" update helps (the guide says judges may ask about post-hackathon momentum). **[you]**
 
