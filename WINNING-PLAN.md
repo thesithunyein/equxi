@@ -108,9 +108,12 @@ Seven judged factors (verbatim above). Be honest about what each can reach by Oc
 | Viability | **8.5** | 20 s plus the priced-risk mechanism: bond history → credit file → underwriting; name who pays (bond fees, risk data, underwriting share) and what is deliberately unbuilt. |
 | Traction | **6.5–7** | 200 USDG Superteam grant, live product with real on-chain history, public filings — and **zero external operators**. Say that plainly, then change it if you can. |
 
-Perfect execution gives **(9 + 9 + 9 + 8.5 + 9 + 8.5 + 7) / 7 ≈ 8.6**. A literal 9+
-average is **not reachable with no external demand**: six factors would have to average 9.3
-to carry a 7 on Traction. Only one thing moves the ceiling:
+Perfect execution gives **(9 + 9 + 9 + 8.5 + 9 + 8.5 + 7) / 7 ≈ 8.6**. Scored literally on
+what is on disk **today**, the same table gives **~7.1** — Founder Communication has nothing
+to score until the video exists, and Market Size and Viability are still prose. The earlier
+7.5 was already assuming a minimum viable recording; the videos are the first action item
+for that reason. A literal 9+ average is **not reachable with no external demand**: six
+factors would have to average 9.3 to carry a 7 on Traction. Only one thing moves the ceiling:
 
 **One external operator or commitment — a second person.** A dev who registers an agent and
 bonds 0.1 devnet SOL appears in `/api/trust` as an operator that is not the founder, which
