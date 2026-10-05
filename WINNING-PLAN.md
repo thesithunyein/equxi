@@ -27,6 +27,14 @@ reachable**, and not spending hours where the rules make it unreachable this cyc
 | **RPC Fast** | **Cheap, and it runs to Nov 15, not Oct 12** (~6/10) | Their own rules (verified 2026-10-05): free Focus plan Sep 15 – Nov 15, plus a **post-hackathon sidetrack — 21 teams selected, ~$500 credits each, $10,500 pool** — judged on project, meaningful infrastructure use, community presence *and* impact, with the posting guideline (2–3/month) explicitly "not raw posting volume" | file the 5-step application, claim the free plan, post technical updates through November | you (form) + me (drafts) |
 | **Solami** | **Open — can still be entered; one answer decides the build** (~5/10) | Sidetrack is live on Superteam Earn: **$3,000 across 4 winners** for "something live on Solana data" built on their stack (RPC / gRPC / Mirage / Blur / Webhook / Beam). Free key + free RPC tier (no card); streaming tiers are paid/2-day trial, and the stack reads **mainnet-first** | mint the free key, ask whether they serve **devnet** — build the live feed only if they do | you (key) + me (build) |
 
+**Overall, honestly: ~7.2 across the seven listings** (main track + six sidetracks —
+Solami was added 2026-10-05, which is why this went from five sidetracks to six). Meteora
+and CertiK are the two places first is *reachable*; Panta is an honest 8 whose 9+ needed
+the $50 live market (declined); the main track is a realistic *shortlist* whose 1st
+depends entirely on traction; RPC Fast and Solami are *out of reach this cycle* for the
+same reason — their infrastructure is mainnet-first while the deployment is devnet-only.
+The average is not the thing to manage; the tracks that can actually take first are.
+
 ### The five moves that change the outcome, in expected-value order
 
 1. **Record the two judged videos** (pitch 2:00, technical demo 2:30). It is both a
