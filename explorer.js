@@ -20,6 +20,11 @@
  *     constraint *counter* does not exist, so the rules shown come from the
  *     Constraint accounts themselves and the UI says which one it is showing
  *     rather than printing a confident `0`.
+ *   * **Written for someone checking an agent, not someone reading the repo.**
+ *     Every label answers the question the page exists to answer, the explainer
+ *     lives on the page rather than in a Markdown file, and the only material
+ *     behind a fold is what a developer embedding the badge needs. Nothing here
+ *     requires the source to be understood or opened.
  */
 (function () {
   "use strict";
@@ -37,7 +42,6 @@
     refresh: document.getElementById("refreshBtn"),
     status: document.getElementById("status"),
     summary: document.getElementById("summary"),
-    detail: document.getElementById("detail"),
     registry: document.getElementById("registry"),
     controls: document.getElementById("controls"),
     cluster: document.getElementById("clusterName"),
@@ -50,12 +54,21 @@
   var SORTS = [
     { key: "bond", label: "Collateral", hint: "Most collateral at stake first" },
     { key: "score", label: "Lowest score", hint: "Weakest accountability first" },
-    { key: "slashes", label: "Slashes", hint: "Most recorded violations first" },
+    { key: "slashes", label: "Slashes", hint: "Most recorded slashes first" },
     { key: "newest", label: "Newest", hint: "Most recently registered first" },
     { key: "name", label: "Name", hint: "Alphabetical" },
   ];
 
   var GRADES = ["all", "A", "B", "C", "D", "F", "ungraded"];
+
+  /** The on-chain rule names, said the way a reader would say them. */
+  var RULE_LABELS = {
+    spend_limit: "Spending limit",
+    program_allowlist: "Allowed programs",
+    timelock: "Timelock",
+    velocity: "Speed limit",
+    custom: "Custom rule",
+  };
 
   var state = {
     payload: null,
@@ -128,6 +141,15 @@
     if (secs < 60) return secs + "s ago";
     if (secs < 3600) return Math.floor(secs / 60) + "m ago";
     return Math.floor(secs / 3600) + "h ago";
+  }
+
+  /** One line for the slashes tile: paid, unpaid, or none at all. */
+  function slashSummary(totals) {
+    if (!totals.slashCount) return "none recorded";
+    var unpaid = totals.openSlashes || 0;
+    var paid = Math.max(0, totals.slashCount - unpaid);
+    if (!unpaid) return paid === 1 ? "1 paid to a victim" : "all paid to victims";
+    return paid + " paid · " + unpaid + " still unpaid";
   }
 
   /** Base58, 32 bytes. Used only to decide *how* to look something up. */
@@ -275,16 +297,45 @@
     load({ mode: "all", value: null }, { scrollTo: "registry" });
   }
 
+  /**
+   * Open or close one agent's panel. The panel renders directly under that
+   * agent's row, so there is nothing to scroll to: the reader stays exactly
+   * where they clicked.
+   */
   function selectAgent(address) {
     state.selected = state.selected === address ? null : address;
     render();
-    if (state.selected) {
-      var panel = document.getElementById("detail");
-      if (panel && panel.scrollIntoView) panel.scrollIntoView({ behavior: "smooth", block: "start" });
+    // render() rebuilds the table, so put focus back on the row that was just
+    // used: expanding a row must not drop the keyboard on the floor.
+    var row = rowFor(address);
+    if (row && typeof row.focus === "function") {
+      try {
+        row.focus({ preventScroll: true });
+      } catch (e) {
+        row.focus();
+      }
     }
   }
 
-  function copy(text, key) {
+  /**
+   * Select a snippet so the reader can copy it themselves. This is the fallback
+   * when the clipboard API is unavailable or refused, which happens on http and
+   * in embedded webviews. A native prompt would block the page, so the snippet
+   * is selected in place instead: the text the button was going to copy is the
+   * text now highlighted under the reader's cursor.
+   */
+  function selectSnippet(text, button) {
+    var row = button && button.parentNode;
+    var input = row ? row.querySelector("input") : null;
+    if (input && input.value === text) {
+      input.focus();
+      input.select();
+      return true;
+    }
+    return false;
+  }
+
+  function copy(text, key, button) {
     var done = function () {
       state.copied = key;
       render();
@@ -297,11 +348,11 @@
     };
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text).then(done, function () {
-        window.prompt("Copy this:", text);
+        selectSnippet(text, button);
       });
       return;
     }
-    window.prompt("Copy this:", text);
+    selectSnippet(text, button);
   }
 
   /* ── score ledger ───────────────────────────────────────────────────── */
@@ -349,23 +400,19 @@
   function renderStatus() {
     if (state.loading) {
       el.status.innerHTML =
-        '<div class="x-card"><span class="x-spinner"></span>Reading the program…</div>';
+        '<div class="x-card"><span class="x-spinner"></span>Reading the chain…</div>';
       return;
     }
     if (state.error) {
-      // A malformed address is the reader's mistake and explains itself. Only a
-      // network-level failure gets the "the function is not deployed" hint.
+      // A failure to read is reported as a failure, with the one thing the
+      // reader can act on: try again. It is never rendered as an empty registry.
       var hint = state.errorIsNetwork
-        ? '<div class="x-sub">This page calls <code>' +
-          esc(API) +
-          "</code>, which is a Vercel serverless function. If you are serving the site as " +
-          "static files, that function is not served. Deploy it, or run " +
-          "<code>node dev-server.js</code>. A failure here is reported as a failure, never " +
-          "as \u201Cno agents found\u201D.</div>"
+        ? '<div class="x-sub">The chain read did not come back, so nothing is shown as zero ' +
+          "and nothing is shown as an empty registry. Use Refresh to try again.</div>"
         : "";
       el.status.innerHTML =
         '<div class="x-card x-warn x-error">' +
-        "<strong>Could not read the program.</strong> " +
+        "<strong>Could not read the registry.</strong> " +
         esc(state.error) +
         "." +
         hint +
@@ -384,26 +431,49 @@
     var counts = state.payload.counts;
     var vault = state.payload.vault;
 
+    // A lookup for one address that matched nothing is not an empty network.
+    // Rendering the fleet tiles here would say "0 agents, 0 SOL, 0 slashes"
+    // about a chain that has six of each, which is a lie about the data; the
+    // registry card explains the miss and offers the way back instead.
+    if (counts.agents === 0 && state.request.mode !== "all") {
+      el.summary.innerHTML = "";
+      return;
+    }
+
+    // Plain words, not the schema's: these are the four things a reader is
+    // actually deciding about before they let an agent hold their money.
     var tiles = [
-      { k: "Agents", v: counts.agents, s: counts.bonds + " bonds posted" },
       {
-        k: "Collateral at risk",
-        v: sol(t.bondedLamports) + " SOL",
-        s: "across all bonds",
+        k: "Agents listed",
+        v: counts.agents,
+        s: counts.bonds === 1 ? "1 with collateral posted" : counts.bonds + " with collateral posted",
       },
-      { k: "Slashes recorded", v: t.slashCount, s: t.openSlashes + " unresolved" },
       {
-        k: "Escrow balance",
+        k: "Collateral at stake",
+        v: sol(t.bondedLamports) + " SOL",
+        s: "locked on chain by their owners",
+      },
+      { k: "Slashes recorded", v: t.slashCount, s: slashSummary(t) },
+      {
+        k: "Escrow for victims",
         v: vault ? sol(vault.availableLamports) + " SOL" : "N/A",
-        s: vault ? "awaiting victims" : "vault not initialised",
+        s: vault ? "held by the program to pay victims" : "no vault on this deployment",
       },
     ];
 
-    var programWarnings = (state.payload.warnings || [])
-      .map(function (w) {
-        return '<div class="x-warn">' + esc(w) + "</div>";
-      })
-      .join("");
+    var warnings = state.payload.warnings || [];
+    // Published next to the totals, never buried: a total that does not
+    // reconcile is a fact about this deployment, not something to round away.
+    var notes = warnings.length
+      ? '<div class="x-card x-datanotes"><div class="x-datanotes-head">Data notes</div>' +
+        '<div class="x-sub">What the totals above leave out, published rather than rounded away.</div>' +
+        warnings
+          .map(function (w) {
+            return '<div class="x-note">' + esc(w) + "</div>";
+          })
+          .join("") +
+        "</div>"
+      : "";
 
     el.summary.innerHTML =
       '<div class="x-tiles">' +
@@ -421,12 +491,7 @@
         })
         .join("") +
       "</div>" +
-      programWarnings +
-      (state.miss
-        ? '<div class="x-warn">No agent is registered at <span class="x-mono">' +
-          esc(state.miss) +
-          "</span>, and it owns no agents either.</div>"
-        : "");
+      notes;
   }
 
   /** Apply the reader's sort, grade filter, open-slash filter and name search. */
@@ -525,8 +590,10 @@
       " of " +
       esc(state.payload.agents.length) +
       " agents shown" +
-      (state.nameFilter ? " · filtered by “" + esc(state.nameFilter) + "”" : "") +
+      (state.nameFilter ? " · matching “" + esc(state.nameFilter) + "”" : "") +
       "</span></div>" +
+      '<div class="x-legend">Grade <b>A</b> is the strongest and <b>F</b> the weakest, built from ' +
+      "on-chain evidence only. <b>Ungraded</b> means no collateral is posted, so nothing is at stake.</div>" +
       "</div>";
 
     Array.prototype.forEach.call(el.controls.querySelectorAll("[data-sort]"), function (button) {
@@ -550,6 +617,52 @@
     }
   }
 
+  /** True when an address is in the list that is being rendered. */
+  function isVisible(address, list) {
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].address === address) return true;
+    }
+    return false;
+  }
+
+  /** The row element for an address, or null when a filter has hidden it. */
+  function rowFor(address) {
+    var rows = el.registry.querySelectorAll("tr[data-address]");
+    for (var i = 0; i < rows.length; i++) {
+      if (rows[i].getAttribute("data-address") === address) return rows[i];
+    }
+    return null;
+  }
+
+  /** The empty state's one button takes the reader back to the full list. */
+  function wireClearSearch() {
+    var button = document.getElementById("clearSearchBtn");
+    if (!button) return;
+    button.addEventListener("click", function () {
+      el.input.value = "";
+      state.nameFilter = "";
+      state.miss = null;
+      history.replaceState(null, "", location.pathname);
+      load({ mode: "all", value: null });
+    });
+  }
+
+  /** Wire the controls inside an expanded panel, after it has been inserted. */
+  function wireDetail() {
+    var close = document.getElementById("closeDetail");
+    if (close) {
+      close.addEventListener("click", function () {
+        state.selected = null;
+        render();
+      });
+    }
+    Array.prototype.forEach.call(el.registry.querySelectorAll("[data-copy]"), function (button) {
+      button.addEventListener("click", function () {
+        copy(button.getAttribute("data-copy"), button.getAttribute("data-copykey"), button);
+      });
+    });
+  }
+
   function renderRegistry() {
     if (!state.payload) {
       el.registry.innerHTML = "";
@@ -561,30 +674,41 @@
       // and a wallet that owns nothing. Saying "the cluster is empty" when the
       // reader simply mistyped an address would be a lie about the data.
       var copy;
+      var actions;
       if (state.miss) {
         copy =
-          "Nothing is registered at <span class=\"x-mono\">" +
+          "<strong>Nothing is registered at this address</strong><span class=\"x-mono\">" +
           esc(short(state.miss)) +
-          "</span>: it is not an agent account, and it owns no agents on this cluster.";
+          "</span> is not an agent, and it owns none. Check the address, or search by name.";
+        actions = '<button type="button" id="clearSearchBtn">Show all agents</button>';
       } else if (state.request.mode === "owner") {
         copy =
-          "That wallet owns no Equxi agents on this cluster. Agents are owned by the wallet that " +
-          "registered them, so check the owner address or search by name.";
+          "<strong>That wallet owns no agent yet</strong>" +
+          "Agents belong to the wallet that registered them. Check the owner address, or search by name.";
+        actions = '<button type="button" id="clearSearchBtn">Show all agents</button>';
       } else {
         copy =
-          "No agents are registered on this cluster yet.<br />Register one from the " +
-          '<a class="x-link" href="app.html">dashboard</a>, then reload this page.';
+          "<strong>No agents are registered yet</strong>" +
+          "The registry is empty right now. An agent appears here the moment its owner registers it.";
+        actions = '<a href="app.html">Register your first agent</a>';
       }
-      el.registry.innerHTML = '<div class="x-card"><div class="x-empty">' + copy + "</div></div>";
+      el.registry.innerHTML =
+        '<div class="x-card"><div class="x-empty">' + copy + '<div class="x-actions">' + actions + "</div></div></div>";
+      wireClearSearch();
       return;
     }
 
     var list = visibleAgents();
+
+    // A filter can hide the agent whose panel is open; close it rather than
+    // leave a panel expanded for a row the reader cannot see.
+    if (state.selected && !isVisible(state.selected, list)) state.selected = null;
+
     if (list.length === 0) {
       el.registry.innerHTML =
-        '<div class="x-card"><div class="x-empty">No agent matches the current filter' +
-        (state.nameFilter ? " (“" + esc(state.nameFilter) + "”)" : "") +
-        '.<br /><button type="button" class="x-chip" id="clearFilters">Clear filters</button></div></div>';
+        '<div class="x-card"><div class="x-empty"><strong>No agent matches these filters</strong>' +
+        (state.nameFilter ? "Nothing matches “" + esc(state.nameFilter) + "”." : "Try a wider grade.") +
+        '<div class="x-actions"><button type="button" id="clearFilters">Clear filters</button></div></div></div>';
       var clear = document.getElementById("clearFilters");
       if (clear) {
         clear.addEventListener("click", function () {
@@ -599,74 +723,96 @@
       return;
     }
 
+    var selectedAgent = findAgent(state.selected);
+    // The panel is a row of the table, directly under the agent it describes.
+    var detailRow = selectedAgent
+      ? '<tr class="x-detail-tr"><td colspan="7"><div class="x-card x-detail-card" id="detail">' +
+        detailHtml(selectedAgent) +
+        "</div></td></tr>"
+      : "";
+
     var rows = list
       .map(function (agent) {
         var p = agent.profile;
         var rules = agent.constraints.length;
+        var open = selectedAgent && selectedAgent.address === agent.address;
         return (
-          "<tr data-address=\"" +
+          '<tr data-address="' +
           esc(agent.address) +
+          '" tabindex="0" role="button" aria-expanded="' +
+          (open ? "true" : "false") +
           '"' +
-          (state.selected === agent.address ? ' class="sel"' : "") +
+          (open ? ' class="open"' : "") +
           ">" +
-          "<td><strong>" +
+          '<td data-label="Agent"><strong>' +
           esc(agent.name) +
           "</strong><div>" +
           addrLink(agent.address) +
           "</div></td>" +
-          "<td>" +
+          '<td data-label="Owner">' +
           addrLink(agent.owner) +
           "</td>" +
-          "<td>" +
+          '<td data-label="Grade">' +
           gradeBadge(p.grade) +
           ' <span class="x-mono">' +
           esc(p.score) +
           "</span></td>" +
-          "<td>" +
+          '<td data-label="Collateral at stake">' +
           (p.bond
             ? esc(sol(p.bond.amountLamports)) + " SOL"
             : '<span class="x-mono">none</span>') +
           "</td>" +
-          "<td>" +
+          '<td data-label="Slashes">' +
           esc(p.stats.slashCount) +
           (p.stats.openSlashes > 0
-            ? ' <span class="x-pill owed">' + esc(p.stats.openSlashes) + " owed</span>"
+            ? ' <span class="x-pill owed">' + esc(p.stats.openSlashes) + " unpaid</span>"
             : "") +
           "</td>" +
-          "<td>" +
+          '<td data-label="Rules">' +
           esc(rules) +
-          (agent.layout === "v1"
-            ? '<div class="x-sub" style="font-size:11px;">found (counter n/a)</div>'
-            : "") +
           "</td>" +
-          "</tr>"
+          '<td data-label="Details"><span class="sr-only">' +
+          (open ? "Hide details" : "Show details") +
+          '</span><i class="fa-solid fa-chevron-right x-caret" aria-hidden="true"></i></td>' +
+          "</tr>" +
+          (open ? detailRow : "")
         );
       })
       .join("");
 
     el.registry.innerHTML =
-      '<div class="x-card"><div class="x-row"><h2>Agents on this cluster</h2>' +
+      '<div class="x-card"><div class="x-row"><h2>Agents on this chain</h2>' +
       '<span class="x-sub">' +
       esc(state.payload.agents.length) +
-      " registered · generated " +
-      esc(when(state.payload.generatedAt)) +
+      " registered · updated " +
+      esc(ago(state.payload.generatedAt) || when(state.payload.generatedAt)) +
       "</span></div>" +
       '<div style="overflow-x:auto;margin-top:14px;">' +
       '<table class="x-table"><thead><tr>' +
-      "<th>Agent</th><th>Owner</th><th>Grade</th><th>Collateral</th><th>Slashes</th><th>Rules</th>" +
+      "<th>Agent</th><th>Owner</th><th>Grade</th><th>Collateral at stake</th><th>Slashes</th><th>Rules</th>" +
+      '<th><span class="sr-only">Details</span></th>' +
       "</tr></thead><tbody>" +
       rows +
       "</tbody></table></div>" +
-      '<div class="x-sub" style="margin-top:14px;">Select a row to open its bond, slash history and score ledger. ' +
-      "Rules are read from the constraint accounts themselves, so the count is correct even on a v0.1 " +
-      "deployment that has no on-chain counter.</div>" +
+      '<div class="x-sub" style="margin-top:14px;">Open a row to see its collateral, its slash history and the ledger behind its grade.</div>' +
       "</div>";
 
     Array.prototype.forEach.call(el.registry.querySelectorAll("tr[data-address]"), function (row) {
-      row.addEventListener("click", function () {
+      row.addEventListener("click", function (event) {
+        // The address and owner links open the chain explorer; clicking one of
+        // them should not also toggle the row it sits in.
+        if (event.target && event.target.closest && event.target.closest("a")) return;
         selectAgent(row.getAttribute("data-address"));
       });
+      // A row that behaves like a button has to answer the keyboard like one.
+      row.addEventListener("keydown", function (event) {
+        if (event.key === "Enter" || event.key === " " || event.key === "Spacebar") {
+          event.preventDefault();
+          selectAgent(row.getAttribute("data-address"));
+        }
+      });
     });
+    wireDetail();
   }
 
   function findAgent(address) {
@@ -677,7 +823,30 @@
     return null;
   }
 
-  function renderEmbed(agent) {
+  /** One copyable snippet, so the three of them cannot drift apart. */
+  function embedRow(label, value, key, action) {
+    return (
+      '<div class="x-embed-row"><input readonly value="' +
+      esc(value) +
+      '" aria-label="' +
+      esc(label) +
+      '" />' +
+      '<button type="button" data-copy="' +
+      esc(value) +
+      '" data-copykey="' +
+      esc(key) +
+      '">' +
+      (state.copied === key ? "Copied" : esc(action)) +
+      "</button></div>"
+    );
+  }
+
+  /**
+   * The builder snippets, folded away. A person checking an agent never needs
+   * them, and the page is shorter for it; a developer opens one fold and gets
+   * the badge without leaving the site.
+   */
+  function renderBuilders(agent) {
     // Absolute URLs for the copyable snippets, because they are embedded
     // somewhere else; a same-origin path for the live preview, because that
     // renders correctly on a dev server too (the site's own host may not be
@@ -688,48 +857,54 @@
     var markdown = "[![Equxi trust](" + badgeUrl + ")](" + link + ")";
     var html =
       '<a href="' + link + '"><img src="' + badgeUrl + '" alt="Equxi trust: ' + esc(agent.name) + '" /></a>';
+    var badgeJson = SITE + BADGE + "?agent=" + agent.address + "&format=json";
+    var rawJson = API + "?agent=" + agent.address;
 
     return (
-      '<h2 style="margin-top:22px;font-size:15px;">Embed this agent\u2019s live grade</h2>' +
-      '<div class="x-sub">The badge is not a certificate: it re-reads the chain on every request, ' +
-      "so it cannot go stale or be faked by copying markup.</div>" +
+      '<details class="x-fold" style="margin-top:20px;border-radius:12px;">' +
+      '<summary><span style="font-size:14px;">Add this grade to your own site</span>' +
+      '<span class="x-fold-hint">Badge, Markdown, HTML</span>' +
+      '<i class="fa-solid fa-chevron-down"></i></summary>' +
+      '<div class="x-fold-body">' +
+      '<p class="x-help-note">The badge re-reads the chain on every request, so it cannot go ' +
+      "stale or be faked by copying markup. This is the only part of the page that needs code.</p>" +
       '<div class="x-embed-preview"><img src="' +
       esc(badgePath) +
       '" alt="Equxi trust badge" height="20" /></div>' +
-      '<div class="x-embed-row"><input readonly value="' +
-      esc(markdown) +
-      '" aria-label="Markdown embed" />' +
-      '<button type="button" data-copy="' +
-      esc(markdown) +
-      '" data-copykey="md">' +
-      (state.copied === "md" ? "Copied" : "Copy Markdown") +
-      "</button></div>" +
-      '<div class="x-embed-row"><input readonly value="' +
-      esc(html) +
-      '" aria-label="HTML embed" />' +
-      '<button type="button" data-copy="' +
-      esc(html) +
-      '" data-copykey="html">' +
-      (state.copied === "html" ? "Copied" : "Copy HTML") +
-      "</button></div>" +
-      '<div class="x-embed-row"><input readonly value="' +
-      esc(SITE + BADGE + "?agent=" + agent.address + "&format=json") +
-      '" aria-label="JSON endpoint" />' +
-      '<button type="button" data-copy="' +
-      esc(SITE + BADGE + "?agent=" + agent.address + "&format=json") +
-      '" data-copykey="json">' +
-      (state.copied === "json" ? "Copied" : "Copy JSON URL") +
-      "</button></div>"
+      embedRow("Markdown", markdown, "md", "Copy Markdown") +
+      embedRow("HTML", html, "html", "Copy HTML") +
+      '<div class="x-sub" style="margin-top:12px;">Exact values, as machine-readable numbers: ' +
+      '<a class="x-link" href="' +
+      esc(rawJson) +
+      '" target="_blank" rel="noopener">raw JSON for this agent</a> · ' +
+      '<a class="x-link" href="' +
+      esc(badgeJson) +
+      '" target="_blank" rel="noopener">badge as JSON</a></div>' +
+      "</div></details>"
     );
   }
 
-  function renderDetail() {
-    var agent = findAgent(state.selected);
-    if (!agent) {
-      el.detail.innerHTML = "";
-      return;
+  /**
+   * The expanded panel for one agent. It renders inside the table, directly
+   * under the agent's own row, so opening it never moves the reader somewhere
+   * else on the page.
+   */
+  /** What the lock state means, in a sentence rather than a badge. */
+  function bondNote(p) {
+    if (!p.bond || !p.bond.isActive) return "";
+    if (p.bond.withdrawable) {
+      return '<div class="x-sub">The lock has ended, so the owner can withdraw.</div>';
     }
+    if (p.bond.expired) {
+      return (
+        '<div class="x-sub">The lock has ended, but the collateral is still slashable until ' +
+        "the exit period finishes, so ending a lock is not an escape from a debt.</div>"
+      );
+    }
+    return "";
+  }
 
+  function detailHtml(agent) {
     var p = agent.profile;
     var notes = p.warnings
       .map(function (w) {
@@ -738,27 +913,30 @@
       .join("");
 
     var bond = p.bond
-      ? "<div class=\"x-slash-row\"><span>Collateral</span><span>" +
+      // The exact lamport count is one link away in the JSON; the panel shows
+      // the number a person is deciding about.
+      ? '<div class="x-slash-row"><span>Locked collateral</span><span>' +
         esc(sol(p.bond.amountLamports)) +
-        ' SOL <span class="x-mono">(' +
-        esc(p.bond.amountLamports) +
-        " lamports)</span></span></div>" +
-        "<div class=\"x-slash-row\"><span>Locked until</span><span>" +
+        " SOL</span></div>" +
+        '<div class="x-slash-row"><span>Unlocks</span><span>' +
         esc(when(p.bond.expiresAt)) +
         (p.bond.withdrawable
-          ? " · <span class=\"x-pill paid\">withdrawable</span>"
-          : " · <span class=\"x-pill owed\">" +
-            (p.bond.expired ? "unbonding \u2014 still slashable" : "locked") +
+          ? ' · <span class="x-pill paid">withdrawable</span>'
+          : ' · <span class="x-pill owed">' +
+            (p.bond.expired ? "unbonding" : "locked") +
             "</span>") +
         "</span></div>" +
-        "<div class=\"x-slash-row\"><span>Active</span><span>" +
-        esc(p.bond.isActive ? "yes" : "no") +
-        "</span></div>"
-      : '<div class="x-warn">No bond account exists for this agent. Nothing is at stake, so no counterparty should treat it as accountable.</div>';
+        '<div class="x-slash-row"><span>Status</span><span>' +
+        (p.bond.isActive ? "active" : "inactive, so it does not count toward the grade") +
+        "</span></div>" +
+        // Said in words under the numbers: a pill is too small to carry the one
+        // thing a reader needs to know about an expired lock.
+        bondNote(p)
+      : '<div class="x-warn">No collateral is locked behind this agent, so there is nothing a victim could be paid from. It stays ungraded until its owner locks SOL.</div>';
 
     var slashes =
       p.slashes.length === 0
-        ? '<div class="x-slash-row"><span class="x-mono">No violations recorded.</span><span class="x-pill paid">clean</span></div>'
+        ? '<div class="x-slash-row"><span>No slash has ever been recorded for this agent.</span><span class="x-pill paid">clean</span></div>'
         : p.slashes
             .map(function (s) {
               return (
@@ -802,7 +980,7 @@
                     "s"
                 ) +
                 '">' +
-                esc(c.type) +
+                esc(RULE_LABELS[c.type] || c.type) +
                 "</span>"
               );
             })
@@ -810,19 +988,18 @@
 
     var layoutNote =
       agent.layout === "v1"
-        ? '<div class="x-note">This agent account predates the v0.2 layout, so the on-chain ' +
-          "constraint <em>counter</em> does not exist. The rules above were found by reading the " +
-          "Constraint accounts directly, which is why the registry shows a count where the account " +
+        ? '<div class="x-note">This agent was registered before the current account layout, so ' +
+          "the on-chain rule counter does not exist. The rules above were found by reading the " +
+          "rule accounts directly, which is why the registry shows a count where the account " +
           "itself would report 0.</div>"
         : "";
 
-    el.detail.innerHTML =
-      '<div class="x-card">' +
+    return (
       '<div class="x-row"><div><h2>' +
       esc(agent.name) +
       '</h2><div class="x-sub">' +
       addrLink(agent.address) +
-      " · owner " +
+      " · owned by " +
       addrLink(agent.owner) +
       " · " +
       esc(agent.agentType) +
@@ -832,24 +1009,17 @@
       esc(agent.status) +
       "</div></div><div>" +
       gradeBadge(p.grade) +
-      ' <span class="x-mono">derived ' +
+      ' <span class="x-mono">' +
       esc(p.score) +
-      " / on-chain " +
-      esc(p.onChainTrustScore) +
-      "</span></div></div>" +
-      '<div class="x-sub" style="margin-top:14px;">Constraints: ' +
+      "/100</span></div></div>" +
+      '<div class="x-sub" style="margin-top:14px;">Rules: ' +
       constraints +
       "</div>" +
       layoutNote +
       notes +
-      '<h2 style="margin-top:22px;font-size:15px;">Why this score</h2>' +
-      '<div class="x-sub">Every point is derived from chain state, and the rows below sum to the ' +
-      "score. The on-chain <span class=\"x-mono\">trust_score</span> is admin-set and is deliberately " +
-      "not one of them.</div>" +
-      renderBreakdown(p) +
-      '<h2 style="margin-top:22px;font-size:15px;">Bond</h2>' +
+      '<h3 class="x-sec">Collateral</h3>' +
       bond +
-      '<h2 style="margin-top:22px;font-size:15px;">Slash history</h2>' +
+      '<h3 class="x-sec">Slash history</h3>' +
       '<div class="x-slashes">' +
       slashes +
       "</div>" +
@@ -862,54 +1032,39 @@
       " SOL uncompensated · estimated " +
       esc(p.stats.slashRatePerMonth.toFixed(2)) +
       " slashes/month.</div>" +
-      renderEmbed(agent) +
+      '<h3 class="x-sec">Why this grade</h3>' +
+      '<div class="x-sub">Every point comes from chain state, and the rows below sum to the ' +
+      'score. The on-chain <span class="x-mono">trust_score</span> is admin-set and is deliberately ' +
+      "not one of them.</div>" +
+      renderBreakdown(p) +
+      renderBuilders(agent) +
       '<div class="x-actions" style="margin-top:18px;">' +
       '<a href="' +
       EXPLORER +
       "/address/" +
       esc(agent.address) +
       '?cluster=devnet" target="_blank" rel="noopener">View on Solana Explorer</a>' +
-      "<a href=\"" +
-      API +
-      "?agent=" +
-      esc(agent.address) +
-      '" target="_blank" rel="noopener">Raw JSON</a>' +
       '<button type="button" data-copy="' +
       esc(SITE + "/explorer.html?agent=" + agent.address) +
       '" data-copykey="link">' +
       (state.copied === "link" ? "Link copied" : "Copy link to this agent") +
       "</button>" +
       '<button type="button" id="closeDetail">Close</button>' +
-      "</div>" +
-      "</div>";
-
-    var close = document.getElementById("closeDetail");
-    if (close) {
-      close.addEventListener("click", function () {
-        state.selected = null;
-        render();
-      });
-    }
-    Array.prototype.forEach.call(el.detail.querySelectorAll("[data-copy]"), function (button) {
-      button.addEventListener("click", function () {
-        copy(button.getAttribute("data-copy"), button.getAttribute("data-copykey"));
-      });
-    });
-
-    // A shared link should read like the agent, not like a generic page.
-    document.title = agent.name + " · " + p.grade + " " + p.score + " · Equxi Trust Explorer";
+      "</div>"
+    );
   }
 
   function render() {
     if (state.payload) {
       el.cluster.textContent = state.payload.cluster;
     }
-    if (!state.selected) {
-      document.title = "Equxi | Trust Explorer";
-    }
+    // A shared link should read like the agent, not like a generic page.
+    var open = findAgent(state.selected);
+    document.title = open
+      ? open.name + " · " + open.profile.grade + " " + open.profile.score + " · Equxi Trust Explorer"
+      : "Equxi | Trust Explorer";
     renderStatus();
     renderSummary();
-    renderDetail();
     renderControls();
     renderRegistry();
     el.lookup.disabled = state.loading;
@@ -971,6 +1126,19 @@
   var initialAgent = params.get("agent");
   var initialOwner = params.get("owner");
   var initialQuery = params.get("q");
+
+  if (initialAgent && !looksLikePubkey(initialAgent)) {
+    // A truncated or hand-typed link is a name search, not a malformed request.
+    // Sending it to the API would answer with a schema error, which is about
+    // the API rather than about the agent the reader was looking for.
+    initialQuery = initialAgent;
+    history.replaceState(null, "", "?q=" + encodeURIComponent(initialAgent));
+    initialAgent = null;
+  } else if (initialOwner && !looksLikePubkey(initialOwner)) {
+    initialQuery = initialOwner;
+    history.replaceState(null, "", "?q=" + encodeURIComponent(initialOwner));
+    initialOwner = null;
+  }
 
   if (initialAgent) {
     el.input.value = initialAgent;

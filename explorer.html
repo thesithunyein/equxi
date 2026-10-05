@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Equxi · Is this agent good for the money?</title>
-  <meta name="description" content="Look up any Equxi agent: is collateral posted, and has it ever been slashed? Every number is read from Solana." />
+  <meta name="description" content="Look up any Equxi agent: how much collateral is locked behind it, and has it ever been slashed? Every number is read from Solana." />
   <link rel="icon" type="image/webp" href="assets/logo.webp" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -14,7 +14,7 @@
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#9945FF" />
   <meta property="og:title" content="Is this agent good for the money?" />
-  <meta property="og:description" content="Does this agent have collateral at risk, and has it ever been slashed? Read it from Solana." />
+  <meta property="og:description" content="How much collateral is locked behind this agent, and has it ever been slashed? Read it from Solana." />
   <meta property="og:image" content="https://equxi.sithunyein.com/assets/logo.webp" />
   <meta property="og:url" content="https://equxi.sithunyein.com/explorer.html" />
   <meta property="og:type" content="website" />
@@ -26,26 +26,46 @@
     .x-wrap { max-width: 1120px; margin: 0 auto; padding: 24px 20px 96px; }
     .x-h1 { font-size: clamp(28px, 4vw, 44px); font-weight: 600; letter-spacing: -0.02em; }
     .x-lede { color: var(--muted); margin-top: 10px; max-width: 680px; line-height: 1.6; }
+    .sr-only {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+    }
 
-    .x-search { display: flex; gap: 10px; margin: 28px 0 8px; flex-wrap: wrap; }
+    /* One search box, one button. Everything else on the row is quiet text, so
+       there is never a second thing that looks like the primary action. */
+    .x-lookup { border: 1px solid #1e1e1e; border-radius: 16px; background: #070707; padding: 18px 20px; margin-top: 26px; }
+    .x-lookup-label { display: block; font-size: 12.5px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+    .x-search { display: flex; gap: 10px; flex-wrap: wrap; }
     .x-search input {
-      flex: 1 1 340px; min-width: 0; padding: 13px 15px; border-radius: 10px;
+      flex: 1 1 320px; min-width: 0; padding: 13px 15px; border-radius: 10px;
       border: 1px solid #262626; background: #0c0c0c; color: var(--text);
       font-family: var(--font); font-size: 14px;
     }
+    .x-search input::placeholder { color: #5c5c66; }
     .x-search input:focus { outline: none; border-color: var(--purple); }
     .x-search button {
-      padding: 13px 22px; border-radius: 10px; border: none; cursor: pointer;
+      flex: 0 0 auto; padding: 13px 26px; border-radius: 10px; border: none; cursor: pointer;
       background: var(--purple); color: #fff; font-weight: 600; font-size: 14px;
       font-family: var(--font);
     }
     .x-search button:hover { background: var(--purple-hover); }
-    .x-search button.ghost { background: transparent; border: 1px solid #2a2a2a; color: var(--muted); }
-    /* The buttons wrap as one unit. Left as siblings, the growing input absorbs
-       all the free space and pushes the last button onto its own line. */
-    .x-search-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .x-search button:disabled { opacity: 0.55; cursor: default; }
+    .x-lookup-foot {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      margin-top: 12px; font-size: 12.5px; color: var(--muted);
+    }
+    .x-lookup-foot .x-sep { color: #2e2e2e; }
+    button.x-textbtn {
+      background: none; border: none; padding: 0; cursor: pointer; font-family: var(--font);
+      font-size: 12.5px; color: var(--purple); text-decoration: none;
+    }
+    button.x-textbtn:hover { text-decoration: underline; }
+    button.x-textbtn:disabled { color: var(--muted); cursor: default; text-decoration: none; }
 
-    .x-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin: 26px 0; }
+    /* `min(190px, 100%)` is what keeps a narrow phone from being forced wider
+       than its screen: a bare 190px floor becomes a min-content width the whole
+       page has to honour, and the page then scrolls sideways. */
+    .x-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr)); gap: 14px; margin: 26px 0 0; }
     .x-tile { border: 1px solid #1e1e1e; border-radius: 14px; padding: 16px 18px; background: #080808; }
     .x-tile .k { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
     .x-tile .v { font-size: 26px; font-weight: 600; margin-top: 8px; }
@@ -54,19 +74,29 @@
     .x-card { border: 1px solid #1e1e1e; border-radius: 16px; background: #070707; padding: 22px; margin-bottom: 18px; }
     .x-card h2 { font-size: 18px; font-weight: 600; }
     .x-sub { color: var(--muted); font-size: 13px; margin-top: 6px; line-height: 1.6; }
+    .x-sec { font-size: 15px; font-weight: 600; margin-top: 22px; }
+
+    .x-datanotes { margin-top: 14px; }
+    .x-datanotes-head { font-size: 14px; font-weight: 600; }
 
     table.x-table { width: 100%; border-collapse: collapse; font-size: 14px; }
     table.x-table th {
       text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em;
       color: var(--muted); font-weight: 600; padding: 10px 12px; border-bottom: 1px solid #1e1e1e;
+      white-space: nowrap;
     }
     table.x-table td { padding: 12px; border-bottom: 1px solid #141414; vertical-align: middle; }
     table.x-table tr:last-child td { border-bottom: none; }
-    table.x-table tbody tr { cursor: pointer; }
-    table.x-table tbody tr:hover { background: #0d0d0d; }
+    table.x-table tbody tr[data-address] { cursor: pointer; }
+    table.x-table tbody tr[data-address]:hover { background: #0d0d0d; }
+    table.x-table tbody tr[data-address]:focus-visible { outline: 2px solid var(--purple); outline-offset: -2px; }
     .x-mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; color: var(--muted); }
     .x-link { color: var(--purple); text-decoration: none; }
     .x-link:hover { text-decoration: underline; }
+    .x-caret { color: var(--muted); font-size: 12px; transition: transform 0.15s; }
+    tr.open .x-caret { transform: rotate(90deg); color: var(--purple); }
+    .x-detail-tr > td { padding: 0 0 14px; border-bottom: 1px solid #1e1e1e; background: #0a0a0a; }
+    .x-detail-card { border: none; background: transparent; margin: 0; padding: 18px 20px 6px; }
 
     .x-grade {
       display: inline-block; min-width: 34px; text-align: center; padding: 4px 9px;
@@ -90,7 +120,10 @@
     .x-error { border-left: 3px solid #ff5454; background: rgba(255, 84, 84, 0.07); }
     .x-error code { color: #ffb3b3; font-size: 12.5px; }
 
-    .x-empty { text-align: center; padding: 44px 20px; color: var(--muted); font-size: 14px; }
+    .x-empty { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 14px; }
+    .x-empty strong { display: block; color: var(--text); font-size: 15px; margin-bottom: 6px; }
+    .x-empty .x-mono { display: inline; }
+    .x-empty .x-actions { justify-content: center; margin-top: 16px; }
 
     /* Sort / filter chips. Rendered by explorer.js so the state lives in one place. */
     .x-controls { padding: 16px 18px; }
@@ -106,6 +139,8 @@
     }
     button.x-chip:hover { border-color: #3a3a3a; color: var(--text); }
     button.x-chip.on { border-color: var(--purple); color: #fff; background: rgba(153, 69, 255, 0.16); }
+    .x-legend { color: var(--muted); font-size: 12.5px; line-height: 1.6; }
+    .x-legend b { color: var(--text); font-weight: 600; }
 
     /* The score ledger. Monospace numbers, so the arithmetic lines up. */
     .x-ledger { margin-top: 12px; border: 1px solid #1a1a1a; border-radius: 12px; overflow: hidden; }
@@ -137,18 +172,18 @@
       background: #0c0c0c; color: var(--text); cursor: pointer; font-family: var(--font); font-size: 12.5px;
     }
     .x-embed-row button:hover { border-color: var(--purple); }
-    table.x-table tbody tr.sel { background: #101010; }
-    table.x-table tbody tr.sel td { border-bottom-color: #1e1e1e; }
     .x-spinner { display: inline-block; width: 15px; height: 15px; border: 2px solid #333; border-top-color: var(--purple); border-radius: 50%; animation: xspin 0.8s linear infinite; vertical-align: -2px; margin-right: 8px; }
     @keyframes xspin { to { transform: rotate(360deg); } }
     .x-slashes { margin-top: 6px; }
     .x-slash-row { display: flex; justify-content: space-between; gap: 14px; padding: 10px 0; border-bottom: 1px solid #141414; font-size: 13.5px; }
+    /* A flex row will not shrink its children below their min-content width, and
+       one long badge can then widen the whole page. Let them shrink and wrap. */
+    .x-slash-row > * { min-width: 0; }
+    .x-slash-row .x-pill { white-space: normal; }
     .x-slash-row:last-child { border-bottom: none; }
     .x-pill { font-size: 11px; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
     .x-pill.paid { background: rgba(20, 241, 149, 0.13); color: var(--green); }
     .x-pill.owed { background: rgba(255, 84, 84, 0.13); color: #ff5454; }
-    .x-foot { color: var(--muted); font-size: 12.5px; line-height: 1.7; margin-top: 28px; }
-    .x-foot a { color: var(--purple); }
     .x-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
     .x-actions { display: flex; gap: 8px; flex-wrap: wrap; }
     .x-actions a, .x-actions button {
@@ -156,6 +191,63 @@
       background: #0c0c0c; color: var(--text); cursor: pointer; font-family: var(--font);
     }
     .x-actions a:hover, .x-actions button:hover { border-color: var(--purple); }
+
+    /* A section a reader can open when they want the detail, closed when they
+       want the page. Used for the explainer and the builder snippets. */
+    details.x-fold { border: 1px solid #1e1e1e; border-radius: 16px; background: #070707; margin-bottom: 18px; }
+    /* Wraps, because a flex row refuses to shrink its items past their own
+       min-content width: on a narrow phone the hint drops to a second line
+       instead of widening the page. */
+    details.x-fold > summary {
+      list-style: none; cursor: pointer; padding: 16px 20px; font-size: 14px; font-weight: 600;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      flex-wrap: wrap;
+    }
+    details.x-fold > summary::-webkit-details-marker { display: none; }
+    details.x-fold > summary .x-fold-hint { font-weight: 400; font-size: 12.5px; color: var(--muted); }
+    details.x-fold > summary .fa-chevron-down { color: var(--muted); font-size: 12px; transition: transform 0.15s; }
+    details.x-fold[open] > summary .fa-chevron-down { transform: rotate(180deg); }
+    details.x-fold .x-fold-body { padding: 0 20px 18px; }
+    .x-help-item { border-top: 1px solid #161616; padding: 12px 0 2px; }
+    .x-help-item:first-child { border-top: none; padding-top: 0; }
+    .x-help-item p { font-size: 13px; color: var(--muted); line-height: 1.65; margin: 0; }
+    .x-help-item .x-help-title { color: var(--text); font-weight: 600; font-size: 13.5px; }
+    .x-help-note { font-size: 12.5px; color: var(--muted); line-height: 1.7; }
+
+    /* Phones: the registry becomes one card per agent instead of a table that
+       has to be dragged sideways to read. */
+    @media (max-width: 760px) {
+      .x-wrap { padding: 16px 16px 72px; }
+      table.x-table, table.x-table tbody, table.x-table tr, table.x-table td { display: block; }
+      table.x-table thead { display: none; }
+      table.x-table tr[data-address] {
+        border: 1px solid #1e1e1e; border-radius: 14px; background: #0a0a0a;
+        padding: 6px 2px; margin-bottom: 10px;
+      }
+      table.x-table tr[data-address] td { border-bottom: none; padding: 6px 14px; }
+      table.x-table tr[data-address] td:first-child { padding-top: 12px; }
+      table.x-table tr[data-address] td:last-child { padding-bottom: 12px; }
+      table.x-table td[data-label]::before {
+        content: attr(data-label); display: block; font-size: 10.5px; text-transform: uppercase;
+        letter-spacing: 0.07em; color: var(--muted); margin-bottom: 2px;
+      }
+      table.x-table td[data-label="Details"]::before { display: none; }
+      table.x-table td[data-label="Details"] { padding-bottom: 2px; }
+      .x-detail-tr > td { padding: 0 0 10px; background: transparent; }
+      .x-detail-card { border: 1px solid #1e1e1e; border-radius: 14px; background: #0a0a0a; }
+    }
+    /* Small phones: the panel and ledger are nested a few boxes deep, so give
+       the text back the padding and let the numbers column be narrower. */
+    @media (max-width: 420px) {
+      .x-detail-card { padding: 14px 14px 2px; }
+      .x-ledger-row { gap: 10px; padding: 10px 11px; }
+      .x-ledger-pts { min-width: 40px; }
+      .x-lookup { padding: 16px; }
+      .x-card { padding: 18px 16px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      * { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
+    }
   </style>
 </head>
 <body>
@@ -172,12 +264,12 @@
         <a href="app.html" class="nav-link">Dashboard</a>
         <a href="explorer.html" class="nav-link">Explorer</a>
         <a href="launch.html" class="nav-link">Launch</a>
-        <a href="https://github.com/thesithunyein/equxi" class="nav-link" target="_blank">GitHub</a>
+        <a href="https://github.com/thesithunyein/equxi" class="nav-link" target="_blank" title="Source on GitHub"><i class="fa-brands fa-github"></i> GitHub</a>
         <a href="https://x.com/equxi_ai" class="nav-link" target="_blank"><i class="fa-brands fa-x-twitter"></i></a>
       </nav>
       <!-- One primary action across the site. The scarce side of this market is
-           the operator, not the reader — without bonded agents this page is
-           empty — so the call to action is the same everywhere. -->
+           the operator, not the reader: without bonded agents this page is
+           empty. So the call to action is the same everywhere. -->
       <a href="app.html" class="btn-primary desktop-only">Register an agent</a>
       <button class="menu-toggle" id="menuToggle" aria-label="Menu">
         <span></span><span></span><span></span>
@@ -195,57 +287,117 @@
     <main class="x-wrap">
       <h1 class="x-h1">Trust Explorer</h1>
       <p class="x-lede">
-        One question matters when an agent holds your money:
-        <strong>does it have collateral at risk, and has it ever been slashed?</strong>
-        Read from the program on Solana, never self-reported.
+        Look up an agent before it handles your money. You will see how much collateral is
+        locked behind it, and whether it has ever been slashed. Every number is read from
+        Solana, never self-reported.
       </p>
 
-      <form class="x-search" id="searchForm" autocomplete="off">
-        <input
-          id="agentInput"
-          type="text"
-          placeholder="Name, agent address, or owner wallet"
-          spellcheck="false"
-          aria-label="Agent name, agent address, or owner wallet"
-        />
-        <div class="x-search-actions">
-          <button type="submit" id="lookupBtn">Look up</button>
-          <button type="button" class="ghost" id="allBtn">All agents</button>
-          <button type="button" class="ghost" id="refreshBtn">Refresh</button>
+      <section class="x-lookup">
+        <form id="searchForm" autocomplete="off">
+          <label class="x-lookup-label" for="agentInput">Search an agent</label>
+          <div class="x-search">
+            <input
+              id="agentInput"
+              type="text"
+              placeholder="Name, agent address, or owner wallet"
+              spellcheck="false"
+            />
+            <button type="submit" id="lookupBtn">Search</button>
+          </div>
+        </form>
+        <div class="x-lookup-foot">
+          <span>A name searches the list. An address goes straight to that agent or its owner.</span>
+          <span class="x-sep">·</span>
+          <button type="button" class="x-textbtn" id="allBtn">Show all agents</button>
+          <span class="x-sep">·</span>
+          <button type="button" class="x-textbtn" id="refreshBtn">Refresh</button>
         </div>
-      </form>
+      </section>
 
       <div id="status" aria-live="polite"></div>
       <div id="summary"></div>
-      <div id="detail"></div>
       <div id="controls"></div>
       <div id="registry"></div>
 
-      <p class="x-foot">
-        <strong>How the grade is computed.</strong> On-chain evidence only: bond posted and how
-        large, and whether each recorded slash was compensated. Admin-set
-        <span class="x-mono">trust_score</span> is ignored. No bond reads as <em>ungraded</em>.
-        Every panel shows the ledger that sums to the score.
-        <br />
-        <strong>Embed a live grade.</strong>
-        <span class="x-mono">GET /api/badge?agent=&lt;pda&gt;</span> returns an SVG that re-reads the
-        chain on every request: a live view, not a certificate. Add
-        <span class="x-mono">&amp;format=json</span> for the numbers.
-        <br />
-        Data: <span class="x-mono">GET /api/trust</span> on
-        <span id="clusterName" class="x-mono">devnet</span>. Source:
-        <a href="https://github.com/thesithunyein/equxi/blob/main/api/trust.js" target="_blank">api/trust.js</a>,
-        <a href="https://github.com/thesithunyein/equxi/blob/main/api/badge.js" target="_blank">api/badge.js</a>,
-        <a href="https://github.com/thesithunyein/equxi/blob/main/lib/equxi-layout.js" target="_blank">lib/equxi-layout.js</a>;
-        scoring pinned by
-        <a href="https://github.com/thesithunyein/equxi/blob/main/tests/unit/api.test.ts" target="_blank">tests/unit/api.test.ts</a>.
-      </p>
+      <details class="x-fold" id="helpFold">
+        <summary>
+          <span>How to read this page</span>
+          <span class="x-fold-hint">Grade, collateral, slashes, escrow</span>
+          <i class="fa-solid fa-chevron-down"></i>
+        </summary>
+        <div class="x-fold-body">
+          <div class="x-help-item">
+            <p><span class="x-help-title">Grade A to F.</span> Built only from what the chain proves:
+            how much collateral is locked, and whether each recorded slash was paid. A is the
+            strongest, F the weakest. No collateral at all reads <em>ungraded</em>, never as a pass.
+            The admin-set <span class="x-mono">trust_score</span> on the account is ignored.</p>
+          </div>
+          <div class="x-help-item">
+            <p><span class="x-help-title">Collateral at stake.</span> SOL the owner locked on chain
+            behind the agent. If the agent breaks a rule, this is the money that pays the victim,
+            and the owner cannot take it back while it is locked.</p>
+          </div>
+          <div class="x-help-item">
+            <p><span class="x-help-title">Slashes recorded.</span> Times collateral has actually
+            been taken. <span class="x-pill owed">owed</span> means a victim has not been paid yet;
+            <span class="x-pill paid">compensated</span> means the money reached them.</p>
+          </div>
+          <div class="x-help-item">
+            <p><span class="x-help-title">Escrow for victims.</span> The program account that holds
+            slashed SOL until a victim claims it. When the vault holds less than the slashes claim,
+            that difference is published on this page rather than hidden.</p>
+          </div>
+          <p class="x-help-note" style="margin-top:14px;">
+            Numbers here come from <span class="x-mono">GET /api/trust</span> on
+            <span id="clusterName" class="x-mono">devnet</span>, read live from the program at request time.
+          </p>
+        </div>
+      </details>
 
-      <p class="x-foot">
-        <strong>Get an agent listed.</strong> Nothing here is self-reported: connect a wallet in the
-        <a href="app.html">dashboard</a>, register the agent, then lock a bond. An agent with no
-        bond still appears, marked <em>ungraded</em>.
-      </p>
+      <details class="x-fold" id="buildFold">
+        <summary>
+          <span>For builders</span>
+          <span class="x-fold-hint">Embed a live grade, or read the API</span>
+          <i class="fa-solid fa-chevron-down"></i>
+        </summary>
+        <div class="x-fold-body">
+          <div class="x-help-item">
+            <p><span class="x-help-title">Embed a live grade.</span>
+            <span class="x-mono">GET /api/badge?agent=&lt;pda&gt;</span> returns an SVG that re-reads
+            the chain on every request, so it cannot go stale or be faked by copying markup. Add
+            <span class="x-mono">&amp;format=json</span> for the numbers instead. Open any agent below
+            for the exact snippet.</p>
+          </div>
+          <div class="x-help-item">
+            <p><span class="x-help-title">Read the registry yourself.</span>
+            <span class="x-mono">GET /api/trust</span> lists every agent,
+            <span class="x-mono">?agent=&lt;pda&gt;</span> reads one, and
+            <span class="x-mono">?owner=&lt;wallet&gt;</span> reads by owner. Same numbers this page
+            shows, in JSON.</p>
+          </div>
+          <div class="x-help-item">
+            <p><span class="x-help-title">Study the code.</span> The program, the read layer and the
+            tests are public:
+            <a class="x-link" href="https://github.com/thesithunyein/equxi" target="_blank" rel="noopener">source on GitHub</a>.
+            Nothing on this page needs it, and nothing here is trusted from it either: the numbers
+            are read from the chain.</p>
+          </div>
+        </div>
+      </details>
+
+      <div class="x-card">
+        <div class="x-row">
+          <div>
+            <h2>Own an agent?</h2>
+            <div class="x-sub">Register it, lock SOL behind it, and it appears here with a grade
+            anyone can check. An agent with no collateral still appears, marked ungraded.</div>
+          </div>
+          <div class="x-actions">
+            <a href="app.html">Open the dashboard</a>
+            <a href="docs.html">Read the docs</a>
+          </div>
+        </div>
+      </div>
     </main>
   </div>
 

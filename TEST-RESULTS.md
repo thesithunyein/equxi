@@ -573,3 +573,27 @@ fix belongs in the program — a per-record funding marker or a per-agent sub-le
 the vault, so a payout can only draw on the collateral seized for that bond — and it
 needs a layout change plus a migration, so it is deliberately not bundled into this
 release. Tracked in [`SPEC.md`](SPEC.md) §7.
+
+## Trust Explorer product pass (executed 2026-10-05)
+
+The Explorer was rewritten for a reader who is checking an agent rather than
+reading the repository: no file paths in the body copy, no API schema in a
+footnote, and a result a person can act on in one screen. Driven in a browser
+against `node dev-server.js` and the live read API above:
+
+| Behaviour | Observed |
+|-----------|----------|
+| Summary tiles | Agents `6`, Collateral at stake `1.4 SOL`, Slashes `5` / `3 paid · 2 still unpaid`, Escrow `0 SOL` |
+| Data notes | Reconciliation warning rendered under the totals as a note, not as a wall between the tiles and the table |
+| Row expansion | The panel renders inside the table under its own row (`rowTop 421`, `detailTop 492`), so clicking never moves the reader |
+| Keyboard | `Tab` to a row, `Enter` expands it, focus returns to the same row (`activeElement` = that `tr`, `aria-expanded="true"`) |
+| Name search | `?q=zzz` → “No agent matches these filters” + Clear filters; `?q=8RsJk` → 1 of 6 shown |
+| Address that holds nothing | One card, one action, and **no** fleet tiles: a miss about one address is not an empty network |
+| Deep link | `?agent=<pda>` opens that agent's panel inline; a truncated `?agent=8RsJk` is rewritten to `?q=8RsJk` instead of being answered with a schema error |
+| Builder fold | Closed by default; opening it loads the live badge image (`naturalWidth` non-zero) and three copyable snippets |
+| Phone, 390px | Registry becomes one card per agent with `data-label` headings, `overflowX 0` at 390 and at 320 |
+| Desktop, 1280px | `overflowX 0`; page height 2902px with one panel open |
+
+`npm run test:unit` stayed at **163 passing** after the rewrite, including
+`tests/unit/copy.test.ts` (Explorer notes ≤ 60 words, cross-page links, no
+“violation”, no duplicate above-the-fold link labels).

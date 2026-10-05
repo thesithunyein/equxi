@@ -139,10 +139,11 @@
     if (window.solana && window.solana.isPhantom) return window.solana;
     return null;
   }
-  function short(addr) { return addr ? addr.slice(0, 4) + "\u2026" + addr.slice(-4) : "\u2014"; }
+  // A missing value reads as "N/A", never as a lone dash that can be mistaken
+  // for a zero or a separator.
+  function short(addr) { return addr ? addr.slice(0, 4) + "\u2026" + addr.slice(-4) : "N/A"; }
   function lamportsToSol(l) { return (Number(l) / 1e9).toLocaleString(undefined, { maximumFractionDigits: 4 }); }
   function explorerTx(sig) { return EXPLORER + "/tx/" + sig + "?cluster=devnet"; }
-  function explorerAddr(addr) { return EXPLORER + "/address/" + addr + "?cluster=devnet"; }
   function decodeName(d, offset, len) {
     let end = offset + len;
     for (let i = offset; i < offset + len; i++) { if (d[i] === 0) { end = i; break; } }
@@ -216,7 +217,7 @@
       var b = cachedBonds[i];
       cachedActivity.push({
         type: "bond", title: "Bond Created",
-        desc: short(b.agent) + " \u2014 " + lamportsToSol(b.amount) + " SOL " + (b.isActive ? "locked" : "withdrawn"),
+        desc: short(b.agent) + " · " + lamportsToSol(b.amount) + " SOL " + (b.isActive ? "locked" : "withdrawn"),
         amount: b.isActive ? "+" + lamportsToSol(b.amount) + " SOL" : null, amountType: "positive",
         time: b.lockedAt ? new Date(b.lockedAt * 1000).toLocaleDateString() : "",
       });
@@ -225,13 +226,13 @@
       var a = cachedAgents[j];
       cachedActivity.push({
         type: "constraint", title: "Agent Registered",
-        desc: a.name + " \u2014 trust " + a.trustScore + "/100",
+        desc: a.name + " · trust " + a.trustScore + "/100",
         time: a.createdAt ? new Date(a.createdAt * 1000).toLocaleDateString() : "",
       });
       if (a.status === "slashed") {
         cachedActivity.push({
-          type: "slash", title: "Violation",
-          desc: a.name + " \u2014 bond slashed", amountType: "negative",
+          type: "slash", title: "Slash recorded",
+          desc: a.name + " · bond slashed", amountType: "negative",
           time: a.createdAt ? new Date(a.createdAt * 1000).toLocaleDateString() : "",
         });
       }
@@ -241,7 +242,7 @@
       var agentObj = cachedAgents.find(function (a) { return a.pubkey === con.agent; });
       cachedActivity.push({
         type: "constraint", title: "Rule Added",
-        desc: (agentObj ? agentObj.name : "Agent") + " \u2014 " + con.title,
+        desc: (agentObj ? agentObj.name : "Agent") + " · " + con.title,
         time: "",
       });
     }
@@ -323,7 +324,7 @@
   /* ── TX helpers ─────────────────────────────────────────────────────── */
   function showTxPending(msg) {
     var el = document.getElementById("txStatus");
-    el.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ' + msg + " \u2014 confirm in wallet";
+    el.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ' + msg + " · confirm in wallet";
     el.className = "tx-status pending"; el.style.display = "flex";
   }
   function showTxSuccess(msg, sig) {
@@ -581,7 +582,7 @@
   function renderAgents() {
     var target = document.getElementById("agentsGrid");
     if (!walletConnected) {
-      target.innerHTML = emptyState("fa-wallet", "Connect your wallet to see your agents", "An agent belongs to the wallet that registered it.", "Connect wallet", "connectWallet");
+      target.innerHTML = emptyState("fa-wallet", "Connect your wallet", "Your agents are read from the wallet that registered them.", "Connect wallet", "connectWallet");
       wireEmptyAction("connectWallet");
       return;
     }
@@ -591,13 +592,15 @@
       return;
     }
     target.innerHTML = cachedAgents.map(function (a) {
-      return '<div class="agent-card"><div class="agent-card-header"><div class="agent-card-avatar"><i class="fa-solid fa-robot"></i></div><div class="agent-card-info"><h3>' + a.name + '</h3><p>' + short(a.pubkey) + '</p></div><span class="status-badge ' + a.status + '">' + a.status + '</span></div><div class="agent-card-stats"><div class="agent-stat"><div class="value">' + a.trustScore + '</div><div class="label">Trust</div></div><div class="agent-stat"><div class="value"><a href="' + explorerAddr(a.pubkey) + '" target="_blank" style="color:var(--purple);">View \u2197</a></div><div class="label">On-chain</div></div></div></div>';
+      // The second figure is the point of the product: this agent now has a
+      // public page anyone can check, and it is one click from here.
+      return '<div class="agent-card"><div class="agent-card-header"><div class="agent-card-avatar"><i class="fa-solid fa-robot"></i></div><div class="agent-card-info"><h3>' + a.name + '</h3><p>' + short(a.pubkey) + '</p></div><span class="status-badge ' + a.status + '">' + a.status + '</span></div><div class="agent-card-stats"><div class="agent-stat"><div class="value">' + a.trustScore + '</div><div class="label">Trust</div></div><div class="agent-stat"><div class="value"><a href="explorer.html?agent=' + a.pubkey + '" style="color:var(--purple);">Check \u2197</a></div><div class="label">Public page</div></div></div></div>';
     }).join("");
   }
   function renderBonds() {
     var target = document.getElementById("bondsList");
     if (!walletConnected) {
-      target.innerHTML = emptyState("fa-wallet", "Connect your wallet to see your bonds", "A bond is SOL you locked behind an agent.", "Connect wallet", "connectWallet");
+      target.innerHTML = emptyState("fa-wallet", "Connect your wallet", "A bond is SOL you locked behind an agent.", "Connect wallet", "connectWallet");
       wireEmptyAction("connectWallet");
       return;
     }
@@ -618,13 +621,13 @@
         buttons = '<button class="btn-outline" onclick="window._withdrawBond(\'' + b.pubkey + '\',\'' + b.agent + '\')">Withdraw</button>' +
           '<button class="btn-slash" onclick="window._openSlash(\'' + b.pubkey + '\',\'' + b.agent + '\',\'' + b.amount + '\',\'' + agentName + '\')">Slash</button>';
       }
-      return '<div class="bond-card"><div class="bond-icon"><i class="fa-solid fa-shield-halved"></i></div><div class="bond-info"><h3>' + lamportsToSol(b.amount) + ' SOL</h3><p>' + agentName + ' \u2014 ' + (b.isActive ? (withdrawable ? "Expired \u2014 withdrawable" : (expired ? "Unbonding \u2014 still slashable" : "Locked")) : "Withdrawn") + '</p></div><div class="bond-amount"><div class="value">' + (b.isActive ? "Active" : "Closed") + '</div><div class="label">' + (b.expiresAt ? new Date(b.expiresAt * 1000).toLocaleDateString() : "") + '</div></div>' + buttons + '</div>';
+      return '<div class="bond-card"><div class="bond-icon"><i class="fa-solid fa-shield-halved"></i></div><div class="bond-info"><h3>' + lamportsToSol(b.amount) + ' SOL</h3><p>' + agentName + ' · ' + (b.isActive ? (withdrawable ? "Expired, withdrawable" : (expired ? "Unbonding, still slashable" : "Locked")) : "Withdrawn") + '</p></div><div class="bond-amount"><div class="value">' + (b.isActive ? "Active" : "Closed") + '</div><div class="label">' + (b.expiresAt ? new Date(b.expiresAt * 1000).toLocaleDateString() : "") + '</div></div>' + buttons + '</div>';
     }).join("");
   }
   function renderConstraints() {
     var target = document.getElementById("constraintsGrid");
     if (!walletConnected) {
-      target.innerHTML = emptyState("fa-wallet", "Connect your wallet to see your rules", "Rules are attached to an agent you own.", "Connect wallet", "connectWallet");
+      target.innerHTML = emptyState("fa-wallet", "Connect your wallet", "Rules are attached to an agent you own.", "Connect wallet", "connectWallet");
       wireEmptyAction("connectWallet");
       return;
     }
@@ -644,7 +647,7 @@
    * reader would otherwise have to go and find.
    */
   function emptyState(icon, text, sub, action, actionTarget) {
-    return '<div class="empty-state"><i class="fa-solid ' + icon + '" style="font-size:28px;color:var(--text-muted);"></i><p>' + text + '</p>' + (sub ? '<p style="font-size:12px;color:var(--text-muted);margin-top:4px;">' + sub + '</p>' : "") + (action ? '<button class="btn-primary" id="emptyAction" style="margin-top:16px;">' + action + '</button>' : "") + '</div>';
+    return '<div class="empty-state"><div class="empty-icon"><i class="fa-solid ' + icon + '"></i></div><h3>' + text + '</h3>' + (sub ? '<p>' + sub + '</p>' : "") + (action ? '<button class="btn-primary" id="emptyAction" style="margin-top:16px;">' + action + '</button>' : "") + '</div>';
   }
 
   function wireEmptyAction(actionTarget) {
