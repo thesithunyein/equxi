@@ -133,7 +133,7 @@ The existing **75 s shot list stays** as the product-truth clip (and feeds both 
 - [ ] Record pitch (2:00) with the outline in §3. **[you + me: script ready below]**
 - [ ] Record technical demo (2:30) walking `prove-compensation.js` → `api/trust` → `explorer.html` → `SPEC.md` gaps list. **[you + me]**
 - [ ] Record the 75 s product clip per `DEMO-RUNBOOK.md`. **[you]**
-- [ ] Get **one external signal** — ideally an operator who is not you: a dev registers an agent and bonds the 0.1 SOL devnet minimum (it then shows up in `/api/trust`), or a permissioned quote / pilot DM ("I'd require this before letting an agent touch our API"). This is the only lever that can move Traction, and it is worth more than any remaining code. **[you: 5–10 DMs; me: make registration trivial]**
+- [ ] Get **one external signal** — ideally an operator who is not you: a dev registers an agent and bonds the 0.1 SOL devnet minimum (it then shows up in `/api/trust`), or a permissioned quote / pilot DM ("I'd require this before letting an agent touch our API"). This is the only lever that can move Traction, and it is worth more than any remaining code — message templates, the 5-minute path, and the quote fallback are in [`OUTREACH-KIT.md`](OUTREACH-KIT.md). **[you: 5–10 DMs; me: send the devnet SOL]**
 - [ ] Fill **every optional field** in the Colosseum form; link repo, live site, videos (public/unlisted), `TEST-RESULTS.md`, `SPEC.md`. **[you]**
 - [ ] Post-submission: reply to judge questions within 24 h; a short "what shipped since submission" update helps (the guide says judges may ask about post-hackathon momentum). **[you]**
 
