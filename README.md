@@ -624,9 +624,9 @@ is authority-signed today: on-chain violation proofs, dispute windows and
 decentralized slashing are the next roadmap items in [`SPEC.md`](SPEC.md).
 Everything above is checked by a test or by a real transaction.
 
-## Built For
+## Grant
 
-[Agentic Engineering Grant](https://superteam.fun/earn/grants/agentic-engineering) by Superteam.
+Equxi is a recipient of Superteam's [Agentic Engineering Grant](https://superteam.fun/earn/grants/agentic-engineering), awarded September 2026.
 
 ---
 
