@@ -22,13 +22,17 @@ reachable**, and not spending hours where the rules make it unreachable this cyc
 | **Meteora DBC** | **Strongest** (9.5/10 material) | A judge who follows the on-chain trail: config → curve → partial-fill to the graduation boundary → DAMM v2 migration → claimed proceeds → bond, plus the "a launch funds its own safety escrow" idea | File the form; `launch.html` already renders it | you |
 | **CertiK** | **High** (8.5/10) | Testnet-ready code that moves value, an invariant set, and security as a foundation — this repo is evidence, not claims | File the form; link `SECURITY-AUDIT.md` | you |
 | **Panta** | **Strong 8 on the sandbox; 9+ only with a paid live market** (7.5 → 8) | Four paid places in a small field. The integration is fully exercised against the live API — but a `pk_test_` key is fixtures, so with no real-USDC spend there is no market and no reported trade | Explorer market card; set `PANTA_API_KEY` so `/api/markets` serves the labeled sandbox catalog; submission copy that states fixture mode plainly | me (card) + you (Vercel env, form) |
-| **Main track** | **Shortlist realistic; 1st needs traction** (7.5 now, **~8.6 ceiling without external demand**) | Two strong judged videos, a real validation signal, every optional form field filled | record the two videos; one external operator or quote | you + me |
+| **Main track** | **Shortlist realistic; 1st needs traction** (7.5 with the videos recorded, **~7.2 scored today**, **~8.6 ceiling without external demand**) | Two strong judged videos, a real validation signal, every optional form field filled | record the two videos; one external operator or quote | you + me |
 | **Adevar** | **Low but free** (6/10) | Codebase complexity + architectural clarity + repo completeness — all present; the tweet is a hard eligibility gate | apply on Superteam Earn, post the tweet, follow | you |
 | **RPC Fast** | **Cheap, and it runs to Nov 15, not Oct 12** (~6/10) | Their own rules (verified 2026-10-05): free Focus plan Sep 15 – Nov 15, plus a **post-hackathon sidetrack — 21 teams selected, ~$500 credits each, $10,500 pool** — judged on project, meaningful infrastructure use, community presence *and* impact, with the posting guideline (2–3/month) explicitly "not raw posting volume" | file the 5-step application, claim the free plan, post technical updates through November | you (form) + me (drafts) |
 | **Solami** | **Open — can still be entered; one answer decides the build** (~5/10) | Sidetrack is live on Superteam Earn: **$3,000 across 4 winners** for "something live on Solana data" built on their stack (RPC / gRPC / Mirage / Blur / Webhook / Beam). Free key + free RPC tier (no card); streaming tiers are paid/2-day trial, and the stack reads **mainnet-first** | mint the free key, ask whether they serve **devnet** — build the live feed only if they do | you (key) + me (build) |
 
 **Overall, honestly: ~7.2 across the seven listings** (main track + six sidetracks —
-Solami was added 2026-10-05, which is why this went from five sidetracks to six). Meteora
+Solami was added 2026-10-05, which is why this went from five sidetracks to six). The
+same-day site pass (product-grade landing and launch pages, dash-free public copy, a
+print-ready deck) moved presentation, not evidence, so the number holds: the live
+registry reads 6 agents, 1.40 SOL bonded, 5 slashes, two founder-controlled wallets and
+**zero external operators**. Meteora
 and CertiK are the two places first is *reachable*; Panta is an honest 8 whose 9+ needed
 the $50 live market (declined); the main track is a realistic *shortlist* whose 1st
 depends entirely on traction; RPC Fast and Solami are *out of reach this cycle* for the
@@ -109,7 +113,9 @@ Seven judged factors (verbatim above). Be honest about what each can reach by Oc
 | Traction | **6.5–7** | 200 USDG Superteam grant, live product with real on-chain history, public filings — and **zero external operators**. Say that plainly, then change it if you can. |
 
 Perfect execution gives **(9 + 9 + 9 + 8.5 + 9 + 8.5 + 7) / 7 ≈ 8.6**. Scored literally on
-what is on disk **today**, the same table gives **~7.1** — Founder Communication has nothing
+what is on disk **today**, the same table gives **~7.2** — the site pass nudged Product +
+Execution (the landing and launch pages now read as a product rather than a submission),
+but Founder Communication has nothing
 to score until the video exists, and Market Size and Viability are still prose. The earlier
 7.5 was already assuming a minimum viable recording; the videos are the first action item
 for that reason. A literal 9+ average is **not reachable with no external demand**: six
