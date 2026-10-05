@@ -124,7 +124,7 @@ Their judging is codebase complexity + architectural clarity + repo completeness
 ecosystem impact — all four are already evidenced (11-instruction program with a PDA
 migration executed against live state, 5 green CI jobs, LICENSE, SECURITY.md, SPEC).
 
-## 5. Panta API Track ($5,000 pool) — built; sandbox proven, live market is a spend decision
+## 5. Panta API Track ($5,000 pool) — built; sandbox proven, no live-market spend (decided 2026-10-05)
 
 | Requirement | Status |
 |---|---|
