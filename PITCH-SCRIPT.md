@@ -7,6 +7,15 @@ product clip (`DEMO-RUNBOOK.md`) is raw material for both — not a substitute.
 
 Record 1080p, voice-over over screens, no music needed, no buzzwords.
 
+**Slides for the video:** open `deck.html`, then Print → Save as PDF. The page is
+preset to one 1280x720 slide per page, the background video is dropped, and the
+last slide does not add a blank page. Same export from a terminal:
+
+```
+chrome --headless=new --no-pdf-header-footer --print-to-pdf="deck.pdf" \
+  https://equxi.sithunyein.com/deck.html
+```
+
 ---
 
 ## Video 1 — Pitch (2:00)
