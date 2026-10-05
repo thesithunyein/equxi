@@ -597,3 +597,44 @@ against `node dev-server.js` and the live read API above:
 `npm run test:unit` stayed at **163 passing** after the rewrite, including
 `tests/unit/copy.test.ts` (Explorer notes ≤ 60 words, cross-page links, no
 “violation”, no duplicate above-the-fold link labels).
+
+## Panta markets feed live on production (executed 2026-10-05)
+
+The key, the labeling and the card shipped together, and each was checked
+against the running system rather than inferred from the other two:
+
+* **The free `pk_test_` key is set in Vercel** for production, preview and
+  development. The value never entered the repository, a commit or a log; only
+  the variable name is recorded here.
+* **`GET /api/markets` answers `configured: true` on production** and labels
+  what it serves: `sandbox: true` for a test key, plus Panta's own
+  `disclaimer` passed through verbatim.
+* **The Explorer renders a markets card** (`#markets`) and a per-agent
+  `Market on this agent` section inside each expanded row.
+
+Observed live, `https://equxi.sithunyein.com/explorer.html` at `4073ac8`:
+
+| Behaviour | Observed |
+|-----------|----------|
+| `/api/markets` | `200`, `configured: true`, `sandbox: true`, `counts.markets 1`, `disclaimer: "Test mode: this response uses sandbox fixtures and does not access Solana mainnet."` |
+| Fixture market | “Sandbox test market” · “Fixture market for pk_test_ keys. Not on mainnet.” · `YES 0.50` · `NO 0.50` · `0.00 USDC traded` · `crypto` |
+| Markets card | “1 market from Panta · Powered by Panta”, a `Sandbox fixtures.` banner carrying Panta's disclaimer, and one market row |
+| Per-agent section | Expanding a row adds `Market on this agent`: “No Panta market references this agent yet. This deployment reads Panta in sandbox mode, so the markets feed is labeled fixtures, not live money.” |
+| Matching rule | By agent name or address in the market's own fields, so the generic fixture can never appear as if it belonged to an agent; the section lights up the day a market names one |
+| Registry unaffected | 6 agents, 4 tiles, same values as the pass above; the markets request is separate, so neither read can blank the other |
+| Phone, 390px / 320px | `overflowX 0`; banner and stats wrap instead of forcing width |
+| Console | No messages on load or on row expansion |
+
+What the sandbox can and cannot do, probed directly with the key (no USDC, no
+signing): the create quote returns `cr_sandbox_test`, the build returns a
+zero-length transaction, and `register` answers with the same fixed fixture
+market under `TestMarket1111…`. A test key therefore cannot produce an
+agent-specific market — which is exactly why the Explorer labels the feed
+rather than dressing it up, and why the per-agent section says nothing names
+the agent yet. A real market remains the `pk_live_` + ~50 USDC decision.
+
+`npm run test:unit` → **164 passing** (one new test: the sandbox flag and the
+disclaimer pass-through, plus a live key not being labeled sandbox). CI and the
+live-site smoke check are green at `4073ac8`; `verify.yml` now warns (rather
+than fails) if `/api/markets` ever stops answering `configured: true`, because
+a Panta outage must not redden the site's build.
