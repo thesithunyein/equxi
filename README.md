@@ -626,7 +626,7 @@ Everything above is checked by a test or by a real transaction.
 
 ## Grant
 
-Equxi is a recipient of Superteam's [Agentic Engineering Grant](https://superteam.fun/earn/grants/agentic-engineering), awarded September 2026.
+Equxi is a recipient of Superteam's [Agentic Engineering Grant](https://superteam.fun/earn/grants/agentic-engineering), awarded August 28, 2026.
 
 ---
 
