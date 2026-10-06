@@ -12,6 +12,27 @@
       ]
     },
     {
+      "comment": "Function responses reach here without their s-maxage: the platform reduces 'public, s-maxage=30' to 'public', which left every page load doing a whole-program scan. Setting the policy per route here is what actually makes the CDN cache them. The badge keeps s-maxage alone on purpose: it advertises a fresh read on every request, so nothing about it may be served stale.",
+      "source": "/api/trust",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, s-maxage=30, stale-while-revalidate=300" }
+      ]
+    },
+    {
+      "source": "/api/markets",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, s-maxage=30, stale-while-revalidate=300" }
+      ]
+    },
+    {
+      "source": "/api/badge",
+      "headers": [{ "key": "Cache-Control", "value": "public, s-maxage=30" }]
+    },
+    {
+      "source": "/api/health",
+      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
+    },
+    {
       "source": "/assets/(.*)",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
