@@ -613,3 +613,44 @@ img[src*="logo.webp"] {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* ------------------------------------------------------------ cursor glow */
+
+/* A soft blob of cool light that trails the pointer, on every page. Blended
+ * (multiply) onto the paper it reads as a pale blue-grey spot, and over ink
+ * text it keeps the text black instead of washing it out. cursor.js owns the
+ * movement: it eases the element after the pointer and parks it off-screen
+ * until the first move, so nothing flashes on load. */
+.cursor-glow {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 360px;
+  height: 360px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(120, 145, 175, 0.38) 0%,
+    rgba(120, 145, 175, 0.16) 42%,
+    transparent 70%
+  );
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.4s;
+  will-change: transform;
+}
+
+/* Phones have no cursor, and the effect is pure decoration: skip it. */
+@media (max-width: 768px) {
+  .cursor-glow {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cursor-glow {
+    display: none;
+  }
+}

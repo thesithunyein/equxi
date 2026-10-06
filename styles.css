@@ -14,23 +14,10 @@ html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; 
 body { font-family: var(--font); background: var(--bg); color: var(--text); overflow-x: hidden; }
 a { text-decoration: none; color: inherit; }
 
-/* Cursor glow */
-.cursor-glow {
-  position: fixed;
-  width: 300px;
-  height: 300px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(28, 25, 22, 0.12) 0%, transparent 70%);
-  pointer-events: none;
-  transform: translate(-50%, -50%);
-  z-index: 9999;
-  opacity: 0;
-  transition: opacity 0.3s;
-}
 @media (max-width: 768px) {
   /* Decoration only. At 5 percent opacity the video is invisible on a phone,
-     and the file is 21 MB, so the phone should not pay for it. */
-  .cursor-glow,
+     and the file is 21 MB, so the phone should not pay for it. The cursor
+     glow lives in theme.css now and hides itself on the same breakpoints. */
   .bg-video { display: none; }
 }
 
@@ -303,7 +290,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, [tabindex]:focus-vis
     transition-duration: 0.001ms !important;
   }
   html { scroll-behavior: auto !important; }
-  .bg-video, .cursor-glow { display: none; }
+  .bg-video { display: none; }
 }
 
 /* Footer */
