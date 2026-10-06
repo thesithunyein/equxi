@@ -28,7 +28,7 @@
  * | `agent=<pubkey>` | One agent, by its agent PDA address |
  * | `owner=<pubkey>` | Every agent owned by a wallet |
  * | `cluster=devnet\|testnet\|mainnet-beta` | RPC cluster (default `devnet`) |
- * | `rpc=<url>` | Explicit RPC endpoint (development only) |
+ * | `rpc=<url>` | Explicit RPC endpoint. Development only: a deployment refuses it unless `EQUXI_ALLOW_RPC=1` |
  *
  * A deployment can set `EQUXI_RPC` to make every read default to a dedicated
  * endpoint (for example RPC Fast's Focus plan); an explicit `?rpc=` still wins.
@@ -36,6 +36,7 @@
 "use strict";
 
 var L = require("../lib/equxi-layout.js");
+var throttle = require("../lib/rate-limit.js");
 
 var CLUSTER_RPC = {
   devnet: "https://api.devnet.solana.com",
@@ -45,6 +46,19 @@ var CLUSTER_RPC = {
 
 /** Response cache. Reads are public and change slowly. */
 var CACHE_SECONDS = 30;
+
+/**
+ * How long the CDN may keep serving a cached copy while it refreshes the next
+ * one in the background. Without this, every expiry sent a fresh reader to a
+ * whole-program scan; with it, only the first request after expiry does that.
+ */
+var STALE_SECONDS = 300;
+
+/** Upstream reads get a hard ceiling, so a hung RPC cannot hang the API. */
+var UPSTREAM_TIMEOUT_MS = 8000;
+
+/** One retry per endpoint before the next endpoint (or failure) is tried. */
+var RETRY_DELAY_MS = 300;
 
 /** Above this many agents, a targeted query falls back to whole-program scans. */
 var MAX_TARGETED_AGENTS = 8;
@@ -59,19 +73,63 @@ var DECODERS = {
 
 /* ── JSON-RPC ─────────────────────────────────────────────────────────── */
 
+function sleep(ms) {
+  return new Promise(function (resolve) {
+    setTimeout(resolve, ms);
+  });
+}
+
+/**
+ * Is this upstream failure worth one more try? The public cluster endpoint
+ * answers 429 when it is busy, and 5xx when it is unwell; before this, a single
+ * 429 on a busy afternoon reached the reader as a dead landing page.
+ */
+function isTransient(status) {
+  return status === 429 || status >= 500;
+}
+
 /**
  * Minimal JSON-RPC caller. Solana's RPC is a `POST` of one JSON object.
  * `fetchImpl` is a parameter rather than the global so tests can drive it.
+ *
+ * Every call is bounded by a timeout and a transient failure is retried once,
+ * because this single upstream is what every page reads its numbers from: it
+ * should be able to degrade to a slow read rather than to an error page.
  */
-function createRpc(rpcUrl, fetchImpl) {
-  return async function call(method, params) {
-    var response = await fetchImpl(rpcUrl, {
+function createRpc(rpcUrl, fetchImpl, options) {
+  var opts = options || {};
+  var timeoutMs = opts.timeoutMs || UPSTREAM_TIMEOUT_MS;
+
+  return async function call(method, params, attempt) {
+    var tried = attempt || 0;
+    var init = {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: method, params: params }),
-    });
+    };
+
+    // Without a signal, a stalled socket holds the function open until the
+    // platform kills it and the reader gets a 502 with no explanation.
+    if (typeof AbortSignal !== "undefined" && AbortSignal.timeout) {
+      init.signal = AbortSignal.timeout(timeoutMs);
+    }
+
+    var response;
+    try {
+      response = await fetchImpl(rpcUrl, init);
+    } catch (error) {
+      if (tried === 0) {
+        await sleep(RETRY_DELAY_MS);
+        return call(method, params, 1);
+      }
+      throw error;
+    }
 
     if (!response.ok) {
+      if (isTransient(response.status) && tried === 0) {
+        await sleep(RETRY_DELAY_MS);
+        return call(method, params, 1);
+      }
       throw new Error("RPC " + method + " failed with HTTP " + response.status);
     }
 
@@ -80,6 +138,29 @@ function createRpc(rpcUrl, fetchImpl) {
       throw new Error("RPC " + method + ": " + (payload.error.message || "unknown error"));
     }
     return payload.result;
+  };
+}
+
+/**
+ * Try the primary endpoint, then each fallback, before giving up. These reads
+ * are idempotent, so moving to another endpoint mid-request costs time and
+ * nothing else. With no fallbacks configured this is the primary alone, which
+ * is the honest default: the public endpoint is the only keyless option, and
+ * `EQUXI_RPC_FALLBACKS` is where a paid provider's second host goes.
+ */
+function createRpcWithFallback(primary, fallbacks, fetchImpl, options) {
+  var urls = [primary].concat(fallbacks || []);
+
+  return async function call(method, params) {
+    var lastError;
+    for (var i = 0; i < urls.length; i++) {
+      try {
+        return await createRpc(urls[i], fetchImpl, options)(method, params);
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw lastError;
   };
 }
 
@@ -176,12 +257,34 @@ async function buildResponse(query, deps) {
   var now = deps.now;
 
   var cluster = query.cluster || "devnet";
+  if (!CLUSTER_RPC[cluster]) {
+    throw Object.assign(new Error("unknown cluster: " + cluster), { status: 400 });
+  }
+
+  // An explicit `?rpc=` is a development affordance. A deployment refuses it
+  // unless EQUXI_ALLOW_RPC=1, because otherwise this endpoint is an open
+  // request proxy — and, worse for a product whose claim is verifiability,
+  // anyone could point it at a node they control and then cite an equxi URL as
+  // evidence for accounts that node invented.
+  var deployed = !!(process.env.VERCEL || process.env.VERCEL_ENV);
+  if (query.rpc && deployed && process.env.EQUXI_ALLOW_RPC !== "1") {
+    throw Object.assign(new Error("rpc override is disabled on this deployment"), {
+      status: 400,
+    });
+  }
+
   // Precedence: explicit ?rpc= (development), then the deployment default from
   // EQUXI_RPC (dedicated infra), then the public cluster endpoint.
   var rpcUrl = query.rpc || process.env.EQUXI_RPC || CLUSTER_RPC[cluster];
-  if (!rpcUrl) {
-    throw Object.assign(new Error("unknown cluster: " + cluster), { status: 400 });
-  }
+
+  var fallbacks = (process.env.EQUXI_RPC_FALLBACKS || "")
+    .split(",")
+    .map(function (url) {
+      return url.trim();
+    })
+    .filter(function (url) {
+      return url && url !== rpcUrl;
+    });
 
   for (var i = 0; i < ["agent", "owner"].length; i++) {
     var key = ["agent", "owner"][i];
@@ -192,7 +295,7 @@ async function buildResponse(query, deps) {
     }
   }
 
-  var call = createRpc(rpcUrl, deps.fetchImpl);
+  var call = createRpcWithFallback(rpcUrl, fallbacks, deps.fetchImpl);
 
   /* --- which agents? --- */
   var agents;
@@ -363,6 +466,19 @@ module.exports = async function handler(req, res) {
     return res.end(JSON.stringify({ ok: false, error: "method not allowed; use GET" }));
   }
 
+  // Best effort, per instance: see lib/rate-limit.js for what this does and
+  // does not cover. The CDN cache is the real shield for repeat readers.
+  if (throttle.limited(req)) {
+    res.statusCode = 429;
+    res.setHeader("retry-after", String(Math.ceil(throttle.WINDOW_MS / 1000)));
+    return res.end(
+      JSON.stringify({
+        ok: false,
+        error: "too many requests; results are cached for " + CACHE_SECONDS + " seconds",
+      })
+    );
+  }
+
   try {
     var payload = await buildResponse(req.query || {}, {
       fetchImpl: globalThis.fetch,
@@ -370,7 +486,10 @@ module.exports = async function handler(req, res) {
     });
 
     res.statusCode = 200;
-    res.setHeader("cache-control", "public, s-maxage=" + CACHE_SECONDS);
+    res.setHeader(
+      "cache-control",
+      "public, s-maxage=" + CACHE_SECONDS + ", stale-while-revalidate=" + STALE_SECONDS
+    );
     return res.end(JSON.stringify(payload));
   } catch (error) {
     res.statusCode = error && error.status ? error.status : 502;
@@ -380,9 +499,13 @@ module.exports = async function handler(req, res) {
   }
 };
 
-// Exposed for the unit tests, which drive these directly.
+// Exposed for the unit tests, which drive these directly, and for /api/health,
+// which reuses this RPC caller and the cluster map rather than restating them.
+module.exports.CLUSTER_RPC = CLUSTER_RPC;
+module.exports.PROGRAM_ID = L.PROGRAM_ID;
 module.exports.buildResponse = buildResponse;
 module.exports.createRpc = createRpc;
+module.exports.createRpcWithFallback = createRpcWithFallback;
 module.exports.assembleRegistry = assembleRegistry;
 module.exports.fetchAccounts = fetchAccounts;
 module.exports.fetchOne = fetchOne;

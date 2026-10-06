@@ -267,6 +267,9 @@ module.exports = async function handler(req, res) {
   }
 
   res.statusCode = 200;
+  // Deliberately no `stale-while-revalidate` here, unlike /api/trust: this
+  // badge advertises that it re-reads the chain on every request, and a copy
+  // served minutes later would quietly break exactly that promise.
   res.setHeader("cache-control", "public, s-maxage=" + CACHE_SECONDS);
   // Machine-readable outcome: a consumer never has to parse the SVG to learn
   // whether the address was actually known.

@@ -68,6 +68,10 @@
     .live-tile .s { font-size: 12px; color: var(--muted); margin-top: 4px; }
 
     /* Only used when the read fails. It is empty and takes no space otherwise. */
+    /* The program the numbers above are read from, one click away. */
+    .live-program { margin-top: 18px; font-size: 13px; color: var(--muted); }
+    .live-program a { color: var(--purple); }
+    .live-program a:hover { text-decoration: underline; }
     .live-notice { font-size: 13px; color: var(--muted); line-height: 1.6; }
     .live-notice.bad { color: #d99b8a; }
     .live-notice:empty { display: none; }
@@ -134,10 +138,10 @@
         <span class="logo-text">Equxi</span>
       </a>
       <nav class="nav" id="desktopNav">
-        <a href="docs.html" class="nav-link">Docs</a>
         <a href="app.html" class="nav-link">Dashboard</a>
         <a href="explorer.html" class="nav-link">Explorer</a>
-        <a href="launch.html" class="nav-link">Launch</a>
+        <a href="docs.html" class="nav-link">Docs</a>
+        <a href="launch.html" class="nav-link">Meteora launch</a>
         <a href="https://github.com/thesithunyein/equxi" class="nav-link" target="_blank" title="Source on GitHub" aria-label="GitHub"><i class="fa-brands fa-github" aria-hidden="true"></i></a>
         <a href="https://x.com/equxi_ai" class="nav-link" target="_blank" title="Equxi on X" aria-label="X"><i class="fa-brands fa-x-twitter" aria-hidden="true"></i></a>
       </nav>
@@ -150,10 +154,10 @@
       </button>
     </header>
     <div class="mobile-nav" id="mobileNav">
-      <a href="docs.html" class="mobile-nav-link">Docs</a>
       <a href="app.html" class="mobile-nav-link">Dashboard</a>
       <a href="explorer.html" class="mobile-nav-link">Explorer</a>
-      <a href="launch.html" class="mobile-nav-link">Launch</a>
+      <a href="docs.html" class="mobile-nav-link">Docs</a>
+      <a href="launch.html" class="mobile-nav-link">Meteora launch</a>
       <a href="https://github.com/thesithunyein/equxi" class="mobile-nav-link" target="_blank"><i class="fa-brands fa-github"></i> GitHub</a>
       <a href="https://x.com/equxi_ai" class="mobile-nav-link" target="_blank"><i class="fa-brands fa-x-twitter"></i> X</a>
       <a href="app.html" class="btn-primary" style="width:100%;margin-top:12px;">Register an agent</a>
@@ -206,6 +210,14 @@
           <div class="s">owed to victims</div>
         </a>
       </div>
+
+      <!-- The claim here is verifiability, so the program itself is one click
+           away, rather than four sections deep in the docs. -->
+      <p class="live-program">
+        Read straight from the program:
+        <a href="https://explorer.solana.com/address/D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc?cluster=devnet"
+          target="_blank" rel="noopener">D7akK6a…dfvhc on Solana Explorer →</a>
+      </p>
 
       <div class="live-notice" id="liveNotice"></div>
     </div>
@@ -306,6 +318,7 @@
         <a href="app.html">Dashboard</a>
         <a href="explorer.html">Explorer</a>
         <a href="launch.html">Launch</a>
+        <a href="deck.html">Pitch deck</a>
         <a href="https://github.com/thesithunyein/equxi" target="_blank" rel="noopener">GitHub</a>
         <a href="https://x.com/equxi_ai" target="_blank" rel="noopener">X</a>
       </nav>

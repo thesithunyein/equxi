@@ -631,6 +631,127 @@ describe("read API (api/trust.js)", () => {
       }
     });
   });
+
+  /**
+   * The endpoint's upstream is not a detail: it is the same public devnet node
+   * every reader shares, and it rate-limits. These pin the two behaviours that
+   * keep a busy or unlucky moment from turning into a dead page.
+   */
+  describe("upstream resilience", () => {
+    /** A fetch that records every URL it is asked for. */
+    function recordingFetch(respond: (url: string, call: number) => { ok: boolean; status: number }) {
+      const urls: string[] = [];
+      const fetchImpl = async (url: string) => {
+        urls.push(url);
+        const answer = respond(url, urls.length);
+        return {
+          ok: answer.ok,
+          status: answer.status,
+          json: async () => ({ result: [] }),
+        };
+      };
+      return { urls, fetchImpl: fetchImpl as never };
+    }
+
+    it("retries a rate-limited node once and still answers", async () => {
+      const { urls, fetchImpl } = recordingFetch((_url, call) =>
+        call === 1 ? { ok: false, status: 429 } : { ok: true, status: 200 }
+      );
+
+      const payload = await trust.buildResponse({}, { fetchImpl, now: NOW });
+
+      expect(payload.ok).to.equal(true);
+      // One refused call, then the retry, then the reads that follow it.
+      expect(urls.length).to.be.greaterThan(2);
+    });
+
+    it("moves to the configured fallback endpoint when the primary is down", async () => {
+      const { urls, fetchImpl } = recordingFetch((url) =>
+        url.includes("primary.example") ? { ok: false, status: 503 } : { ok: true, status: 200 }
+      );
+      const before = {
+        primary: process.env.EQUXI_RPC,
+        fallbacks: process.env.EQUXI_RPC_FALLBACKS,
+      };
+      process.env.EQUXI_RPC = "https://primary.example/rpc";
+      process.env.EQUXI_RPC_FALLBACKS = "https://backup.example/rpc";
+
+      try {
+        const payload = await trust.buildResponse({}, { fetchImpl, now: NOW });
+        expect(payload.ok).to.equal(true);
+        expect(urls.some((url) => url.includes("backup.example"))).to.equal(true);
+      } finally {
+        if (before.primary === undefined) delete process.env.EQUXI_RPC;
+        else process.env.EQUXI_RPC = before.primary;
+        if (before.fallbacks === undefined) delete process.env.EQUXI_RPC_FALLBACKS;
+        else process.env.EQUXI_RPC_FALLBACKS = before.fallbacks;
+      }
+    });
+  });
+
+  /**
+   * `?rpc=` is a development affordance, and on a deployment it was an open
+   * request proxy: the server would POST wherever the query string pointed.
+   * Worse for this product, a caller could name a node they control and then
+   * cite an equxi URL as evidence for accounts that node invented. The gate is
+   * therefore a correctness requirement, not a hardening nicety.
+   */
+  describe("the rpc override gate", () => {
+    function recordingFetch() {
+      const urls: string[] = [];
+      const fetchImpl = async (url: string) => {
+        urls.push(url);
+        return { ok: true, status: 200, json: async () => ({ result: [] }) };
+      };
+      return { urls, fetchImpl: fetchImpl as never };
+    }
+
+    async function messageFrom(run: () => Promise<unknown>): Promise<{ status?: number; message: string }> {
+      try {
+        await run();
+      } catch (error) {
+        const typed = error as { status?: number; message?: string };
+        return { status: typed.status, message: String(typed.message || typed) };
+      }
+      return { message: "no error" };
+    }
+
+    it("refuses an arbitrary rpc url on a deployment, without calling it", async () => {
+      const { urls, fetchImpl } = recordingFetch();
+      const before = { vercel: process.env.VERCEL, allow: process.env.EQUXI_ALLOW_RPC };
+      process.env.VERCEL = "1";
+      delete process.env.EQUXI_ALLOW_RPC;
+
+      try {
+        const failure = await messageFrom(() =>
+          trust.buildResponse({ rpc: "http://127.0.0.1:1/" }, { fetchImpl, now: NOW })
+        );
+        expect(failure.status).to.equal(400);
+        expect(failure.message).to.match(/disabled/);
+        // The whole point: the machine the caller named was never contacted.
+        expect(urls).to.deep.equal([]);
+      } finally {
+        if (before.vercel === undefined) delete process.env.VERCEL;
+        else process.env.VERCEL = before.vercel;
+        if (before.allow !== undefined) process.env.EQUXI_ALLOW_RPC = before.allow;
+      }
+    });
+
+    it("honours the override outside a deployment, for local development", async () => {
+      const { urls, fetchImpl } = recordingFetch();
+      const before = { vercel: process.env.VERCEL, vercelEnv: process.env.VERCEL_ENV };
+      delete process.env.VERCEL;
+      delete process.env.VERCEL_ENV;
+
+      try {
+        await trust.buildResponse({ rpc: "https://local.example/rpc" }, { fetchImpl, now: NOW });
+        expect(urls[0]).to.equal("https://local.example/rpc");
+      } finally {
+        if (before.vercel !== undefined) process.env.VERCEL = before.vercel;
+        if (before.vercelEnv !== undefined) process.env.VERCEL_ENV = before.vercelEnv;
+      }
+    });
+  });
 });
 
 /**

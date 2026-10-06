@@ -57,8 +57,13 @@
       margin-top: 12px; font-size: 12.5px; color: var(--muted);
     }
     .x-lookup-foot .x-sep { color: #2e2e2e; }
+    /* The row these sit in had 15px-tall buttons. The padding grows the target
+       to ~41px; the matching negative margin keeps the line where it was, and
+       it is vertical only, so the gaps between the buttons and their separators
+       do not move. */
     button.x-textbtn {
-      background: none; border: none; padding: 0; cursor: pointer; font-family: var(--font);
+      background: none; border: none; padding: 13px 0; margin: -13px 0;
+      cursor: pointer; font-family: var(--font);
       font-size: 12.5px; color: var(--purple); text-decoration: none;
     }
     button.x-textbtn:hover { text-decoration: underline; }
@@ -109,10 +114,14 @@
     .g-D, .g-F { background: rgba(179, 86, 63, 0.12); color: #b3563f; }
     .g-ungraded { background: #fffdf9; color: var(--muted); }
 
+    /* The amber had to come down a shade: at 13px, #b07d2b on this paper is
+       3.3:1, under the 4.5:1 that normal text needs — and this is the one
+       paragraph on the page that must not be skimmed past. #8a5e1d measures
+       5.2:1 and matches the warning colour in docs.html. */
     .x-warn {
-      border-left: 3px solid #b07d2b; background: rgba(176, 125, 43, 0.06);
+      border-left: 3px solid #8a5e1d; background: rgba(176, 125, 43, 0.06);
       padding: 10px 14px; border-radius: 0 10px 10px 0; font-size: 13px;
-      color: #b07d2b; margin-top: 10px; line-height: 1.55;
+      color: #8a5e1d; margin-top: 10px; line-height: 1.55;
     }
     .x-note {
       border-left: 3px solid var(--purple); background: rgba(28, 25, 22, 0.07);
@@ -135,14 +144,26 @@
       font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em;
       color: var(--muted); min-width: 46px;
     }
+    /* 29px was under a comfortable thumb. These wrap, so the extra padding
+       costs a line at worst rather than breaking the row. */
     button.x-chip {
-      padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(28,25,22,0.14); background: #f7f4ef;
+      padding: 12px 16px; border-radius: 999px; border: 1px solid rgba(28,25,22,0.14); background: #f7f4ef;
       color: var(--muted); font-size: 12.5px; font-family: var(--font); cursor: pointer;
     }
     button.x-chip:hover { border-color: #3a3a3a; color: var(--text); }
     button.x-chip.on { border-color: var(--purple); color: var(--text); background: rgba(28, 25, 22, 0.16); }
     .x-legend { color: var(--muted); font-size: 12.5px; line-height: 1.6; }
     .x-legend b { color: var(--text); font-weight: 600; }
+
+    /* The page had no way onwards from its bottom edge, while every other page
+       did. Same destinations as the landing footer, in one wrapped line. */
+    .x-foot {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px;
+      width: 100%; max-width: 1120px; margin: 0 auto;
+      padding: 6px 20px 40px; font-size: 13px; color: var(--muted);
+    }
+    .x-foot a { color: var(--purple); padding: 12px 2px; }
+    .x-foot a:hover { text-decoration: underline; }
 
     /* The score ledger. Monospace numbers, so the arithmetic lines up. */
     .x-ledger { margin-top: 12px; border: 1px solid rgba(28,25,22,0.10); border-radius: 12px; overflow: hidden; }
@@ -184,17 +205,20 @@
     .x-slash-row .x-pill { white-space: normal; }
     .x-slash-row:last-child { border-bottom: none; }
     .x-pill { font-size: 11px; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
-    .x-pill.paid { background: rgba(20, 241, 149, 0.13); color: var(--green); }
-    .x-pill.owed { background: rgba(255, 84, 84, 0.13); color: #b3563f; }
+    /* 11px text sits under the 4.5:1 line at the brand green (3.1:1) and at
+       #b3563f (4.4:1), so both pills carry a darker ink. The tinted background
+       stays: it is what makes the two states tell apart at a glance. */
+    .x-pill.paid { background: rgba(20, 241, 149, 0.13); color: #1b6f48; }
+    .x-pill.owed { background: rgba(255, 84, 84, 0.13); color: #9a4632; }
     .x-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
     .x-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
     /* Markets read from Panta. A fixture from a test key is labelled as one,
        because a sandbox price that reads as live is a lie about the data. */
     .x-sandbox {
-      border-left: 3px solid #b07d2b; background: rgba(176, 125, 43, 0.06);
+      border-left: 3px solid #8a5e1d; background: rgba(176, 125, 43, 0.06);
       padding: 10px 14px; border-radius: 0 10px 10px 0; font-size: 13px;
-      color: #b07d2b; margin-top: 14px; line-height: 1.55;
+      color: #8a5e1d; margin-top: 14px; line-height: 1.55;
     }
     .x-market-list { margin-top: 4px; }
     .x-market-row { border-top: 1px solid rgba(28,25,22,0.10); padding: 13px 0 3px; }
@@ -290,10 +314,10 @@
         <span class="logo-text">Equxi</span>
       </a>
       <nav class="nav" id="desktopNav">
-        <a href="docs.html" class="nav-link">Docs</a>
         <a href="app.html" class="nav-link">Dashboard</a>
         <a href="explorer.html" class="nav-link">Explorer</a>
-        <a href="launch.html" class="nav-link">Launch</a>
+        <a href="docs.html" class="nav-link">Docs</a>
+        <a href="launch.html" class="nav-link">Meteora launch</a>
         <a href="https://github.com/thesithunyein/equxi" class="nav-link" target="_blank" title="Source on GitHub" aria-label="GitHub"><i class="fa-brands fa-github" aria-hidden="true"></i></a>
         <a href="https://x.com/equxi_ai" class="nav-link" target="_blank" title="Equxi on X" aria-label="X"><i class="fa-brands fa-x-twitter" aria-hidden="true"></i></a>
       </nav>
@@ -309,8 +333,10 @@
       <a href="docs.html" class="mobile-nav-link">Docs</a>
       <a href="app.html" class="mobile-nav-link">Dashboard</a>
       <a href="explorer.html" class="mobile-nav-link">Explorer</a>
-      <a href="launch.html" class="mobile-nav-link">Launch</a>
+      <a href="docs.html" class="mobile-nav-link">Docs</a>
+      <a href="launch.html" class="mobile-nav-link">Meteora launch</a>
       <a href="https://github.com/thesithunyein/equxi" class="mobile-nav-link" target="_blank"><i class="fa-brands fa-github" aria-hidden="true"></i> GitHub</a>
+      <a href="https://x.com/equxi_ai" class="mobile-nav-link" target="_blank"><i class="fa-brands fa-x-twitter" aria-hidden="true"></i> X</a>
       <a href="app.html" class="btn-primary" style="width:100%;margin-top:12px;">Open App</a>
     </div>
 
@@ -440,7 +466,21 @@
           </div>
         </div>
       </div>
+
     </main>
+
+    <!-- Outside <main>, like a footer should be: it repeats the header's
+         destinations on purpose, and leaving it inside main is what made the
+         "no repeated link above the fold" check ambiguous. -->
+    <footer class="x-foot">
+      <a href="index.html">Home</a>
+      <a href="app.html">Dashboard</a>
+      <a href="docs.html">Docs</a>
+      <a href="launch.html">Meteora launch</a>
+      <a href="deck.html">Pitch deck</a>
+      <a href="https://github.com/thesithunyein/equxi" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://x.com/equxi_ai" target="_blank" rel="noopener">X</a>
+    </footer>
   </div>
 
   <script src="explorer.js"></script>

@@ -14,7 +14,13 @@ declare namespace trust {
   /** Just enough of the Fetch API for the RPC call to be driven from a stub. */
   type FetchImpl = (
     url: string,
-    init: { method: string; headers: Record<string, string>; body: string }
+    init: {
+      method: string;
+      headers: Record<string, string>;
+      body: string;
+      /** Set so a stalled upstream cannot hold the function open. */
+      signal?: AbortSignal;
+    }
   ) => Promise<{
     ok: boolean;
     status: number;
@@ -107,7 +113,25 @@ declare namespace trust {
 
   function buildResponse(query: Query, deps: BuildResponseDeps): Promise<ApiPayload>;
 
-  function createRpc(rpcUrl: string, fetchImpl: FetchImpl): RpcCall;
+  function createRpc(
+    rpcUrl: string,
+    fetchImpl: FetchImpl,
+    options?: { timeoutMs?: number }
+  ): RpcCall;
+
+  /** Primary endpoint first, then each fallback, before the read gives up. */
+  function createRpcWithFallback(
+    primary: string,
+    fallbacks: string[],
+    fetchImpl: FetchImpl,
+    options?: { timeoutMs?: number }
+  ): RpcCall;
+
+  /** Cluster name to public RPC endpoint. Shared with `/api/health`. */
+  const CLUSTER_RPC: Record<string, string>;
+
+  /** The program every read on this site is about. */
+  const PROGRAM_ID: string;
 
   function assembleRegistry(
     agents: Array<Located>,

@@ -57,6 +57,9 @@ var MAX_LIMIT = 50; // Panta's documented page-size ceiling.
 /** Public reads may be cached; markets move, but the partner should not be hammered. */
 var CACHE_SECONDS = 30;
 
+/** Serve the cached copy while the next one is fetched, so expiry is invisible. */
+var STALE_SECONDS = 300;
+
 /** Upstream reads get a hard ceiling so a hung partner cannot hang the API. */
 var UPSTREAM_TIMEOUT_MS = 8000;
 
@@ -223,7 +226,10 @@ module.exports = async function handler(req, res) {
 
     res.statusCode = 200;
     res.setHeader("x-equxi-configured", payload.configured ? "true" : "false");
-    res.setHeader("cache-control", "public, s-maxage=" + CACHE_SECONDS);
+    res.setHeader(
+      "cache-control",
+      "public, s-maxage=" + CACHE_SECONDS + ", stale-while-revalidate=" + STALE_SECONDS
+    );
     return res.end(JSON.stringify(payload));
   } catch (error) {
     res.statusCode = error && error.status ? error.status : 502;

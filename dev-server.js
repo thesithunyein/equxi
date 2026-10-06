@@ -29,6 +29,7 @@ var API_ROUTES = {
   "/api/trust": require("./api/trust.js"),
   "/api/badge": require("./api/badge.js"),
   "/api/markets": require("./api/markets.js"),
+  "/api/health": require("./api/health.js"),
 };
 
 var ROOT = __dirname;
@@ -109,4 +110,5 @@ server.listen(PORT, function () {
   console.log("  Read API:  http://localhost:" + PORT + "/api/trust");
   console.log("  Badge:     http://localhost:" + PORT + "/api/badge?agent=<pda>");
   console.log("  Markets:   http://localhost:" + PORT + "/api/markets");
+  console.log("  Health:    http://localhost:" + PORT + "/api/health");
 });
