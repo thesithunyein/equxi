@@ -29,16 +29,44 @@ jobs:
       - name: Check the pages a judge opens
         run: |
           BASE=https://equxi.sithunyein.com
+          WANT=$(printf '%s' "$GITHUB_SHA" | cut -c1-7)
+          # Built once, so the quoting lives in one place rather than in every
+          # test: `"commit":"<sha>"` exactly, quotes included.
+          NEEDLE="\"commit\":\"$WANT\""
+          # Set before the first assertion: the commit wait below can fail, and a
+          # later `fail=0` would quietly erase that verdict.
+          fail=0
 
-          # Liveness only: `/api/trust` answers on every build, including the one
-          # currently live, so this waits for the site to be up at all and says
-          # nothing about whether the new build has landed.
+          # Wait for *this* commit, not merely for a site that answers. The two
+          # are different questions, and conflating them cost hours: a rejected
+          # `vercel.json` failed every deploy while every check here stayed
+          # green, because the pages it asserted were already served by the
+          # previous build. `/api/health` names the commit it was built from, so
+          # this is the one probe that distinguishes the two.
+          echo "waiting for commit $WANT to serve"
+          health=""
           attempts=0
-          until curl -s -o /dev/null --max-time 20 --retry 2 "$BASE/api/trust?probe=$(date +%s)"; do
+          while [ $attempts -lt 30 ]; do
+            health=$(curl -s --max-time 20 -H 'cache-control: no-cache' "$BASE/api/health" 2>/dev/null || true)
+            if printf '%s' "$health" | grep -qF "$NEEDLE"; then break; fi
             attempts=$((attempts+1))
-            [ $attempts -ge 24 ] && break
-            sleep 10
+            if [ $attempts -lt 30 ]; then sleep 10; fi
           done
+
+          if printf '%s' "$health" | grep -qF "$NEEDLE"; then
+            echo "commit $WANT is live"
+          elif printf '%s' "$health" | grep -qF '"commit":"'; then
+            # The build names a different commit: the deploy was rejected or has
+            # not been promoted. This is the check that matters, because every
+            # assertion below can pass against a stale build — which is how a
+            # rejected vercel.json went unnoticed for hours.
+            echo "::error title=Stale deployment::$BASE is serving a build other than $WANT. Check that vercel.json is valid — a rejected config fails every deploy."
+            fail=1
+          else
+            # No build identity at all: do not fail the run over a platform
+            # variable, but say so, because the staleness check is then blind.
+            echo "::warning title=Build identity::/api/health does not name a commit, so this run cannot prove $WANT is the build being served."
+          fi
 
           # check <label> <url> [required-pattern]
           # Retried, because a push can surface the new HTML before its assets.
@@ -61,20 +89,15 @@ jobs:
             return 1
           }
 
-          fail=0
           for path in "" explorer.html app.html docs.html deck.html api/trust; do
             check "/${path:-}" "$BASE/$path" "" || fail=1
           done
 
-          # The live numbers are filled client-side from /api/trust, so a build
-          # that ships the markup without the script (or the reverse) still
-          # returns 200 on every page and looks completely fine. Assert both
-          # halves of the landing page are actually being served.
           # contract <label> <url> <expected-status>
           # The status is part of the API's contract, not a detail: a caller
-          # asking about one address branches on 404. Retried like `check`,
-          # because the previous build answers 200 here and a push can surface
-          # the new one a beat later.
+          # asking about one address branches on 404. Retried briefly even though
+          # the commit wait above already proves the build is live, so a single
+          # edge hiccup cannot redden the run.
           contract() {
             label="$1"; url="$2"; want="$3"
             n=0; code=000
@@ -99,6 +122,10 @@ jobs:
           contract "unknown owner" "$BASE/api/trust?owner=$absent" 200 || fail=1
           contract "api/health" "$BASE/api/health" 200 || fail=1
 
+          # The live numbers are filled client-side from /api/trust, so a build
+          # that ships the markup without the script (or the reverse) still
+          # returns 200 on every page and looks completely fine. Assert both
+          # halves of the landing page are actually being served.
           check "/ (live stats)" "$BASE/" 'data-fill="bonded"' || fail=1
           check "/landing.js" "$BASE/landing.js" "api/trust" || fail=1
 

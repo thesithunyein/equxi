@@ -1382,6 +1382,38 @@ describe("health API (api/health.js)", () => {
     expect(out.body.upstream.error).to.be.a("string");
   });
 
+  it("names the build it came from, so a stale deployment is visible", async () => {
+    const before = {
+      sha: process.env.VERCEL_GIT_COMMIT_SHA,
+      github: process.env.GITHUB_SHA,
+    };
+    try {
+      process.env.VERCEL_GIT_COMMIT_SHA = "2ef1da0123456789abcdef0123456789abcdef01";
+      delete process.env.GITHUB_SHA;
+      const deployed = await handle(async () => ({
+        ok: true,
+        status: 200,
+        json: async () => ({ result: 1 }),
+      }));
+      expect(deployed.body.commit).to.equal("2ef1da0");
+
+      // Off a deployment there is no commit to name, and it must say so rather
+      // than invent one or claim the local tree is production.
+      delete process.env.VERCEL_GIT_COMMIT_SHA;
+      const local = await handle(async () => ({
+        ok: true,
+        status: 200,
+        json: async () => ({ result: 1 }),
+      }));
+      expect(local.body.commit).to.equal(null);
+    } finally {
+      if (before.sha === undefined) delete process.env.VERCEL_GIT_COMMIT_SHA;
+      else process.env.VERCEL_GIT_COMMIT_SHA = before.sha;
+      if (before.github === undefined) delete process.env.GITHUB_SHA;
+      else process.env.GITHUB_SHA = before.github;
+    }
+  });
+
   it("names a sandbox Panta feed without leaking the key", async () => {
     const key = "pk_test_unit_only";
     const before = process.env.PANTA_API_KEY;

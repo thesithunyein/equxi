@@ -20,6 +20,12 @@
  * The upstream is reported as its **host only**: a paid provider's URL can
  * carry an API key in its path, and health output gets pasted into issues.
  *
+ * It also names the commit it was built from. Without that, "is the site up?"
+ * and "has the new build landed?" are the same question, and a smoke test that
+ * asks the first can pass for hours against the previous deploy — which is
+ * exactly what a rejected `vercel.json` did. `verify.yml` now waits for this
+ * field to name the commit it just pushed.
+ *
  * It also states which Panta feed this deployment is wired to. A `pk_test_` key
  * answers with sandbox fixtures, which is a fact a reader of `/api/markets`
  * should not have to discover from a disclaimer field — so the health payload
@@ -41,6 +47,16 @@ function hostOf(url) {
   } catch (error) {
     return "unparseable";
   }
+}
+
+/**
+ * The commit this build came from, short form, or null off a deployment. Both
+ * variables are set by the platform, never by us, so this cannot be used to
+ * claim a build the running code is not from.
+ */
+function buildCommit() {
+  var sha = process.env.VERCEL_GIT_COMMIT_SHA || process.env.GITHUB_SHA || "";
+  return sha ? sha.slice(0, 7) : null;
 }
 
 /**
@@ -92,6 +108,7 @@ module.exports = async function handler(req, res) {
     service: "equxi",
     cluster: cluster,
     program: trust.PROGRAM_ID,
+    commit: buildCommit(),
     upstream: { host: hostOf(rpcUrl) },
     feeds: { panta: pantaFeed() },
     generatedAt: Math.floor(Date.now() / 1000),
