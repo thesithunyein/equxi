@@ -221,6 +221,7 @@ equxi/
 ├── api/trust.js              GET /api/trust, public read API (Vercel function)
 ├── api/badge.js              GET /api/badge, embeddable SVG trust badge
 ├── api/markets.js            GET /api/markets, Panta markets feed (sandbox labelled)
+├── api/health.js             GET /api/health, is the read path up, and which build
 ├── lib/equxi-layout.js       Account layouts + scoring for the API (no deps)
 ├── dev-server.js             Static server + read API for local development
 ├── tests/unit/               Validator-free program, SDK, read API, Panta and copy tests
@@ -485,6 +486,8 @@ curl https://equxi.sithunyein.com/api/markets
 curl "https://equxi.sithunyein.com/api/markets?category=sports&status=open&createdBy=me&limit=50"
 ```
 
+With a `pk_test_` key — the sandbox shape the fixture below comes from:
+
 ```jsonc
 {
   "ok": true,
@@ -535,11 +538,16 @@ explanation instead of trying to sign a fixture. A real, tradable market needs a
 `pk_live_` key and ~50 USDC (40 platform + 10 liquidity) on a funded mainnet
 wallet.
 
-**The live deployment reads Panta with a free test key.** `/api/markets`
-answers `configured: true` with `sandbox: true`, and the Trust Explorer renders
-the labelled fixture in a markets card. Each agent's panel also carries a
-"Market on this agent" section that matches markets by agent name or address,
-so it fills in the day a real market names an agent; until then it says so.
+**The live deployment reads Panta with a `pk_live_` key** (as of 2026-10-06).
+`/api/markets` answers `configured: true` with `sandbox: false` and real markets
+— the Explorer's markets card reads 50 of them — and `feeds.panta` in
+`/api/health` names the mode, so whether the feed is real or fixtures is a fact
+a reader can check rather than a claim in this file. Switching back to a
+`pk_test_` key does not need a code change: the same endpoints answer
+`sandbox: true` with the labelled fixture, which is the shape shown above. Each
+agent's panel also carries a "Market on this agent" section that matches markets
+by agent name or address, so it fills in the day a real market names an agent;
+until then it says so.
 
 The question is mechanical and public: *“Will Equxi agent <name> be slashed
 before <date>?”* It resolves from the same `/api/trust?agent=` evidence
