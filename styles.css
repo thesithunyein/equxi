@@ -28,7 +28,10 @@ a { text-decoration: none; color: inherit; }
   transition: opacity 0.3s;
 }
 @media (max-width: 768px) {
-  .cursor-glow { display: none; }
+  /* Decoration only. At 5 percent opacity the video is invisible on a phone,
+     and the file is 21 MB, so the phone should not pay for it. */
+  .cursor-glow,
+  .bg-video { display: none; }
 }
 
 /* Background */
