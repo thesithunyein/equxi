@@ -10,7 +10,7 @@
   <a href="https://equxi.sithunyein.com"><img src="https://img.shields.io/badge/Live-Site-9945FF?style=for-the-badge" alt="Live Site" /></a>
   <a href="https://github.com/thesithunyein/equxi/actions"><img src="https://img.shields.io/github/actions/workflow/status/thesithunyein/equxi/ci.yml?style=for-the-badge" alt="CI" /></a>
   <a href="https://explorer.solana.com/address/D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc?cluster=devnet"><img src="https://img.shields.io/badge/Program-Devnet-22c55e?style=for-the-badge" alt="Program" /></a>
-  <a href="TEST-RESULTS.md"><img src="https://img.shields.io/badge/Tests-181%20in%20CI-3b82f6?style=for-the-badge" alt="Tests" /></a>
+  <a href="https://github.com/thesithunyein/equxi/actions/workflows/ci.yml"><img src="https://img.shields.io/badge/Tests-236%20passing-3b82f6?style=for-the-badge" alt="Tests" /></a>
 </p>
 
 <p align="center">
@@ -75,7 +75,7 @@ counterparty reads the bond and slash history from one endpoint before dealing.
 | Documentation | [equxi.sithunyein.com/docs.html](https://equxi.sithunyein.com/docs.html) |
 | Launch (Meteora DBC) | [equxi.sithunyein.com/launch.html](https://equxi.sithunyein.com/launch.html) |
 | Pitch deck | [equxi.sithunyein.com/deck.html](https://equxi.sithunyein.com/deck.html) |
-| Read API | [`/api/trust`](https://equxi.sithunyein.com/api/trust) · [`/api/badge`](https://equxi.sithunyein.com/api/badge) · [`/api/markets`](https://equxi.sithunyein.com/api/markets) |
+| Read API | [`/api/trust`](https://equxi.sithunyein.com/api/trust) · [`/api/badge`](https://equxi.sithunyein.com/api/badge?agent=9CvFbUciyP4APMVyzjLiR2znFmMTEPNqfGAP37PDNU4J) · [`/api/markets`](https://equxi.sithunyein.com/api/markets) |
 | SDK | [`@equxi/sdk` on npm](https://www.npmjs.com/package/@equxi/sdk) |
 | Program | [`D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc`](https://explorer.solana.com/address/D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc?cluster=devnet) |
 | Network | Solana Devnet |
@@ -242,10 +242,11 @@ npx tsc --noEmit
 
 # 3. Rust unit tests inside the program crate (no validator needed).
 cargo test --manifest-path programs/equxi/Cargo.toml --features no-entrypoint
+#   → 13 passed
 
 # 4. The full program suite against a local validator (Anchor + Solana CLI required).
 anchor test --skip-build
-#   → 181 passing
+#   → 223 passing (the 206 above, plus 17 on-chain)
 
 # 5. The SDK and the plugin typecheck, each with their own tsconfig.
 cd sdk && npm install && npx tsc --noEmit && cd ..
