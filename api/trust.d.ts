@@ -24,6 +24,8 @@ declare namespace trust {
   ) => Promise<{
     ok: boolean;
     status: number;
+    /** Real responses carry these; a `Retry-After` is honoured on a 429. */
+    headers?: { get: (name: string) => string | null };
     json: () => Promise<{ result?: unknown; error?: { message?: string } }>;
   }>;
 

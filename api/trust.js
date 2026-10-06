@@ -66,8 +66,27 @@ var STALE_SECONDS = 300;
 /** Upstream reads get a hard ceiling, so a hung RPC cannot hang the API. */
 var UPSTREAM_TIMEOUT_MS = 8000;
 
-/** One retry per endpoint before the next endpoint (or failure) is tried. */
+/** The first wait before a retry; each further attempt waits three times longer. */
 var RETRY_DELAY_MS = 300;
+
+/**
+ * Attempts per endpoint before moving on, for a refusal that comes back fast.
+ * One was not enough: a targeted read issues five `getProgramAccounts` calls in
+ * a row, and the public devnet node rate-limits that burst by the second, so the
+ * single retry landed inside the same window and the reader got a 502 for an
+ * agent that plainly exists.
+ */
+var MAX_ATTEMPTS = 3;
+
+/**
+ * Attempts for a connection that never answered. Deliberately lower: each of
+ * these has already burned the whole upstream timeout, so a third would outlast
+ * the function itself rather than the node's patience.
+ */
+var MAX_NETWORK_ATTEMPTS = 2;
+
+/** No single backoff exceeds this, however long a `Retry-After` suggests. */
+var MAX_RETRY_DELAY_MS = 2000;
 
 /** Above this many agents, a targeted query falls back to whole-program scans. */
 var MAX_TARGETED_AGENTS = 8;
@@ -89,7 +108,7 @@ function sleep(ms) {
 }
 
 /**
- * Is this upstream failure worth one more try? The public cluster endpoint
+ * Is this upstream failure worth another try? The public cluster endpoint
  * answers 429 when it is busy, and 5xx when it is unwell; before this, a single
  * 429 on a busy afternoon reached the reader as a dead landing page.
  */
@@ -98,12 +117,36 @@ function isTransient(status) {
 }
 
 /**
+ * How long to wait before attempt `tried + 1`.
+ *
+ * A 429 that names a `Retry-After` is obeyed, up to a ceiling, so the node's own
+ * advice beats our guess; anything else backs off by a factor of three, because
+ * a rate limit measured in seconds is not cleared by a fixed 300ms wait. The
+ * ceiling keeps this inside one request's budget: three attempts cost at most
+ * 300ms + 900ms of waiting against an 8s upstream timeout.
+ */
+function retryDelay(response, tried) {
+  var advised = 0;
+  try {
+    var headers = response && response.headers;
+    var raw = headers && typeof headers.get === "function" ? headers.get("retry-after") : null;
+    var seconds = Number(raw);
+    if (isFinite(seconds) && seconds > 0) advised = seconds * 1000;
+  } catch (error) {
+    /* An unreadable header is not a reason to give up on the request. */
+  }
+  if (advised > 0) return Math.min(advised, MAX_RETRY_DELAY_MS);
+  return Math.min(RETRY_DELAY_MS * Math.pow(3, tried), MAX_RETRY_DELAY_MS);
+}
+
+/**
  * Minimal JSON-RPC caller. Solana's RPC is a `POST` of one JSON object.
  * `fetchImpl` is a parameter rather than the global so tests can drive it.
  *
- * Every call is bounded by a timeout and a transient failure is retried once,
- * because this single upstream is what every page reads its numbers from: it
- * should be able to degrade to a slow read rather than to an error page.
+ * Every call is bounded by a timeout and a transient failure is retried with a
+ * growing backoff, because this single upstream is what every page reads its
+ * numbers from: it should be able to degrade to a slow read rather than to an
+ * error page.
  */
 function createRpc(rpcUrl, fetchImpl, options) {
   var opts = options || {};
@@ -127,17 +170,17 @@ function createRpc(rpcUrl, fetchImpl, options) {
     try {
       response = await fetchImpl(rpcUrl, init);
     } catch (error) {
-      if (tried === 0) {
-        await sleep(RETRY_DELAY_MS);
-        return call(method, params, 1);
+      if (tried < MAX_NETWORK_ATTEMPTS - 1) {
+        await sleep(retryDelay(null, tried));
+        return call(method, params, tried + 1);
       }
       throw error;
     }
 
     if (!response.ok) {
-      if (isTransient(response.status) && tried === 0) {
-        await sleep(RETRY_DELAY_MS);
-        return call(method, params, 1);
+      if (isTransient(response.status) && tried < MAX_ATTEMPTS - 1) {
+        await sleep(retryDelay(response, tried));
+        return call(method, params, tried + 1);
       }
       throw new Error("RPC " + method + " failed with HTTP " + response.status);
     }

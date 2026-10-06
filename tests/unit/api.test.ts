@@ -711,6 +711,86 @@ describe("read API (api/trust.js)", () => {
       expect(urls.length).to.be.greaterThan(2);
     });
 
+    it("rides out a burst of rate limits instead of failing the read", async () => {
+      // A targeted lookup is five `getProgramAccounts` calls in a row, and the
+      // public node rate-limits that burst by the second. A single retry landed
+      // inside the same window and surfaced a 502 for an agent that exists.
+      const urls: string[] = [];
+      let calls = 0;
+      const fetchImpl = (async (url: string) => {
+        urls.push(url);
+        calls += 1;
+        return calls <= 2
+          ? { ok: false, status: 429, json: async () => ({}) }
+          : { ok: true, status: 200, json: async () => ({ result: [] }) };
+      }) as never;
+
+      const payload = await trust.buildResponse({}, { fetchImpl, now: NOW });
+
+      expect(payload.ok).to.equal(true);
+      expect(urls.length).to.be.greaterThan(3);
+    });
+
+    it("stops at the attempt budget rather than looping on a node that stays busy", async () => {
+      const urls: string[] = [];
+      const fetchImpl = (async (url: string) => {
+        urls.push(url);
+        return { ok: false, status: 429, json: async () => ({}) };
+      }) as never;
+
+      try {
+        await trust.buildResponse({}, { fetchImpl, now: NOW });
+        expect.fail("should have thrown");
+      } catch (error) {
+        expect((error as Error).message).to.match(/HTTP 429/);
+      }
+
+      // Three attempts against the one endpoint, then it stops. An unbounded
+      // retry here would turn a busy node into a hung function.
+      expect(urls.length).to.equal(3);
+    });
+
+    it("does not spend a third timeout on a node that never answered", async () => {
+      // A connection that never answers has already burned the whole upstream
+      // timeout, so a third attempt costs more than the function has.
+      let calls = 0;
+      const fetchImpl = (async () => {
+        calls += 1;
+        throw new Error("socket hang up");
+      }) as never;
+
+      try {
+        await trust.buildResponse({}, { fetchImpl, now: NOW });
+        expect.fail("should have thrown");
+      } catch (error) {
+        expect((error as Error).message).to.match(/hang up/);
+      }
+      expect(calls).to.equal(2);
+    });
+
+    it("obeys Retry-After when the node names one", async () => {
+      let calls = 0;
+      const fetchImpl = (async () => {
+        calls += 1;
+        if (calls === 1) {
+          return {
+            ok: false,
+            status: 429,
+            headers: { get: (name: string) => (name === "retry-after" ? "1" : null) },
+            json: async () => ({}),
+          };
+        }
+        return { ok: true, status: 200, json: async () => ({ result: [] }) };
+      }) as never;
+
+      const started = Date.now();
+      const payload = await trust.buildResponse({}, { fetchImpl, now: NOW });
+
+      expect(payload.ok).to.equal(true);
+      // A named second is waited out rather than second-guessed at 300ms.
+      expect(Date.now() - started).to.be.greaterThanOrEqual(950);
+    });
+
     it("moves to the configured fallback endpoint when the primary is down", async () => {
       const { urls, fetchImpl } = recordingFetch((url) =>
         url.includes("primary.example") ? { ok: false, status: 503 } : { ok: true, status: 200 }
