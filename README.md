@@ -97,6 +97,25 @@ same set. Nothing needs to be taken on faith:
 | Agent risk can be priced | [`panta-agent-market.js`](panta-agent-market.js) + [`api/markets.js`](api/markets.js): the Panta integration, live on the Explorer; test-key fixtures are labelled as fixtures, never presented as live markets |
 | Reads are not tied to one provider | [`api/trust.js`](api/trust.js): `EQUXI_RPC` selects the RPC endpoint; `?rpc=` still wins |
 
+## Meteora DBC — a launch that funds its own collateral
+
+<p align="center">
+  <a href="https://equxi.sithunyein.com/launch.html"><img src="assets/launch-hero.webp" alt="The launch page: launch with safety escrow — a token launch whose graduation proceeds become the collateral behind the agent that runs it" width="880" /></a>
+</p>
+
+A token launch on Meteora's dynamic bonding curve, configured so the share of the
+graduation proceeds a creator is entitled to is not spent but **posted as an Equxi agent's
+slashable bond** — the same transaction trail that creates the token creates the
+consequence for the agent that runs it. Ten transactions, each linked on
+[`launch.html`](https://equxi.sithunyein.com/launch.html), and the config published as a
+reusable [preset](meteora-launch/presets/safety-escrow.json) a builder can validate and
+reuse.
+
+The honest limits, stated where the track judges them: it ran on **devnet**, and the launch
+contributed **0.0698 SOL** of the 0.1 SOL bond — the script tops up the remainder, which a
+larger curve removes. [`meteora-launch/README.md`](meteora-launch/README.md) gives the full
+account.
+
 ## On-Chain Proof
 
 The program's eleven instructions are live on devnet. All transactions confirmed.
