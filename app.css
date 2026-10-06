@@ -29,10 +29,10 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); disp
 a { text-decoration: none; color: inherit; }
 button { border: none; background: none; cursor: pointer; font: inherit; color: inherit; }
 
-/* Video BG */
-.bg-video-wrap { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
-.bg-video { position: absolute; inset: -5%; width: 110%; height: 110%; object-fit: cover; opacity: 0.4; }
-.bg-video-wrap::after { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 0%, rgba(247,244,239,0.06) 0%, rgba(247,244,239,0.62) 80%); }
+/* No background video here. The dashboard is the page people open most and
+   return to, and it is a tool rather than a showcase: the moving ribbon pulled
+   the eye off the numbers and cost 21 MB on every session for no information.
+   It stays on the landing, launch, explorer and deck pages. */
 
 /* Sidebar */
 .sidebar {
