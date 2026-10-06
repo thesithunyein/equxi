@@ -15,19 +15,19 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); over
 a { text-decoration: none; color: inherit; }
 
 @media (max-width: 768px) {
-  /* Decoration only. At 5 percent opacity the video is invisible on a phone,
-     and the file is 21 MB, so the phone should not pay for it. The cursor
-     glow lives in theme.css now and hides itself on the same breakpoints. */
+  /* Decoration only. The video reads as a faint wash on a phone and the file
+     is 21 MB, so the phone should not pay for it. */
   .bg-video { display: none; }
 }
 
 /* Background */
 .bg { position: fixed; inset: 0; z-index: 0; }
 /* The ambient video is near-white (measured median luminance 240 of 255), so
-   it can be shown at full strength without darkening the page. The veil only
-   softens it towards the page colour at the edges; fading it towards black is
-   what used to make the whole page read as dark. */
-.bg-video { position: absolute; inset: -5%; width: 110%; height: 110%; object-fit: cover; opacity: 0.55; }
+   it holds under the copy without darkening the page. It sits at 0.40: a
+   visible wash, quiet enough that the text is still what the eye reads first.
+   The veil only softens it towards the page colour at the edges; fading it
+   towards black is what used to make the whole page read as dark. */
+.bg-video { position: absolute; inset: -5%; width: 110%; height: 110%; object-fit: cover; opacity: 0.4; }
 .bg-overlay { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 40%, rgba(247,244,239,0.10) 0%, rgba(247,244,239,0.26) 55%, rgba(247,244,239,0.55) 100%); }
 
 /* Page */
@@ -281,8 +281,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, [tabindex]:focus-vis
   border-radius: 8px;
 }
 
-/* Motion here is all decoration — the background video, the cursor glow and
-   the entrance animations stop when the reader's system asks for less. */
+/* Motion here is all decoration — the background video and the entrance
+   animations stop when the reader's system asks for less. */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.001ms !important;
