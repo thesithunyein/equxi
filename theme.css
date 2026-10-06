@@ -480,6 +480,18 @@ pre code {
   font-size: 0.9em;
 }
 
+/* ---------------------------------------------------------- brand and logo */
+
+/* The logo art is a white glyph painted for a dark canvas, so on paper it is
+ * invisible. brightness(0) keeps its shape and alpha and renders it as ink,
+ * which is what the wordmark next to it already is. */
+.logo img,
+.sidebar-logo,
+img[src*="logo.webp"] {
+  filter: brightness(0);
+  opacity: 0.9;
+}
+
 /* -------------------------------------------------------------------- icons */
 
 .fa-solid,
