@@ -14,6 +14,10 @@
   <a href="TEST-RESULTS.md"><img src="https://img.shields.io/badge/Tests-181%20in%20CI-3b82f6?style=for-the-badge" alt="Tests" /></a>
 </p>
 
+<p align="center">
+  <a href="https://equxi.sithunyein.com"><img src="assets/landing-hero.webp" alt="Equxi landing page: slashable collateral for AI agents, live on Solana devnet" width="880" /></a>
+</p>
+
 ---
 
 ## Use it
