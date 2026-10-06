@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Equxi · Is this agent good for the money?</title>
   <meta name="description" content="Look up any Equxi agent: how much collateral is locked behind it, and has it ever been slashed? Every number is read from Solana." />
-  <link rel="icon" type="image/webp" href="assets/logo.webp" />
+  <link rel="icon" type="image/png" href="assets/logo-ink.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Source+Code+Pro:wght@400;500;600&family=Reenie+Beanie&display=swap" rel="stylesheet" />
@@ -15,10 +15,12 @@
   <meta name="theme-color" content="#1c1916" />
   <meta property="og:title" content="Is this agent good for the money?" />
   <meta property="og:description" content="How much collateral is locked behind this agent, and has it ever been slashed? Read it from Solana." />
-  <meta property="og:image" content="https://equxi.sithunyein.com/assets/logo.webp" />
+  <meta property="og:image" content="https://equxi.sithunyein.com/assets/og-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
   <meta property="og:url" content="https://equxi.sithunyein.com/explorer.html" />
   <meta property="og:type" content="website" />
-  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:card" content="summary_large_image" />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://equxi.sithunyein.com/explorer.html" />
 
@@ -353,7 +355,7 @@
       <details class="x-fold" id="helpFold">
         <summary>
           <span>How to read this page</span>
-          <span class="x-fold-hint">Grade, collateral, slashes, escrow</span>
+          <span class="x-fold-hint">Grade, collateral, slashes, rules, escrow</span>
           <i class="fa-solid fa-chevron-down"></i>
         </summary>
         <div class="x-fold-body">
@@ -370,8 +372,13 @@
           </div>
           <div class="x-help-item">
             <p><span class="x-help-title">Slashes recorded.</span> Times collateral has actually
-            been taken. <span class="x-pill owed">owed</span> means a victim has not been paid yet;
-            <span class="x-pill paid">compensated</span> means the money reached them.</p>
+            been taken. <span class="x-pill owed">unpaid</span> means a victim has not been paid
+            yet; <span class="x-pill paid">compensated</span> means the money reached them.</p>
+          </div>
+          <div class="x-help-item">
+            <p><span class="x-help-title">Rules.</span> The on-chain rules the owner attached to the
+            agent, such as a spend cap or a timelock. A rule is what makes a promise enforceable,
+            and a slash is what answers a broken one.</p>
           </div>
           <div class="x-help-item">
             <p><span class="x-help-title">Escrow for victims.</span> The program account that holds

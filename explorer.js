@@ -893,7 +893,9 @@
           '<td data-label="Slashes">' +
           esc(p.stats.slashCount) +
           (p.stats.openSlashes > 0
-            ? ' <span class="x-pill owed">' + esc(p.stats.openSlashes) + " unpaid</span>"
+            ? ' <span class="x-pill owed" title="Recorded but not yet paid to a victim">' +
+              esc(p.stats.openSlashes) +
+              " unpaid</span>"
             : "") +
           "</td>" +
           '<td data-label="Rules">' +
@@ -917,12 +919,17 @@
       "</span></div>" +
       '<div style="overflow-x:auto;margin-top:14px;">' +
       '<table class="x-table"><thead><tr>' +
-      "<th>Agent</th><th>Owner</th><th>Grade</th><th>Collateral at stake</th><th>Slashes</th><th>Rules</th>" +
+      "<th>Agent</th><th>Owner</th>" +
+      '<th title="Built only from on-chain evidence: collateral locked, and whether each slash was paid">Grade</th>' +
+      '<th title="SOL the owner locked behind this agent, slashable if a rule breaks">Collateral at stake</th>' +
+      '<th title="Times collateral has actually been taken">Slashes</th>' +
+      '<th title="On-chain rules the owner attached, such as a spend cap or a timelock">Rules</th>' +
       '<th><span class="sr-only">Details</span></th>' +
       "</tr></thead><tbody>" +
       rows +
       "</tbody></table></div>" +
-      '<div class="x-sub" style="margin-top:14px;">Open a row to see its collateral, its slash history and the ledger behind its grade.</div>' +
+      '<div class="x-sub" style="margin-top:14px;">Open a row to see its collateral, its slash history and the ledger behind its grade. ' +
+      "Rules is how many on-chain rules the owner attached; an unpaid mark means a recorded slash has not reached its victim yet.</div>" +
       "</div>";
 
     Array.prototype.forEach.call(el.registry.querySelectorAll("tr[data-address]"), function (row) {
