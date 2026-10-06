@@ -611,7 +611,13 @@
       esc(list.length) +
       (list.length === 1 ? " market" : " markets") +
       " from Panta · " +
-      '<a class="x-link" href="https://panta.market" target="_blank" rel="noopener">Powered by Panta</a></span></div>';
+      '<a class="x-link" href="https://panta.market" target="_blank" rel="noopener">Powered by Panta</a></span></div>' +
+      // The feed is Panta's, not a filtered view of the agents above. With a
+      // test key that was obvious from the fixture; with the live feed it is 50
+      // real markets, and the heading alone would read as a claim about who
+      // trades what. The per-agent panel is where the matching happens.
+      '<div class="x-sub">Panta\u2019s feed as it stands, not a filtered view: an agent' +
+      "\u2019s panel lists the markets that name it, and says so when none do.</div>";
 
     var banner = sandbox
       ? '<div class="x-sandbox"><strong>Sandbox fixtures.</strong> ' +
