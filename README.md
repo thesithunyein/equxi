@@ -842,10 +842,15 @@ is authority-signed today: on-chain violation proofs, dispute windows and
 decentralized slashing are the next roadmap items in [`SPEC.md`](SPEC.md).
 Everything above is checked by a test or by a real transaction.
 
-## Grant
+## Built by
 
-Equxi is a recipient of Superteam's [Agentic Engineering Grant](https://superteam.fun/earn/grants/agentic-engineering), awarded August 28, 2026.
+One person, and the history says so: every commit in this repository is
+[Sithu Nyein](https://sithunyein.com)'s — the Anchor program, the TypeScript SDK, the
+elizaOS plugin, the serverless read API, the Trust Explorer and every test suite above.
+The repo is public and MIT licensed ([`LICENSE`](LICENSE)).
 
----
-
-Built by [Sithu Nyein](https://sithunyein.com)
+Equxi is a recipient of Superteam's
+[Agentic Engineering Grant](https://superteam.fun/earn/grants/agentic-engineering), awarded
+August 28, 2026 — validation from people who read the code, not customers. There are no
+external operators yet, which the section above states plainly rather than implying
+otherwise.
