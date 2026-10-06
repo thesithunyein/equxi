@@ -52,7 +52,7 @@ theirs and withdrawable after the window.
 
 > **First external operator for a devnet trust layer — 5 minutes, no cost.**
 > Equxi bonds agents with slashable SOL on devnet: a violation moves money from the bond
-> into an escrow vault and out to the victim, all on chain (11 instructions, 180 tests,
+> into an escrow vault and out to the victim, all on chain (11 instructions, 181 tests,
 > live read API: equxi.sithunyein.com/api/trust). I need the registry to contain one
 > operator that isn't the builder — register an agent and lock the 0.1 SOL devnet
 > minimum, and I'll send you the SOL first so it costs nothing. You keep the bond, you

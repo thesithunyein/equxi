@@ -92,7 +92,7 @@ The judged factors (verbatim from `colosseum.com/hackathon`):
 |---|---|---|---|
 | **Founder + Market Fit** | Solo builder who shipped the whole stack: Anchor program, migration, SDK, elizaOS plugin, dependency-free API, site, tests. Say *why you* — this is a rare full-stack fit for an infra product. | ✅ talk track exists | 30 s of the pitch video |
 | **Insight** | The one-liner that proves you see something others don't: *"Platforms solved permission; nobody solved consequence. And now the consequence has a price."* | ✅ unique | Say it in the first 20 s |
-| **Product + Execution** | 11-instruction program live on devnet, 180 CI tests, both upgrades byte-verified, read API + badge + explorer + launch page live, both terminal demo flows rehearsed (13/13, 7/7). | ✅ strong | show it, don't describe it |
+| **Product + Execution** | 11-instruction program live on devnet, 181 CI tests, both upgrades byte-verified, read API + badge + explorer + launch page live, both terminal demo flows rehearsed (13/13, 7/7). | ✅ strong | show it, don't describe it |
 | **Potential Market Size** | Agent economy risk transfer: every marketplace/framework that serves third-party agents is the user. Bond history → credit file → underwriting. | ⚠️ stated in docs | one slide / 20 s |
 | **Founder Communication** | The pitch video *is* the score here. Colosseum's workshop says the pitch video is **the first and most important item**, and a clean narrative beats production value. | ❌ not recorded | record it (below) |
 | **Viability** | Bond + slash history as a credit file; the Panta market now *prices* the risk live → the business is risk infrastructure, not a dashboard. | ⚠️ newly concrete | 20 s + the market on screen |
@@ -106,7 +106,7 @@ Seven judged factors (verbatim above). Be honest about what each can reach by Oc
 |---|---|---|
 | Founder + Market Fit | **9** | 30 s of the pitch: one builder who shipped *and verified* every layer — program, migration, SDK, plugin, API, site. State why that fit is rare; don't apologise for solo. |
 | Insight | **9** | The first 20 s: "Permission was solved; consequence wasn't — and consequence now has a price." No buzzwords. |
-| Product + Execution | **9** | Show the money path and the refusal running (13/13 in 6.6 s, 7/7 in 7.3 s), the 180 tests, the byte-verified upgrades, and the defect log that proves the verification is real. |
+| Product + Execution | **9** | Show the money path and the refusal running (13/13 in 6.6 s, 7/7 in 7.3 s), the 181 tests, the byte-verified upgrades, and the defect log that proves the verification is real. |
 | Potential Market Size | **8.5** | One slide, bottom-up: every marketplace/framework that lets third-party agents act needs a bond before it can transact. Size it from agent counts × bonded value — never from "AI is big". |
 | Founder Communication | **9** | The 2:00 video, exactly as scripted. Clean narrative beats production; this is the cheapest 9 on the board. |
 | Viability | **8.5** | 20 s plus the priced-risk mechanism: bond history → credit file → underwriting; name who pays (bond fees, risk data, underwriting share) and what is deliberately unbuilt. |
@@ -204,7 +204,7 @@ Applied in this commit to the `/api/markets` payload (`attribution` field) and R
 |---|---|---|
 | 0:00–0:15 | Who | Solo builder, full-stack shipped: Rust program, migration, SDK, plugin, API, site. Why me: I built and verified every layer. |
 | 0:15–0:45 | Problem | Permission vs consequence. Agents now hold wallets and call tools; when they misbehave, nobody pays. Counterparties can't verify risk before dealing. |
-| 0:45–1:15 | Insight + product | Collateral, slashable, no custodian: bond → vault → victim, on chain. 11 instructions, live on devnet, 180 CI tests, both upgrades byte-verified. Show `prove-compensation.js` result for 10 s. |
+| 0:45–1:15 | Insight + product | Collateral, slashable, no custodian: bond → vault → victim, on chain. 11 instructions, live on devnet, 181 CI tests, both upgrades byte-verified. Show `prove-compensation.js` result for 10 s. |
 | 1:15–1:45 | Market + validation | Who pays for this: API/MCP providers, marketplaces, frameworks. Signal: Superteam grant awarded; CertiK + Adevar pre-audit applications; live registry read by anyone. New: risk is now *priced* — an agent-slash market on Panta. |
 | 1:45–2:00 | Vision + honesty | Bond history becomes a credit file; underwriting for agents. What's deliberately open: off-chain detection, single admin key, single escrow pool — roadmap item 1 is escrow segregation. |
 

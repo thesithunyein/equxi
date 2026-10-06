@@ -12,11 +12,11 @@ Measured for the audits that ask for scope:
 | `programs/equxi/src` (production Rust, audit target) | **1,216 lines**, 15 files, 11 instructions + state + errors |
 | Inline Rust unit tests in that crate | 167 lines |
 | On-chain test suite `tests/equxi.test.ts` | 663 lines (17 cases) |
-| Validator-free unit tests `tests/unit/*` | 3,280 lines (163 cases) |
+| Validator-free unit tests `tests/unit/*` | 3,309 lines (164 cases) |
 | `sdk/src` (TypeScript SDK) | 1,011 lines |
 | `eliza-plugin/src` | 1,329 lines |
 | Deployment | **devnet only** — `D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc` |
-| CI | 5 jobs green: build + `anchor test` (180 passing), Rust unit tests, wire-format, lint, structure |
+| CI | 5 jobs green: build + `anchor test` (181 passing), Rust unit tests, wire-format, lint, structure |
 
 ## 0. Cross-track blockers, in the order they must happen
 
@@ -110,7 +110,7 @@ says so). The bond is Equxi's 0.1 SOL minimum: 0.0698 SOL from the launch plus a
 | Submitted to Colosseum | ⬜ (blocker #2) |
 | Solana/Rust submission | ✅ Rust/Anchor program, 1,216 production lines + 167 inline test lines |
 | Apply through the Superteam Earn bounty | ⬜ you — paste-ready answers in [`ADEVAR-APPLICATION.md`](ADEVAR-APPLICATION.md) |
-| Answer their short questions on complexity/architecture | ✅ material ready: `SPEC.md` (AAS-1 invariants), `TEST-RESULTS.md`, the exit-race fix, the migration, 180 tests |
+| Answer their short questions on complexity/architecture | ✅ material ready: `SPEC.md` (AAS-1 invariants), `TEST-RESULTS.md`, the exit-race fix, the migration, 181 tests |
 | **Tweet about the application + follow @AdevarLabs** | ✅ account exists — `@thesithunyein`. Still **required**: post the copy below and follow @AdevarLabs, or the application is not eligible |
 
 Suggested tweet (their template, repo link filled in):

@@ -48,7 +48,7 @@ Risk-bearing surfaces to prioritise:
 
 ## 3. Security posture already in place
 
-- **180 tests in CI** (17 on-chain + 163 validator-free), plus 13 Rust unit tests, across 5
+- **181 tests in CI** (17 on-chain + 164 validator-free), plus 13 Rust unit tests, across 5
   green CI jobs on every push: build + `anchor test`, Rust unit tests, wire-format, lint,
   structure.
 - **Two defects found by verification and fixed in public**, with the evidence in
