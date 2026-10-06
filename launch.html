@@ -8,7 +8,7 @@
   <link rel="icon" type="image/webp" href="assets/logo.webp" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Source+Code+Pro:wght@400;500;600&family=Reenie+Beanie&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
   <link rel="stylesheet" href="styles.css" />
   <style>
@@ -23,7 +23,7 @@
     .lx-section {
       position: relative; z-index: 1; width: 100%;
       padding: 64px 32px;
-      border-top: 1px solid rgba(255,255,255,0.06);
+      border-top: 1px solid rgba(28,25,22,0.10);
     }
     .lx-inner { max-width: 900px; margin: 0 auto; }
 
@@ -34,36 +34,36 @@
 
     .lx-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
     .lx-tile {
-      border: 1px solid #1c1c1c; border-radius: 16px; background: #080808;
+      border: 1px solid #1c1c1c; border-radius: 16px; background: #f7f4ef;
       padding: 20px 20px 22px; text-align: left;
       transition: border-color 0.2s, transform 0.2s;
     }
-    .lx-tile:hover { border-color: rgba(153, 69, 255, 0.35); transform: translateY(-2px); }
+    .lx-tile:hover { border-color: rgba(28, 25, 22, 0.35); transform: translateY(-2px); }
     .lx-tile-top { display: flex; align-items: center; justify-content: space-between; }
     .lx-tile-n { font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: 0.08em; }
     .lx-tile-icon {
       width: 36px; height: 36px; border-radius: 10px;
-      background: rgba(153, 69, 255, 0.12); border: 1px solid rgba(153, 69, 255, 0.2);
+      background: rgba(28, 25, 22, 0.12); border: 1px solid rgba(28, 25, 22, 0.2);
       display: flex; align-items: center; justify-content: center;
       font-size: 15px; color: var(--purple);
     }
-    .lx-tile h3 { font-size: 15px; font-weight: 600; margin: 14px 0 6px; color: #fff; }
-    .lx-tile p { font-size: 13px; line-height: 1.6; color: rgba(255,255,255,0.65); }
+    .lx-tile h3 { font-size: 15px; font-weight: 600; margin: 14px 0 6px; color: #1c1916; }
+    .lx-tile p { font-size: 13px; line-height: 1.6; color: rgba(28,25,22,0.65); }
     .lx-tile code {
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
       font-size: 12px; color: var(--text);
-      background: rgba(255,255,255,0.05); padding: 1px 5px; border-radius: 5px;
+      background: rgba(28,25,22,0.08); padding: 1px 5px; border-radius: 5px;
     }
 
     /* The ten transactions, one row each: label, explorer link, what it did. */
     .lx-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
     .lx-step {
       display: flex; gap: 14px; padding: 15px 18px;
-      border: 1px solid #1a1a1a; border-radius: 14px; background: #080808;
+      border: 1px solid rgba(28,25,22,0.10); border-radius: 14px; background: #f7f4ef;
     }
     .lx-step-n {
       flex: 0 0 28px; height: 28px; line-height: 28px; text-align: center;
-      border-radius: 50%; background: rgba(153, 69, 255, 0.16); color: #cfc0ee;
+      border-radius: 50%; background: rgba(28, 25, 22, 0.10); color: var(--text);
       font-weight: 600; font-size: 13px;
     }
     .lx-step-body { min-width: 0; }
@@ -80,18 +80,18 @@
     .lx-states { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
     .lx-state {
       display: flex; justify-content: space-between; gap: 12px; align-items: baseline;
-      padding: 11px 14px; border: 1px solid #1a1a1a; border-radius: 11px;
-      background: #080808; text-decoration: none; min-width: 0;
+      padding: 11px 14px; border: 1px solid rgba(28,25,22,0.10); border-radius: 11px;
+      background: #f7f4ef; text-decoration: none; min-width: 0;
     }
     .lx-state span { color: var(--muted); font-size: 12.5px; white-space: nowrap; }
     .lx-state code {
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
       font-size: 12.5px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
-    .lx-state:hover { border-color: rgba(153, 69, 255, 0.5); }
+    .lx-state:hover { border-color: rgba(28, 25, 22, 0.5); }
 
     /* The live read-back card — filled by launch.js from /api/trust. */
-    .lx-card { padding: 22px; border: 1px solid #1a1a1a; border-radius: 16px; background: #080808; }
+    .lx-card { padding: 22px; border: 1px solid rgba(28,25,22,0.10); border-radius: 16px; background: #f7f4ef; }
     .lx-agent-head { display: flex; justify-content: space-between; gap: 16px; align-items: center; flex-wrap: wrap; }
     .lx-agent-name { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
     .lx-agent-sub {
@@ -103,17 +103,17 @@
       display: inline-block; min-width: 30px; text-align: center; padding: 3px 9px;
       border-radius: 8px; font-weight: 700; font-size: 13px; vertical-align: 3px;
     }
-    .lx-grade.g-A, .lx-grade.g-B { background: rgba(20, 241, 149, 0.14); color: var(--green); }
-    .lx-grade.g-C { background: rgba(240, 180, 41, 0.14); color: #f0b429; }
-    .lx-grade.g-D, .lx-grade.g-F { background: rgba(255, 84, 84, 0.14); color: #ff5454; }
-    .lx-grade.g-ungraded { background: #171717; color: var(--muted); }
+    .lx-grade.g-A, .lx-grade.g-B { background: rgba(47, 158, 107, 0.12); color: var(--green); }
+    .lx-grade.g-C { background: rgba(176, 125, 43, 0.14); color: #b07d2b; }
+    .lx-grade.g-D, .lx-grade.g-F { background: rgba(179, 86, 63, 0.12); color: #b3563f; }
+    .lx-grade.g-ungraded { background: #fffdf9; color: var(--muted); }
     .lx-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
-    .lx-row { display: flex; justify-content: space-between; gap: 12px; padding: 10px 13px; border: 1px solid #161616; border-radius: 10px; }
+    .lx-row { display: flex; justify-content: space-between; gap: 12px; padding: 10px 13px; border: 1px solid rgba(28,25,22,0.10); border-radius: 10px; }
     .lx-row span { color: var(--muted); font-size: 12.5px; }
     .lx-row strong { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
     .lx-links { margin-top: 16px; display: flex; gap: 14px; flex-wrap: wrap; }
     .lx-notice { margin-top: 14px; font-size: 13px; color: var(--muted); line-height: 1.6; }
-    .lx-notice.bad { color: #ff9d9d; }
+    .lx-notice.bad { color: #d99b8a; }
 
     @media (max-width: 768px) {
       .hero { padding: 40px 0 32px; }
@@ -122,6 +122,7 @@
       .lx-cards, .lx-states, .lx-grid { grid-template-columns: 1fr; }
     }
   </style>
+  <link rel="stylesheet" href="theme.css" />
 </head>
 <body>
   <div class="page">

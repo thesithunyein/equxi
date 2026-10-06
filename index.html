@@ -8,7 +8,7 @@
   <link rel="icon" type="image/webp" href="assets/logo.webp" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Source+Code+Pro:wght@400;500;600&family=Reenie+Beanie&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="manifest" href="manifest.json" />
@@ -21,7 +21,7 @@
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:site" content="@equxi_ai" />
   <meta name="robots" content="index, follow" />
-  <meta name="theme-color" content="#9945FF" />
+  <meta name="theme-color" content="#1c1916" />
   <link rel="canonical" href="https://equxi.sithunyein.com" />
 
   <style>
@@ -49,12 +49,12 @@
     /* Each tile is a link into the Explorer. The number is the doorway to the
        agents behind it, which is what the removed table used to be for. */
     .live-tile {
-      border: 1px solid #1e1e1e; border-radius: 14px; padding: 18px 16px;
-      background: #080808; text-align: left;
+      border: 1px solid rgba(28,25,22,0.10); border-radius: 14px; padding: 18px 16px;
+      background: var(--surface); text-align: left;
       animation: fadeInUp 0.6s ease-out both;
       transition: border-color 0.2s, transform 0.2s;
     }
-    a.live-tile:hover { border-color: rgba(153,69,255,0.45); transform: translateY(-2px); }
+    a.live-tile:hover { border-color: rgba(28,25,22,0.45); transform: translateY(-2px); }
     .live-tile .k {
       font-size: 11px; color: var(--muted); text-transform: uppercase;
       letter-spacing: 0.07em;
@@ -67,7 +67,7 @@
 
     /* Only used when the read fails. It is empty and takes no space otherwise. */
     .live-notice { font-size: 13px; color: var(--muted); line-height: 1.6; }
-    .live-notice.bad { color: #ff9d9d; }
+    .live-notice.bad { color: #d99b8a; }
     .live-notice:empty { display: none; }
 
     /* Builder strip — the thing a provider actually runs. Held in the same card
@@ -78,7 +78,7 @@
     .dev-card {
       display: flex; align-items: center; gap: 12px;
       margin: 22px auto 18px; padding: 12px 14px 12px 18px;
-      border: 1px solid #1e1e1e; border-radius: 14px; background: #070707;
+      border: 1px solid rgba(28,25,22,0.10); border-radius: 14px; background: var(--surface);
     }
     .dev-code {
       flex: 1 1 auto; min-width: 0;
@@ -90,19 +90,19 @@
     .dev-copy {
       flex: 0 0 auto; padding: 7px 14px; border-radius: 999px; cursor: pointer;
       background: transparent; color: var(--muted);
-      border: 1px solid rgba(255,255,255,0.12);
+      border: 1px solid rgba(28,25,22,0.16);
       font-family: var(--font); font-size: 12px; font-weight: 500;
       transition: color 0.2s, border-color 0.2s;
     }
-    .dev-copy:hover { color: var(--text); border-color: rgba(153,69,255,0.5); }
+    .dev-copy:hover { color: var(--text); border-color: rgba(28,25,22,0.5); }
     .dev-links { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
     .dev-pill {
       padding: 8px 16px; border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.1);
-      font-size: 13px; color: rgba(255,255,255,0.75);
+      border: 1px solid rgba(28,25,22,0.14);
+      font-size: 13px; color: rgba(28,25,22,0.75);
       transition: color 0.2s, border-color 0.2s, background 0.2s;
     }
-    .dev-pill:hover { color: #fff; border-color: rgba(153,69,255,0.5); background: rgba(153,69,255,0.08); }
+    .dev-pill:hover { color: var(--text); border-color: rgba(28,25,22,0.5); background: rgba(28,25,22,0.08); }
 
     @media (max-width: 768px) {
       .live-section { padding: 8px 20px 64px; }
@@ -115,6 +115,7 @@
       .dev-copy { align-self: center; }
     }
   </style>
+  <link rel="stylesheet" href="theme.css" />
 </head>
 <body>
   <div class="bg">

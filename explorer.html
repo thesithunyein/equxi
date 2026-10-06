@@ -8,11 +8,11 @@
   <link rel="icon" type="image/webp" href="assets/logo.webp" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Source+Code+Pro:wght@400;500;600&family=Reenie+Beanie&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#9945FF" />
+  <meta name="theme-color" content="#1c1916" />
   <meta property="og:title" content="Is this agent good for the money?" />
   <meta property="og:description" content="How much collateral is locked behind this agent, and has it ever been slashed? Read it from Solana." />
   <meta property="og:image" content="https://equxi.sithunyein.com/assets/logo.webp" />
@@ -33,19 +33,19 @@
 
     /* One search box, one button. Everything else on the row is quiet text, so
        there is never a second thing that looks like the primary action. */
-    .x-lookup { border: 1px solid #1e1e1e; border-radius: 16px; background: #070707; padding: 18px 20px; margin-top: 26px; }
+    .x-lookup { border: 1px solid rgba(28,25,22,0.10); border-radius: 16px; background: #f7f4ef; padding: 18px 20px; margin-top: 26px; }
     .x-lookup-label { display: block; font-size: 12.5px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
     .x-search { display: flex; gap: 10px; flex-wrap: wrap; }
     .x-search input {
       flex: 1 1 320px; min-width: 0; padding: 13px 15px; border-radius: 10px;
-      border: 1px solid #262626; background: #0c0c0c; color: var(--text);
+      border: 1px solid rgba(28,25,22,0.14); background: #f7f4ef; color: var(--text);
       font-family: var(--font); font-size: 14px;
     }
     .x-search input::placeholder { color: #5c5c66; }
     .x-search input:focus { outline: none; border-color: var(--purple); }
     .x-search button {
       flex: 0 0 auto; padding: 13px 26px; border-radius: 10px; border: none; cursor: pointer;
-      background: var(--purple); color: #fff; font-weight: 600; font-size: 14px;
+      background: var(--purple); color: #f7f4ef; font-weight: 600; font-size: 14px;
       font-family: var(--font);
     }
     .x-search button:hover { background: var(--purple-hover); }
@@ -66,12 +66,12 @@
        than its screen: a bare 190px floor becomes a min-content width the whole
        page has to honour, and the page then scrolls sideways. */
     .x-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr)); gap: 14px; margin: 26px 0 0; }
-    .x-tile { border: 1px solid #1e1e1e; border-radius: 14px; padding: 16px 18px; background: #080808; }
+    .x-tile { border: 1px solid rgba(28,25,22,0.10); border-radius: 14px; padding: 16px 18px; background: #f7f4ef; }
     .x-tile .k { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
     .x-tile .v { font-size: 26px; font-weight: 600; margin-top: 8px; }
     .x-tile .s { font-size: 12px; color: var(--muted); margin-top: 4px; }
 
-    .x-card { border: 1px solid #1e1e1e; border-radius: 16px; background: #070707; padding: 22px; margin-bottom: 18px; }
+    .x-card { border: 1px solid rgba(28,25,22,0.10); border-radius: 16px; background: #f7f4ef; padding: 22px; margin-bottom: 18px; }
     .x-card h2 { font-size: 18px; font-weight: 600; }
     .x-sub { color: var(--muted); font-size: 13px; margin-top: 6px; line-height: 1.6; }
     .x-sec { font-size: 15px; font-weight: 600; margin-top: 22px; }
@@ -82,42 +82,42 @@
     table.x-table { width: 100%; border-collapse: collapse; font-size: 14px; }
     table.x-table th {
       text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em;
-      color: var(--muted); font-weight: 600; padding: 10px 12px; border-bottom: 1px solid #1e1e1e;
+      color: var(--muted); font-weight: 600; padding: 10px 12px; border-bottom: 1px solid rgba(28,25,22,0.10);
       white-space: nowrap;
     }
-    table.x-table td { padding: 12px; border-bottom: 1px solid #141414; vertical-align: middle; }
+    table.x-table td { padding: 12px; border-bottom: 1px solid rgba(28,25,22,0.14); vertical-align: middle; }
     table.x-table tr:last-child td { border-bottom: none; }
     table.x-table tbody tr[data-address] { cursor: pointer; }
-    table.x-table tbody tr[data-address]:hover { background: #0d0d0d; }
+    table.x-table tbody tr[data-address]:hover { background: #f1ece4; }
     table.x-table tbody tr[data-address]:focus-visible { outline: 2px solid var(--purple); outline-offset: -2px; }
     .x-mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; color: var(--muted); }
     .x-link { color: var(--purple); text-decoration: none; }
     .x-link:hover { text-decoration: underline; }
     .x-caret { color: var(--muted); font-size: 12px; transition: transform 0.15s; }
     tr.open .x-caret { transform: rotate(90deg); color: var(--purple); }
-    .x-detail-tr > td { padding: 0 0 14px; border-bottom: 1px solid #1e1e1e; background: #0a0a0a; }
+    .x-detail-tr > td { padding: 0 0 14px; border-bottom: 1px solid rgba(28,25,22,0.10); background: #f7f4ef; }
     .x-detail-card { border: none; background: transparent; margin: 0; padding: 18px 20px 6px; }
 
     .x-grade {
       display: inline-block; min-width: 34px; text-align: center; padding: 4px 9px;
       border-radius: 8px; font-weight: 700; font-size: 13px;
     }
-    .g-A, .g-B { background: rgba(20, 241, 149, 0.14); color: var(--green); }
-    .g-C { background: rgba(240, 180, 41, 0.14); color: #f0b429; }
-    .g-D, .g-F { background: rgba(255, 84, 84, 0.14); color: #ff5454; }
-    .g-ungraded { background: #171717; color: var(--muted); }
+    .g-A, .g-B { background: rgba(47, 158, 107, 0.12); color: var(--green); }
+    .g-C { background: rgba(176, 125, 43, 0.14); color: #b07d2b; }
+    .g-D, .g-F { background: rgba(179, 86, 63, 0.12); color: #b3563f; }
+    .g-ungraded { background: #fffdf9; color: var(--muted); }
 
     .x-warn {
-      border-left: 3px solid #f0b429; background: rgba(240, 180, 41, 0.06);
+      border-left: 3px solid #b07d2b; background: rgba(176, 125, 43, 0.06);
       padding: 10px 14px; border-radius: 0 10px 10px 0; font-size: 13px;
-      color: #e7c98a; margin-top: 10px; line-height: 1.55;
+      color: #b07d2b; margin-top: 10px; line-height: 1.55;
     }
     .x-note {
-      border-left: 3px solid var(--purple); background: rgba(153, 69, 255, 0.07);
+      border-left: 3px solid var(--purple); background: rgba(28, 25, 22, 0.07);
       padding: 10px 14px; border-radius: 0 10px 10px 0; font-size: 13px;
-      color: #cfc0ee; margin-top: 10px; line-height: 1.55;
+      color: var(--text); margin-top: 10px; line-height: 1.55;
     }
-    .x-error { border-left: 3px solid #ff5454; background: rgba(255, 84, 84, 0.07); }
+    .x-error { border-left: 3px solid #b3563f; background: rgba(255, 84, 84, 0.07); }
     .x-error code { color: #ffb3b3; font-size: 12.5px; }
 
     .x-empty { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 14px; }
@@ -134,23 +134,23 @@
       color: var(--muted); min-width: 46px;
     }
     button.x-chip {
-      padding: 6px 12px; border-radius: 999px; border: 1px solid #262626; background: #0c0c0c;
+      padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(28,25,22,0.14); background: #f7f4ef;
       color: var(--muted); font-size: 12.5px; font-family: var(--font); cursor: pointer;
     }
     button.x-chip:hover { border-color: #3a3a3a; color: var(--text); }
-    button.x-chip.on { border-color: var(--purple); color: #fff; background: rgba(153, 69, 255, 0.16); }
+    button.x-chip.on { border-color: var(--purple); color: var(--text); background: rgba(28, 25, 22, 0.16); }
     .x-legend { color: var(--muted); font-size: 12.5px; line-height: 1.6; }
     .x-legend b { color: var(--text); font-weight: 600; }
 
     /* The score ledger. Monospace numbers, so the arithmetic lines up. */
-    .x-ledger { margin-top: 12px; border: 1px solid #1a1a1a; border-radius: 12px; overflow: hidden; }
+    .x-ledger { margin-top: 12px; border: 1px solid rgba(28,25,22,0.10); border-radius: 12px; overflow: hidden; }
     .x-ledger-row {
       display: flex; gap: 14px; padding: 10px 14px; font-size: 13.5px;
-      border-bottom: 1px solid #141414; align-items: baseline;
+      border-bottom: 1px solid rgba(28,25,22,0.14); align-items: baseline;
     }
     .x-ledger-row:last-child { border-bottom: none; }
     .x-ledger-row.base { color: var(--muted); }
-    .x-ledger-row.total { background: #0d0d0d; font-weight: 600; }
+    .x-ledger-row.total { background: #f1ece4; font-weight: 600; }
     .x-ledger-pts {
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
       min-width: 52px; text-align: right; font-size: 13px;
@@ -158,24 +158,24 @@
 
     /* Embed controls: badge preview plus one-line copyable snippets. */
     .x-embed-preview {
-      margin: 12px 0; padding: 14px; border: 1px dashed #262626; border-radius: 12px;
-      background: #0a0a0a; display: flex; align-items: center; gap: 12px;
+      margin: 12px 0; padding: 14px; border: 1px dashed rgba(28,25,22,0.14); border-radius: 12px;
+      background: #f7f4ef; display: flex; align-items: center; gap: 12px;
     }
     .x-embed-row { display: flex; gap: 8px; margin-top: 8px; }
     .x-embed-row input {
       flex: 1 1 auto; min-width: 0; padding: 9px 12px; border-radius: 9px; border: 1px solid #222;
-      background: #0a0a0a; color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      background: #f7f4ef; color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
       font-size: 12px;
     }
     .x-embed-row button {
-      flex: 0 0 auto; padding: 9px 14px; border-radius: 9px; border: 1px solid #262626;
-      background: #0c0c0c; color: var(--text); cursor: pointer; font-family: var(--font); font-size: 12.5px;
+      flex: 0 0 auto; padding: 9px 14px; border-radius: 9px; border: 1px solid rgba(28,25,22,0.14);
+      background: #f7f4ef; color: var(--text); cursor: pointer; font-family: var(--font); font-size: 12.5px;
     }
     .x-embed-row button:hover { border-color: var(--purple); }
     .x-spinner { display: inline-block; width: 15px; height: 15px; border: 2px solid #333; border-top-color: var(--purple); border-radius: 50%; animation: xspin 0.8s linear infinite; vertical-align: -2px; margin-right: 8px; }
     @keyframes xspin { to { transform: rotate(360deg); } }
     .x-slashes { margin-top: 6px; }
-    .x-slash-row { display: flex; justify-content: space-between; gap: 14px; padding: 10px 0; border-bottom: 1px solid #141414; font-size: 13.5px; }
+    .x-slash-row { display: flex; justify-content: space-between; gap: 14px; padding: 10px 0; border-bottom: 1px solid rgba(28,25,22,0.14); font-size: 13.5px; }
     /* A flex row will not shrink its children below their min-content width, and
        one long badge can then widen the whole page. Let them shrink and wrap. */
     .x-slash-row > * { min-width: 0; }
@@ -183,19 +183,19 @@
     .x-slash-row:last-child { border-bottom: none; }
     .x-pill { font-size: 11px; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
     .x-pill.paid { background: rgba(20, 241, 149, 0.13); color: var(--green); }
-    .x-pill.owed { background: rgba(255, 84, 84, 0.13); color: #ff5454; }
+    .x-pill.owed { background: rgba(255, 84, 84, 0.13); color: #b3563f; }
     .x-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
     .x-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
     /* Markets read from Panta. A fixture from a test key is labelled as one,
        because a sandbox price that reads as live is a lie about the data. */
     .x-sandbox {
-      border-left: 3px solid #f0b429; background: rgba(240, 180, 41, 0.06);
+      border-left: 3px solid #b07d2b; background: rgba(176, 125, 43, 0.06);
       padding: 10px 14px; border-radius: 0 10px 10px 0; font-size: 13px;
-      color: #e7c98a; margin-top: 14px; line-height: 1.55;
+      color: #b07d2b; margin-top: 14px; line-height: 1.55;
     }
     .x-market-list { margin-top: 4px; }
-    .x-market-row { border-top: 1px solid #161616; padding: 13px 0 3px; }
+    .x-market-row { border-top: 1px solid rgba(28,25,22,0.10); padding: 13px 0 3px; }
     .x-market-list .x-market-row:first-child { border-top: none; padding-top: 8px; }
     .x-market-head {
       display: flex; align-items: baseline; justify-content: space-between;
@@ -203,7 +203,7 @@
     }
     .x-market-title { font-weight: 600; font-size: 14px; }
     .x-market-phase {
-      font-size: 11px; padding: 3px 9px; border-radius: 999px; background: #171717;
+      font-size: 11px; padding: 3px 9px; border-radius: 999px; background: #fffdf9;
       color: var(--muted); white-space: nowrap;
     }
     .x-market-stats {
@@ -211,14 +211,14 @@
       font-size: 12.5px; color: var(--muted);
     }
     .x-actions a, .x-actions button {
-      font-size: 12.5px; padding: 8px 13px; border-radius: 9px; border: 1px solid #262626;
-      background: #0c0c0c; color: var(--text); cursor: pointer; font-family: var(--font);
+      font-size: 12.5px; padding: 8px 13px; border-radius: 9px; border: 1px solid rgba(28,25,22,0.14);
+      background: #f7f4ef; color: var(--text); cursor: pointer; font-family: var(--font);
     }
     .x-actions a:hover, .x-actions button:hover { border-color: var(--purple); }
 
     /* A section a reader can open when they want the detail, closed when they
        want the page. Used for the explainer and the builder snippets. */
-    details.x-fold { border: 1px solid #1e1e1e; border-radius: 16px; background: #070707; margin-bottom: 18px; }
+    details.x-fold { border: 1px solid rgba(28,25,22,0.10); border-radius: 16px; background: #f7f4ef; margin-bottom: 18px; }
     /* Wraps, because a flex row refuses to shrink its items past their own
        min-content width: on a narrow phone the hint drops to a second line
        instead of widening the page. */
@@ -232,7 +232,7 @@
     details.x-fold > summary .fa-chevron-down { color: var(--muted); font-size: 12px; transition: transform 0.15s; }
     details.x-fold[open] > summary .fa-chevron-down { transform: rotate(180deg); }
     details.x-fold .x-fold-body { padding: 0 20px 18px; }
-    .x-help-item { border-top: 1px solid #161616; padding: 12px 0 2px; }
+    .x-help-item { border-top: 1px solid rgba(28,25,22,0.10); padding: 12px 0 2px; }
     .x-help-item:first-child { border-top: none; padding-top: 0; }
     .x-help-item p { font-size: 13px; color: var(--muted); line-height: 1.65; margin: 0; }
     .x-help-item .x-help-title { color: var(--text); font-weight: 600; font-size: 13.5px; }
@@ -245,7 +245,7 @@
       table.x-table, table.x-table tbody, table.x-table tr, table.x-table td { display: block; }
       table.x-table thead { display: none; }
       table.x-table tr[data-address] {
-        border: 1px solid #1e1e1e; border-radius: 14px; background: #0a0a0a;
+        border: 1px solid rgba(28,25,22,0.10); border-radius: 14px; background: #f7f4ef;
         padding: 6px 2px; margin-bottom: 10px;
       }
       table.x-table tr[data-address] td { border-bottom: none; padding: 6px 14px; }
@@ -258,7 +258,7 @@
       table.x-table td[data-label="Details"]::before { display: none; }
       table.x-table td[data-label="Details"] { padding-bottom: 2px; }
       .x-detail-tr > td { padding: 0 0 10px; background: transparent; }
-      .x-detail-card { border: 1px solid #1e1e1e; border-radius: 14px; background: #0a0a0a; }
+      .x-detail-card { border: 1px solid rgba(28,25,22,0.10); border-radius: 14px; background: #f7f4ef; }
     }
     /* Small phones: the panel and ledger are nested a few boxes deep, so give
        the text back the padding and let the numbers column be narrower. */
@@ -273,6 +273,7 @@
       * { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
     }
   </style>
+  <link rel="stylesheet" href="theme.css" />
 </head>
 <body>
   <div class="bg"><div class="bg-overlay"></div></div>

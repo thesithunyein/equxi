@@ -4,21 +4,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Equxi - Pitch Deck</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Source+Code+Pro:wght@400;500;600&family=Reenie+Beanie&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
   <style>
     .bg { position: fixed; inset: 0; z-index: 0; }
     .bg-video { position: absolute; inset: -5%; width: 110%; height: 110%; object-fit: cover; opacity: 0.35; }
-    .bg-overlay { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 40%, transparent 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.85) 100%); }
+    .bg-overlay { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 40%, transparent 0%, rgba(28, 25, 22, 0.08) 50%, rgba(0,0,0,0.85) 100%); }
     
     :root {
-      --bg: #000;
-      --text: #fff;
-      --muted: #999;
-      --dim: #666;
-      --purple: #9945FF;
-      --purple-glow: rgba(153, 69, 255, 0.25);
-      --green: #14F195;
+      --bg: #f7f4ef;
+      --text: #1c1916;
+      --muted: #5c574f;
+      --dim: #8a847a;
+      --purple: #1c1916;
+      --purple-glow: rgba(28, 25, 22, 0.25);
+      --green: #2f9e6b;
       --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
     
@@ -54,8 +54,8 @@
       gap: 8px;
       padding: 6px 16px;
       border-radius: 999px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(28,25,22,0.08);
+      border: 1px solid rgba(28,25,22,0.12);
       font-size: 11px;
       font-weight: 600;
       color: var(--muted);
@@ -136,17 +136,17 @@
     
     .btn-fill {
       background: var(--purple);
-      color: #fff;
+      color: #f7f4ef;
       box-shadow: 0 0 30px var(--purple-glow);
     }
     
     .btn-outline {
       background: transparent;
       color: var(--text);
-      border: 1px solid rgba(255,255,255,0.12);
+      border: 1px solid rgba(28,25,22,0.16);
     }
     
-    .btn-outline:hover { border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.03); }
+    .btn-outline:hover { border-color: rgba(28,25,22,0.3); background: rgba(28,25,22,0.06); }
     
     .row { display: flex; gap: 12px; margin-top: 32px; }
     
@@ -160,8 +160,8 @@
     }
     
     .card {
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(28,25,22,0.06);
+      border: 1px solid rgba(28,25,22,0.10);
       border-radius: 16px;
       padding: 32px;
     }
@@ -177,8 +177,8 @@
     }
     
     .step {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(28,25,22,0.07);
+      border: 1px solid rgba(28,25,22,0.10);
       border-radius: 14px;
       padding: 20px 24px;
       text-align: center;
@@ -187,7 +187,7 @@
     
     .step-icon {
       width: 40px; height: 40px; border-radius: 10px;
-      background: rgba(153, 69, 255, 0.12); border: 1px solid rgba(153, 69, 255, 0.2);
+      background: rgba(28, 25, 22, 0.12); border: 1px solid rgba(28, 25, 22, 0.2);
       display: flex; align-items: center; justify-content: center;
       font-size: 16px; color: var(--purple); margin: 0 auto 10px;
     }
@@ -233,9 +233,9 @@
     
     .items li {
       padding: 14px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
+      border-bottom: 1px solid rgba(28,25,22,0.08);
       font-size: 14px;
-      color: rgba(255,255,255,0.75);
+      color: rgba(28,25,22,0.75);
       display: flex;
       align-items: flex-start;
       gap: 14px;
@@ -245,7 +245,7 @@
       width: 24px;
       height: 24px;
       border-radius: 6px;
-      background: rgba(153, 69, 255, 0.15);
+      background: rgba(28, 25, 22, 0.15);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -303,7 +303,7 @@
 
     @media print {
       .bg, .bg-video { display: none !important; }
-      body { background: #000 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      body { background: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .slide {
         width: 100%;
         height: 100vh;
@@ -317,7 +317,7 @@
         page-break-inside: avoid;
         break-after: page;
         page-break-after: always;
-        background: #000 !important;
+        background: #fff !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
       }
@@ -328,17 +328,18 @@
         break-inside: avoid;
         page-break-inside: avoid;
       }
-      .card { background: rgba(255,255,255,0.05) !important; border-color: rgba(255,255,255,0.1) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .step { background: rgba(153, 69, 255, 0.15) !important; border-color: rgba(153, 69, 255, 0.3) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .tag { background: rgba(255,255,255,0.08) !important; border-color: rgba(255,255,255,0.12) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .btn-fill { background: #9945FF !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .btn-outline { border-color: rgba(255,255,255,0.2) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .icon { background: rgba(153, 69, 255, 0.2) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .items li { border-color: rgba(255,255,255,0.08) !important; }
+      .card { background: rgba(28,25,22,0.08) !important; border-color: rgba(28,25,22,0.14) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .step { background: rgba(28, 25, 22, 0.15) !important; border-color: rgba(28, 25, 22, 0.3) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .tag { background: rgba(28,25,22,0.12) !important; border-color: rgba(28,25,22,0.16) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .btn-fill { background: #1c1916 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .btn-outline { border-color: rgba(28,25,22,0.3) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .icon { background: rgba(28, 25, 22, 0.2) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .items li { border-color: rgba(28,25,22,0.12) !important; }
       .metric-val { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       h1, h2, h3, p, span, li, .step-label, .metric-label, .small { color: inherit !important; }
     }
   </style>
+  <link rel="stylesheet" href="theme.css" />
 </head>
 <body>
   <div class="bg">
@@ -473,15 +474,15 @@
     </div>
     <ul class="items">
       <li>
-        <span class="icon"><svg viewBox="0 0 24 24" fill="#14F195"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
+        <span class="icon"><svg viewBox="0 0 24 24" fill="#2f9e6b"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
         <span><strong>Upgraded a live deployment without losing state.</strong> v0.2 grew the agent account from 116 to 118 bytes, which would have broken reads of existing agents. The migration did the byte surgery in place on devnet; all 8 preserved fields verified.</span>
       </li>
       <li>
-        <span class="icon"><svg viewBox="0 0 24 24" fill="#14F195"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
+        <span class="icon"><svg viewBox="0 0 24 24" fill="#2f9e6b"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
         <span><strong>Non-custodial by construction.</strong> Slashed collateral sits in a program-owned vault. The admin can direct a payout but never withdraw it.</span>
       </li>
       <li>
-        <span class="icon"><svg viewBox="0 0 24 24" fill="#14F195"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
+        <span class="icon"><svg viewBox="0 0 24 24" fill="#2f9e6b"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
         <span><strong>Where we actually are, stated plainly:</strong> one self-operated agent on devnet, pre-traction. All paths execute; no external operator has registered yet. Ten bonded agents is the milestone.</span>
       </li>
     </ul>
@@ -565,15 +566,15 @@
     <p class="lead">Built solo: the Rust program, SDK, dashboard, registry and elizaOS plugin. Student, Yangon, Myanmar.</p>
     <ul class="items" style="margin-top: 20px;">
       <li>
-        <span class="icon"><svg viewBox="0 0 24 24" fill="#14F195"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
+        <span class="icon"><svg viewBox="0 0 24 24" fill="#2f9e6b"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
         <span><strong>Third-party validation:</strong> recipient of a Superteam <em>Agentic Engineering</em> grant, awarded for this project before this competition.</span>
       </li>
       <li>
-        <span class="icon"><svg viewBox="0 0 24 24" fill="#14F195"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
+        <span class="icon"><svg viewBox="0 0 24 24" fill="#2f9e6b"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
         <span><strong>Why me:</strong> I ran agents and watched them spend money I could not get back. I built the half nobody else wants to.</span>
       </li>
       <li>
-        <span class="icon"><svg viewBox="0 0 24 24" fill="#14F195"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
+        <span class="icon"><svg viewBox="0 0 24 24" fill="#2f9e6b"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
         <span><strong>Shipping cadence:</strong> empty repo to a live devnet program with escrow, a migrated deployment and 181 tests, in under a month, solo.</span>
       </li>
     </ul>
@@ -598,19 +599,19 @@
     <p class="lead">Reading a bond is free forever; a trust layer nobody queries is worthless. Revenue comes from the two sides.</p>
     <ul class="items">
       <li>
-        <span class="icon"><svg viewBox="0 0 24 24" fill="#9945FF"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
+        <span class="icon"><svg viewBox="0 0 24 24" fill="#1c1916"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
         <span><strong>Take rate on bonded volume.</strong> A basis-point fee when collateral is posted and again when it is slashed. Revenue scales with risk, not signups.</span>
       </li>
       <li>
-        <span class="icon"><svg viewBox="0 0 24 24" fill="#9945FF"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
+        <span class="icon"><svg viewBox="0 0 24 24" fill="#1c1916"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
         <span><strong>Verification API.</strong> The public badge stays free. Providers needing threshold checks or webhooks pay, like any risk-data API.</span>
       </li>
       <li>
-        <span class="icon"><svg viewBox="0 0 24 24" fill="#9945FF"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
+        <span class="icon"><svg viewBox="0 0 24 24" fill="#1c1916"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
         <span><strong>Marketplace gating.</strong> Platforms requiring bonds for listed agents pay per listing. They move liability; we reach every agent they onboard.</span>
       </li>
       <li>
-        <span class="icon"><svg viewBox="0 0 24 24" fill="#9945FF"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
+        <span class="icon"><svg viewBox="0 0 24 24" fill="#1c1916"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
         <span><strong>What we want:</strong> mainnet with an audit, and our first ten external operators bonded. Verdicts are admin-gated today by design; decentralising that is the roadmap.</span>
       </li>
     </ul>

@@ -176,6 +176,7 @@ jobs:
           test -f launch.js || exit 1
           test -f meteora-launch/launch-steps.json || exit 1
           test -f landing.js || exit 1
+          test -f theme.css || exit 1
           test -f dev-server.js || exit 1
           # The upgrade path: a broken migration tool is worse than none, and it
           # only ever runs against a live deployment, so check it here instead.
@@ -192,6 +193,11 @@ jobs:
           grep -q 'branches: \[main\]' .github/workflows/verify.yml || exit 1
           grep -q 'equxi.sithunyein.com' .github/workflows/verify.yml || exit 1
           grep -q 'api/trust' .github/workflows/verify.yml || exit 1
+          # Every page must load the shared theme. A page that quietly loses its
+          # stylesheet is invisible in every other check.
+          for page in index.html app.html explorer.html docs.html launch.html deck.html; do
+            grep -q 'theme.css' "$page" || { echo "$page does not load theme.css"; exit 1; }
+          done
           test -f tests/unit/layout.test.ts || exit 1
           test -f tests/unit/sdk.test.ts || exit 1
           test -f tests/unit/read.test.ts || exit 1

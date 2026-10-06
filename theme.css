@@ -1,0 +1,603 @@
+/* Equxi theme: the sithunyein.com design language.
+ *
+ * Every page loads this file last. Two things happen here, in this order:
+ *
+ * 1. The custom properties are redefined. The pages all colour themselves
+ *    through the same variables (--bg, --surface, --text, --purple, ...), so
+ *    redefining them re-skins every existing rule at once instead of asking
+ *    for the same edit in six files.
+ * 2. The shared components (header, cards, buttons, chips, tables, fields)
+ *    are restyled to match: hairline borders, 14px radius, ink accents, soft
+ *    shadows, mono for anything that is data.
+ *
+ * The port is deliberately faithful to the reference: warm paper, near-black
+ * ink, one accent (ink), lowercase labels, and colour reserved for meaning.
+ */
+
+/* ------------------------------------------------------------------ tokens */
+
+/* `html:root` outweighs a plain `:root`, so this wins over the token block
+ * each page declares for itself, whatever the load order. */
+:root,
+html:root {
+  /* Paper */
+  --background: #f7f4ef;
+  --foreground: #1c1916;
+  --surface-paper: #fffdf9;
+  --surface-raised: #f1ece4;
+  --chip-bg: #efeae2;
+  --rule: rgba(28, 25, 22, 0.1);
+  --rule-strong: rgba(28, 25, 22, 0.18);
+  --muted-ink: #5c574f;
+  --dim-ink: #8a847a;
+
+  /* Meaningful colour only */
+  --success: #2f9e6b;
+  --warning: #b07d2b;
+  --danger: #b3563f;
+  --info: #3f6f8f;
+
+  --shadow-sm: 0 1px 2px rgba(28, 25, 22, 0.04);
+  --shadow-md: 0 16px 40px rgba(28, 25, 22, 0.08);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-soft: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --radius: 14px;
+  --radius-sm: 10px;
+  --radius-pill: 999px;
+
+  /* Compatibility layer: the names the pages already use. */
+  --bg: var(--background);
+  --text: var(--foreground);
+  --muted: var(--muted-ink);
+  --dim: var(--dim-ink);
+  --surface: var(--surface-paper);
+  --surface-solid: var(--surface-paper);
+  --surface-hover: var(--surface-raised);
+  --border: var(--rule);
+  --text-secondary: var(--muted-ink);
+  --text-muted: var(--dim-ink);
+
+  /* The accent is ink. Neon was the old identity; restraint is the new one. */
+  --purple: var(--foreground);
+  --purple-hover: #000000;
+  --purple-glow: rgba(28, 25, 22, 0.14);
+  --green: var(--success);
+  --green-dim: rgba(47, 158, 107, 0.12);
+  --blue: var(--info);
+  --blue-dim: rgba(63, 111, 143, 0.12);
+  --yellow: var(--warning);
+  --yellow-dim: rgba(176, 125, 43, 0.14);
+  --red: var(--danger);
+  --red-dim: rgba(179, 86, 63, 0.12);
+
+  /* Grade scale, warm and muted so it reads as data, not decoration. */
+  --grade-a: #2f9e6b;
+  --grade-b: #3f6f8f;
+  --grade-c: #b07d2b;
+  --grade-d: #b3563f;
+  --grade-a-bg: rgba(47, 158, 107, 0.12);
+  --grade-b-bg: rgba(63, 111, 143, 0.12);
+  --grade-c-bg: rgba(176, 125, 43, 0.14);
+  --grade-d-bg: rgba(179, 86, 63, 0.12);
+
+  --font: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", sans-serif;
+  --font-mono: "Source Code Pro", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-hand: "Reenie Beanie", "Segoe UI Script", cursive;
+}
+
+/* -------------------------------------------------------------------- base */
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font);
+  font-weight: 400;
+  line-height: 1.65;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+}
+
+h1 {
+  font-weight: 400;
+}
+
+a {
+  color: inherit;
+}
+
+::selection {
+  background: rgba(28, 25, 22, 0.12);
+  color: var(--foreground);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d9d2c7;
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--background);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #c3bbae;
+}
+
+:where(a, button, [role="button"], input, select, textarea):focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--rule-strong);
+  border-radius: var(--radius-sm);
+}
+
+code,
+pre,
+kbd,
+samp,
+.x-mono,
+.num,
+.tabular {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Anything that renders a raw number should line up. */
+.stat-value,
+.metric-val,
+.lx-tile-n,
+.slide-num,
+table td,
+table th {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------------------------------------------------------------- surfaces */
+
+.card,
+.stat-card,
+.product-card,
+.soft-panel,
+.how-card,
+.tile,
+.lx-tile,
+.metric,
+.qstep,
+.panel {
+  background: var(--surface-paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.45s var(--ease-out),
+    border-color 0.35s var(--ease-out), box-shadow 0.45s var(--ease-out);
+}
+
+.card:hover,
+.stat-card:hover,
+.how-card:hover,
+.tile:hover,
+.lx-tile:hover {
+  transform: translateY(-3px);
+  border-color: var(--rule-strong);
+  box-shadow: var(--shadow-md);
+}
+
+.callout {
+  background: var(--surface-raised);
+  border: 1px solid var(--rule);
+  border-left: 2px solid var(--foreground);
+  border-radius: var(--radius-sm);
+  box-shadow: none;
+}
+
+/* ----------------------------------------------------------------- buttons */
+
+.btn,
+.btn-primary,
+.btn-outline,
+.back-btn,
+.cta,
+button.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: var(--radius-pill);
+  font-family: var(--font);
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1;
+  padding: 0.7rem 1.15rem;
+  border: 1px solid transparent;
+  transition: opacity 0.25s var(--ease-out), transform 0.25s var(--ease-out),
+    box-shadow 0.35s var(--ease-out), background-color 0.25s var(--ease-out),
+    border-color 0.25s var(--ease-out);
+}
+
+.btn-primary,
+button.btn-primary {
+  background: var(--foreground);
+  color: var(--background);
+  border-color: var(--foreground);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:hover,
+button.btn-primary:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-outline,
+.back-btn,
+button.btn-outline {
+  background: transparent;
+  color: var(--foreground);
+  border-color: var(--rule-strong);
+}
+
+.btn-outline:hover,
+.back-btn:hover,
+button.btn-outline:hover {
+  background: var(--surface-raised);
+  border-color: var(--foreground);
+  transform: translateY(-1px);
+}
+
+/* Icons inside a button take the button's own colour. This must not target the
+ * button itself: `a.btn-primary` would out-specify the rule above and paint the
+ * label the same ink as the fill. */
+.btn-primary i,
+.btn-outline i,
+.back-btn i,
+.btn-primary .fa-solid,
+.btn-outline .fa-solid {
+  color: inherit;
+  opacity: 1;
+}
+
+/* ------------------------------------------------------------------ header */
+
+.top,
+.site-header,
+header.top {
+  background: color-mix(in srgb, var(--background) 82%, transparent);
+  backdrop-filter: saturate(160%) blur(16px);
+  -webkit-backdrop-filter: saturate(160%) blur(16px);
+  border-bottom: 1px solid var(--rule);
+}
+
+.logo span,
+.brand-mark {
+  font-family: var(--font-hand);
+  font-size: 1.5rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.nav-link,
+.mobile-nav-link,
+.site-nav a {
+  color: var(--muted-ink);
+  text-transform: lowercase;
+  font-weight: 500;
+  transition: color 0.2s var(--ease-out);
+}
+
+.nav-link:hover,
+.nav-link.active,
+.mobile-nav-link:hover,
+.nav-link.is-active,
+.site-nav a:hover,
+.site-nav a.is-active {
+  color: var(--foreground);
+}
+
+/* -------------------------------------------------------------------- chips */
+
+.tag,
+.badge,
+.dev-pill,
+.chip,
+.pill,
+.step-label,
+.section-label,
+.x-help-title,
+.lx-tile-n {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tag,
+.badge,
+.dev-pill,
+.chip,
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: var(--radius-pill);
+  background: var(--chip-bg);
+  color: var(--muted-ink);
+  border: 1px solid transparent;
+}
+
+/* The program/devnet/solana pills on docs.html */
+.tag.program,
+.tag.devnet,
+.tag.solana {
+  background: var(--chip-bg);
+  color: var(--muted-ink);
+  border-color: var(--rule);
+}
+
+.badge-dot,
+.pulse,
+.live-dot {
+  background: var(--success);
+  box-shadow: none;
+}
+
+/* ------------------------------------------------------------------- grades */
+
+.g-A,
+.grade-a {
+  color: var(--grade-a);
+  background: var(--grade-a-bg);
+}
+.g-B,
+.grade-b {
+  color: var(--grade-b);
+  background: var(--grade-b-bg);
+}
+.g-C,
+.grade-c {
+  color: var(--grade-c);
+  background: var(--grade-c-bg);
+}
+.g-D,
+.grade-d {
+  color: var(--grade-d);
+  background: var(--grade-d-bg);
+}
+
+/* Old literals that were baked in rather than tokenised. */
+.g-C,
+.lx-grade.g-C {
+  background: var(--grade-c-bg);
+  color: var(--grade-c);
+}
+
+/* ------------------------------------------------------------------- tables */
+
+table {
+  border-collapse: collapse;
+}
+
+table th {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dim-ink);
+  border-bottom: 1px solid var(--rule-strong);
+}
+
+table td,
+table th {
+  border-color: var(--rule);
+}
+
+table tbody tr {
+  border-bottom: 1px solid var(--rule);
+}
+
+.table-wrap {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  background: var(--surface-paper);
+  box-shadow: var(--shadow-sm);
+}
+
+/* --------------------------------------------------------------- form fields */
+
+input,
+select,
+textarea {
+  background: var(--surface-paper);
+  color: var(--foreground);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-sm);
+  font-family: var(--font);
+  transition: border-color 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--foreground);
+  outline: none;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--dim-ink);
+}
+
+select {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--muted-ink) 50%),
+    linear-gradient(135deg, var(--muted-ink) 50%, transparent 50%);
+  background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 2rem;
+}
+
+/* --------------------------------------------------------------------- code */
+
+pre {
+  background: var(--surface-raised);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  color: var(--foreground);
+  overflow-x: auto;
+}
+
+pre code {
+  background: none;
+  color: inherit;
+}
+
+:not(pre) > code {
+  background: var(--chip-bg);
+  border-radius: 6px;
+  padding: 0.1rem 0.35rem;
+  font-size: 0.9em;
+}
+
+/* -------------------------------------------------------------------- icons */
+
+.fa-solid,
+.fa-regular,
+.fa-brands,
+.fas,
+.far,
+.fab {
+  color: inherit;
+  opacity: 0.75;
+}
+
+.btn-primary i,
+.btn-outline i,
+.back-btn i,
+.stat-icon i {
+  opacity: 1;
+}
+
+/* ------------------------------------------------------------- app-specific */
+
+/* A flex item defaults to min-width:auto, so wide content could push the
+ * dashboard's main column past the viewport and have the excess clipped by
+ * overflow-x. Letting it shrink is enough: nothing inside needs the width. */
+.main-content {
+  min-width: 0;
+}
+
+.sidebar {
+  background: var(--surface-paper);
+  border-right: 1px solid var(--rule);
+}
+
+.sidebar-link {
+  color: var(--muted-ink);
+  border-radius: var(--radius-sm);
+}
+
+.sidebar-link:hover {
+  background: var(--surface-raised);
+  color: var(--foreground);
+}
+
+.sidebar-link.active {
+  background: var(--chip-bg);
+  color: var(--foreground);
+}
+
+.section-header {
+  border-bottom: 1px solid var(--rule);
+}
+
+.stat-icon {
+  background: var(--chip-bg);
+  color: var(--foreground);
+  border-radius: var(--radius-sm);
+}
+
+.stat-label,
+.metric-label,
+.section-desc,
+.qstep-text {
+  color: var(--muted-ink);
+}
+
+.stat-value,
+.metric-val {
+  color: var(--foreground);
+  font-weight: 500;
+}
+
+.qstep-num {
+  background: var(--chip-bg);
+  color: var(--muted-ink);
+  border-radius: var(--radius-pill);
+}
+
+/* ------------------------------------------------------------------- footer */
+
+.footer,
+.site-footer,
+.doc-footer {
+  border-top: 1px solid var(--rule);
+  color: var(--muted-ink);
+}
+
+.doc-footer {
+  background: none;
+}
+
+/* --------------------------------------------------------------- responsive */
+
+/* The docs header holds four pills on one row. On a phone they have to wrap
+ * rather than run off the right edge, where overflow-x would clip them. */
+@media (max-width: 760px) {
+  .top {
+    flex-wrap: wrap;
+    height: auto;
+    gap: 10px;
+  }
+
+  .top > div:last-child {
+    flex-wrap: wrap;
+  }
+
+  .top .back-btn {
+    padding: 0.5rem 0.85rem;
+    font-size: 0.82rem;
+  }
+}
+
+/* ------------------------------------------------------------------- motion */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
