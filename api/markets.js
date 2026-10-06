@@ -27,7 +27,22 @@
  *   (`UNAUTHORIZED`) becomes a 502, because that is this deployment's config
  *   fault, not the caller's.
  *
- * ## Query parameters (forwarded to Panta)
+ * ## Modes
+ *
+ * The endpoint answers three documented Panta reads, chosen by query:
+ *
+ * | Query | Panta route | Answers |
+ * |-------|-------------|---------|
+ * | *(none)* | `GET /markets/` | The catalog list, with cursor paging |
+ * | `market=<marketId>` | `GET /markets/{marketId}/` | One market, with the spot `yesPrice` / `noPrice` the list leaves `null` |
+ * | `wallet=<pubkey>` | `GET /positions/?wallet=` | That wallet's holdings: `side`, `shares`, `claimable`, `claimed`, `outcome` |
+ *
+ * Panta's own documentation pairs the last two: positions carry share quantity
+ * and claim eligibility, the market detail carries the price to value them
+ * (`shares × side price`). Serving both here means a reader can price a holding
+ * without a wallet, an SDK, or a Panta account.
+ *
+ * ## Query parameters (list mode, forwarded to Panta)
  *
  * | Param | Meaning |
  * |-------|---------|
@@ -110,42 +125,51 @@ function pantaUrl(query) {
   return PANTA_BASE + "/markets/" + (params.length ? "?" + params.join("&") : "");
 }
 
+/** Route for one market's detail row: the spot prices the list route omits. */
+function marketDetailUrl(marketId) {
+  return PANTA_BASE + "/markets/" + encodeURIComponent(marketId) + "/";
+}
+
+/**
+ * Route for a wallet's holdings. Panta pairs this with the detail route above:
+ * a position carries `shares` and `claimable`, the market carries the price.
+ */
+function positionsUrl(wallet) {
+  return PANTA_BASE + "/positions/?wallet=" + encodeURIComponent(wallet);
+}
+
+/**
+ * A Solana address: base58, 32–44 characters. Checked before we spend an
+ * upstream call, so a typo is a 400 from us, not a partner error we relay.
+ */
+function isAddress(value) {
+  return typeof value === "string" && /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(value);
+}
+
+/** Normalize one Panta position row. Unknown fields are dropped, as with markets. */
+function normalizePosition(item) {
+  return {
+    marketId: item.marketId,
+    category: item.category,
+    side: item.side,
+    shares: item.shares,
+    phase: item.phase,
+    claimable: item.claimable,
+    claimed: item.claimed,
+    outcome: item.outcome,
+  };
+}
+
 /** Map Panta's error codes onto the HTTP status this API should answer with. */
 function statusForCode(code) {
   if (code === "INVALID_MARKET_PARAMS") return 400;
   if (code === "RATE_LIMITED") return 429;
+  if (code === "MARKET_NOT_FOUND") return 404;
   return 502; // UNAUTHORIZED and anything unrecognised are upstream faults here.
 }
 
-/**
- * Build the JSON payload. Separated from the HTTP handler so the tests can
- * assert on it directly. `deps` = `{ fetchImpl, now, apiKey }`.
- */
-async function buildResponse(query, deps) {
-  var now = deps.now;
-
-  if (!deps.apiKey) {
-    return {
-      ok: true,
-      configured: false,
-      sandbox: false,
-      source: "panta",
-      // Required by Panta's Terms of Use wherever Panta-powered functionality
-      // appears; the Explorer renders it on the markets card.
-      attribution: "Powered by Panta",
-      base: PANTA_BASE,
-      generatedAt: now,
-      note:
-        "PANTA_API_KEY is not set on this deployment, so the live markets feed is disabled. " +
-        "Set it to a pk_test_ key from Panta to enable this endpoint.",
-      counts: { markets: 0 },
-      nextCursor: null,
-      markets: [],
-    };
-  }
-
-  var url = pantaUrl(query || {});
-
+/** One authenticated GET against Panta, with its error codes kept intact. */
+async function pantaGet(url, deps) {
   var init = {
     method: "GET",
     headers: { "X-Api-Key": deps.apiKey, accept: "application/json" },
@@ -163,20 +187,140 @@ async function buildResponse(query, deps) {
     });
   }
 
-  if (!response.ok) {
-    var errorBody = null;
-    try {
-      errorBody = await response.json();
-    } catch (ignored) {
-      errorBody = null;
-    }
-    var code =
-      (errorBody && (errorBody.error || errorBody.code)) || "HTTP " + response.status;
-    throw Object.assign(new Error("Panta API error: " + code), { status: statusForCode(String(code)) });
+  var payload = null;
+  try {
+    payload = await response.json();
+  } catch (ignored) {
+    payload = null;
   }
 
-  var payload = await response.json();
-  if (!payload || !Array.isArray(payload.items)) {
+  if (!response.ok) {
+    var code = (payload && (payload.error || payload.code)) || "HTTP " + response.status;
+    throw Object.assign(new Error("Panta API error: " + code), {
+      status: statusForCode(String(code)),
+    });
+  }
+  if (payload === null) {
+    throw Object.assign(new Error("Panta API returned an unreadable body"), { status: 502 });
+  }
+  return payload;
+}
+
+/**
+ * Build the JSON payload. Separated from the HTTP handler so the tests can
+ * assert on it directly. `deps` = `{ fetchImpl, now, apiKey }`.
+ */
+async function buildResponse(query, deps) {
+  var now = deps.now;
+  var q = query || {};
+  var mode = q.market ? "market" : q.wallet ? "positions" : "list";
+
+  // A `pk_test_` key is Panta's sandbox: fixtures only, never mainnet. Every
+  // mode says which one it read in, so a visitor cannot mistake a fixture for a
+  // live market, and Panta's own disclaimer ships verbatim.
+  var sandbox = /^pk_test_/.test(deps.apiKey || "");
+
+  if (!deps.apiKey) {
+    var off = {
+      ok: true,
+      configured: false,
+      sandbox: false,
+      source: "panta",
+      // Required by Panta's Terms of Use wherever Panta-powered functionality
+      // appears; the Explorer renders it on the markets card.
+      attribution: "Powered by Panta",
+      base: PANTA_BASE,
+      mode: mode,
+      generatedAt: now,
+      note:
+        "PANTA_API_KEY is not set on this deployment, so the live markets feed is disabled. " +
+        "Set it to a pk_test_ key from Panta to enable this endpoint.",
+    };
+    if (mode === "market") {
+      off.market = null;
+      off.prices = null;
+    } else if (mode === "positions") {
+      off.wallet = q.wallet || null;
+      off.counts = { positions: 0 };
+      off.positions = [];
+    } else {
+      off.counts = { markets: 0 };
+      off.nextCursor = null;
+      off.markets = [];
+    }
+    return off;
+  }
+
+  var url;
+  if (mode === "market") {
+    if (!isAddress(q.market)) {
+      throw Object.assign(new Error("market must be a base58 market address"), { status: 400 });
+    }
+    url = marketDetailUrl(q.market);
+  } else if (mode === "positions") {
+    if (!isAddress(q.wallet)) {
+      throw Object.assign(new Error("wallet must be a base58 Solana address"), { status: 400 });
+    }
+    url = positionsUrl(q.wallet);
+  } else {
+    url = pantaUrl(q);
+  }
+
+  var payload = await pantaGet(url, deps);
+  var disclaimer = typeof payload.disclaimer === "string" ? payload.disclaimer : null;
+
+  if (mode === "market") {
+    if (typeof payload.marketId !== "string") {
+      // A 200 without a marketId is a broken read, not "no market".
+      throw Object.assign(new Error("Panta API returned a malformed market"), { status: 502 });
+    }
+    return {
+      ok: true,
+      configured: true,
+      sandbox: sandbox,
+      source: "panta",
+      attribution: "Powered by Panta",
+      base: PANTA_BASE,
+      mode: "market",
+      generatedAt: now,
+      disclaimer: disclaimer,
+      market: normalizeMarket(payload),
+      // The list route leaves these null; the detail route fills them from
+      // on-chain state. Panta's docs use them to price a position.
+      prices: {
+        yes: payload.yesPrice == null ? null : payload.yesPrice,
+        no: payload.noPrice == null ? null : payload.noPrice,
+        primaryYes: payload.primaryYesPrice == null ? null : payload.primaryYesPrice,
+        primaryNo: payload.primaryNoPrice == null ? null : payload.primaryNoPrice,
+        secondaryYes: payload.secondaryYesPrice == null ? null : payload.secondaryYesPrice,
+        secondaryNo: payload.secondaryNoPrice == null ? null : payload.secondaryNoPrice,
+      },
+    };
+  }
+
+  if (mode === "positions") {
+    if (!Array.isArray(payload.positions)) {
+      // Same rule as the list: an anomaly must not read as "this wallet holds
+      // nothing", which is a claim about a user's money.
+      throw Object.assign(new Error("Panta API returned a malformed position list"), { status: 502 });
+    }
+    return {
+      ok: true,
+      configured: true,
+      sandbox: sandbox,
+      source: "panta",
+      attribution: "Powered by Panta",
+      base: PANTA_BASE,
+      mode: "positions",
+      generatedAt: now,
+      disclaimer: disclaimer,
+      wallet: typeof payload.wallet === "string" ? payload.wallet : q.wallet,
+      counts: { positions: payload.positions.length },
+      positions: payload.positions.map(normalizePosition),
+    };
+  }
+
+  if (!Array.isArray(payload.items)) {
     // A 200 without an items array is a broken read, not "no markets". Returning
     // an empty list would present a partner or network anomaly as data.
     throw Object.assign(new Error("Panta API returned a malformed market list"), { status: 502 });
@@ -186,15 +330,13 @@ async function buildResponse(query, deps) {
   return {
     ok: true,
     configured: true,
-    // A `pk_test_` key is Panta's sandbox: fixtures only, never mainnet. The
-    // feed says which mode it is reading in, so a visitor cannot mistake a
-    // fixture for a live market, and Panta's own disclaimer ships verbatim.
-    sandbox: /^pk_test_/.test(deps.apiKey),
+    sandbox: sandbox,
     source: "panta",
     attribution: "Powered by Panta",
     base: PANTA_BASE,
+    mode: "list",
     generatedAt: now,
-    disclaimer: typeof payload.disclaimer === "string" ? payload.disclaimer : null,
+    disclaimer: disclaimer,
     counts: { markets: items.length },
     nextCursor: (payload && payload.nextCursor) || null,
     markets: items.map(normalizeMarket),
@@ -260,4 +402,8 @@ module.exports = async function handler(req, res) {
 // Exposed for the unit tests, which drive these directly.
 module.exports.buildResponse = buildResponse;
 module.exports.normalizeMarket = normalizeMarket;
+module.exports.normalizePosition = normalizePosition;
 module.exports.pantaUrl = pantaUrl;
+module.exports.marketDetailUrl = marketDetailUrl;
+module.exports.positionsUrl = positionsUrl;
+module.exports.statusForCode = statusForCode;

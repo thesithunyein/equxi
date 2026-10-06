@@ -1256,10 +1256,30 @@ describe("markets API (api/markets.js)", () => {
     response?: { ok?: boolean; status?: number; body?: unknown }
   ) => ({ fetchImpl: pantaFetch(calls, response), now: NOW, apiKey });
 
+  /** A 44-char base58 string that passes the address check. */
+  const ADDRESS = "D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc";
+
+  // The payload is a union discriminated by `mode`, and a default import does
+  // not bind the namespace types, so narrow with `Extract` instead of naming
+  // `markets.ListPayload` and friends.
+  function asList<T extends { mode: string }>(p: T): Extract<T, { mode: "list" }> {
+    if (p.mode !== "list") throw new Error("expected a list payload");
+    return p as Extract<T, { mode: "list" }>;
+  }
+  function asMarket<T extends { mode: string }>(p: T): Extract<T, { mode: "market" }> {
+    if (p.mode !== "market") throw new Error("expected a market payload");
+    return p as Extract<T, { mode: "market" }>;
+  }
+  function asPositions<T extends { mode: string }>(p: T): Extract<T, { mode: "positions" }> {
+    if (p.mode !== "positions") throw new Error("expected a positions payload");
+    return p as Extract<T, { mode: "positions" }>;
+  }
+
   it("states that the feed is unconfigured instead of failing or inventing data", async () => {
     const calls: Call[] = [];
-    const payload = await markets.buildResponse({}, deps(calls, ""));
+    const payload = asList(await markets.buildResponse({}, deps(calls, "")));
 
+    expect(payload.mode).to.equal("list");
     expect(payload.configured).to.equal(false);
     expect(payload.sandbox).to.equal(false);
     expect(payload.markets).to.deep.equal([]);
@@ -1271,7 +1291,7 @@ describe("markets API (api/markets.js)", () => {
 
   it("calls the trailing-slash route with the key header and normalizes items", async () => {
     const calls: Call[] = [];
-    const payload = await markets.buildResponse({}, deps(calls));
+    const payload = asList(await markets.buildResponse({}, deps(calls)));
 
     expect(calls.length).to.equal(1);
     expect(calls[0].url).to.equal("https://live-api.panta.market/api/v1/markets/");
@@ -1286,6 +1306,144 @@ describe("markets API (api/markets.js)", () => {
     expect(payload.markets[0].phase).to.equal("primary");
     expect(payload.markets[0].volumeUsdc).to.equal("1234.56");
     expect("internalRiskScore" in payload.markets[0]).to.equal(false);
+  });
+
+  it("reads one market's detail route, where the list leaves prices null", async () => {
+    const calls: Call[] = [];
+    const detail = {
+      ...ITEM,
+      yesPrice: "0.52",
+      noPrice: "0.48",
+      primaryYesPrice: "0.52",
+      primaryNoPrice: "0.48",
+      secondaryYesPrice: null,
+      secondaryNoPrice: null,
+    };
+
+    const payload = asMarket(
+      await markets.buildResponse({ market: ADDRESS }, deps(calls, "pk_live_xyz", { body: detail }))
+    );
+
+    expect(calls.length).to.equal(1);
+    expect(calls[0].url).to.equal(
+      "https://live-api.panta.market/api/v1/markets/" + ADDRESS + "/"
+    );
+    expect(calls[0].init.headers["X-Api-Key"]).to.equal("pk_live_xyz");
+    expect(payload.mode).to.equal("market");
+    expect(payload.sandbox).to.equal(false);
+    expect(payload.market!.marketId).to.equal("mkt_ed_1");
+    expect(payload.prices!.yes).to.equal("0.52");
+    expect(payload.prices!.secondaryYes).to.equal(null);
+    // The detail row is normalized too: an undocumented vendor field stays out.
+    expect("internalRiskScore" in payload.market!).to.equal(false);
+  });
+
+  it("reads a wallet's positions, including claim eligibility and outcome", async () => {
+    const calls: Call[] = [];
+    const body = {
+      wallet: ADDRESS,
+      positions: [
+        {
+          marketId: "mkt_ed_1",
+          category: "crypto",
+          side: "yes",
+          shares: "38.40",
+          phase: "primary",
+          claimable: false,
+          claimed: false,
+          outcome: null,
+          internalNote: "must not ship",
+        },
+        {
+          marketId: "mkt_ed_2",
+          category: null,
+          side: "no",
+          shares: "5.00",
+          phase: "resolved",
+          claimable: true,
+          claimed: false,
+          outcome: "yes",
+        },
+      ],
+    };
+
+    const payload = asPositions(
+      await markets.buildResponse({ wallet: ADDRESS }, deps(calls, "pk_live_xyz", { body }))
+    );
+
+    expect(calls[0].url).to.equal(
+      "https://live-api.panta.market/api/v1/positions/?wallet=" + ADDRESS
+    );
+    expect(payload.mode).to.equal("positions");
+    expect(payload.wallet).to.equal(ADDRESS);
+    expect(payload.counts.positions).to.equal(2);
+    expect(payload.positions[1].claimable).to.equal(true);
+    expect(payload.positions[1].outcome).to.equal("yes");
+    expect("internalNote" in payload.positions[0]).to.equal(false);
+  });
+
+  it("rejects a malformed market or wallet before spending an upstream call", async () => {
+    for (const query of [{ market: "not-an-address" }, { wallet: "short" }]) {
+      const calls: Call[] = [];
+      try {
+        await markets.buildResponse(query, deps(calls));
+        expect.fail("should have thrown");
+      } catch (error) {
+        expect((error as Error & { status?: number }).status).to.equal(400);
+      }
+      expect(calls.length).to.equal(0);
+    }
+  });
+
+  it("maps MARKET_NOT_FOUND to 404 and keeps the other codes meaningful", async () => {
+    async function codeStatus(body: unknown, httpStatus: number) {
+      try {
+        await markets.buildResponse(
+          { market: ADDRESS },
+          deps([], "pk_live_xyz", { ok: false, status: httpStatus, body })
+        );
+        return null;
+      } catch (error) {
+        return (error as Error & { status?: number }).status ?? null;
+      }
+    }
+
+    expect(await codeStatus({ error: "MARKET_NOT_FOUND" }, 404)).to.equal(404);
+    expect(await codeStatus({ error: "RATE_LIMITED" }, 429)).to.equal(429);
+    expect(await codeStatus({ error: "UNAUTHORIZED" }, 401)).to.equal(502);
+  });
+
+  it("treats a malformed market or position body as a broken read, not as empty data", async () => {
+    async function bodyStatus(query: Record<string, string>, body: unknown) {
+      try {
+        await markets.buildResponse(query, deps([], "pk_live_xyz", { body }));
+        return null;
+      } catch (error) {
+        return (error as Error & { status?: number }).status ?? null;
+      }
+    }
+
+    expect(await bodyStatus({ market: ADDRESS }, { title: "no market id" })).to.equal(502);
+    expect(await bodyStatus({ wallet: ADDRESS }, { wallet: ADDRESS })).to.equal(502);
+  });
+
+  it("says an unconfigured feed is off in every mode", async () => {
+    const calls: Call[] = [];
+
+    const market = asMarket(await markets.buildResponse({ market: ADDRESS }, deps(calls, "")));
+    expect(market.mode).to.equal("market");
+    expect(market.configured).to.equal(false);
+    expect(market.market).to.equal(null);
+
+    const positions = asPositions(
+      await markets.buildResponse({ wallet: ADDRESS }, deps(calls, ""))
+    );
+    expect(positions.mode).to.equal("positions");
+    expect(positions.configured).to.equal(false);
+    expect(positions.positions).to.deep.equal([]);
+    expect(positions.counts.positions).to.equal(0);
+
+    expect(calls.length).to.equal(0); // No key, no upstream call, in any mode.
   });
 
   it("labels a pk_test_ key as a sandbox and passes Panta's disclaimer through", async () => {

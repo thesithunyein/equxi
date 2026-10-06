@@ -220,7 +220,7 @@ equxi/
 ├── eliza-plugin/             elizaOS plugin (IDL-free; encodes from coder.ts)
 ├── api/trust.js              GET /api/trust, public read API (Vercel function)
 ├── api/badge.js              GET /api/badge, embeddable SVG trust badge
-├── api/markets.js            GET /api/markets, Panta markets feed (sandbox labelled)
+├── api/markets.js            GET /api/markets, Panta read feed: list, market detail, positions
 ├── api/health.js             GET /api/health, is the read path up, and which build
 ├── lib/equxi-layout.js       Account layouts + scoring for the API (no deps)
 ├── dev-server.js             Static server + read API for local development
@@ -470,9 +470,22 @@ in `eliza-plugin/src/coder.ts`.
 ## Panta markets feed
 
 Equxi tells you whether an agent's collateral is at risk; the markets an agent
-trades are the other half of the picture. `GET /api/markets` reads the
-operator's own markets live from [Panta's](https://panta.market) API and
-normalizes them into one flat list. It never custodies or signs anything.
+trades are the other half of the picture. `GET /api/markets` reads live from
+[Panta's](https://panta.market) API and normalizes the answer into one flat
+shape. It never custodies or signs anything.
+
+The endpoint answers three documented Panta reads, chosen by query:
+
+| Query | Panta route | Answers |
+|-------|-------------|---------|
+| *(none)* | `GET /markets/` | The catalog list, with cursor paging |
+| `?market=<marketId>` | `GET /markets/{marketId}/` | One market, with the spot `yesPrice` / `noPrice` the list leaves `null` |
+| `?wallet=<pubkey>` | `GET /positions/?wallet=` | That wallet's holdings: `side`, `shares`, `claimable`, `claimed`, `outcome` |
+
+The last two are the pair Panta's own documentation tells you to combine:
+positions carry share quantity and claim eligibility, the market detail carries
+the price used to value them (`shares × side price`). Serving both means a
+reader can price a holding without a wallet, an SDK, or a Panta account.
 
 **Powered by Panta**: the attribution Panta's Terms of Use require wherever
 Panta-powered functionality appears. It is carried in the JSON payload
@@ -484,6 +497,12 @@ curl https://equxi.sithunyein.com/api/markets
 
 # Filtered, with Panta's cursor pagination forwarded
 curl "https://equxi.sithunyein.com/api/markets?category=sports&status=open&createdBy=me&limit=50"
+
+# One market, with the spot prices the list route omits
+curl "https://equxi.sithunyein.com/api/markets?market=<marketId>"
+
+# A wallet's positions, with claim eligibility
+curl "https://equxi.sithunyein.com/api/markets?wallet=<pubkey>"
 ```
 
 With a `pk_test_` key — the sandbox shape the fixture below comes from:
