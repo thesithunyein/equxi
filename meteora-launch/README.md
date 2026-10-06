@@ -98,3 +98,35 @@ migration fee splits, pool creation with metadata, curve swaps with partial fill
 graduation boundary, manual migration to DAMM v2, and post-graduation fee claims — plus the
 Equxi side of the story, which is what makes the launch worth doing on DBC at all:
 collateral that a counterparty can read before it does business with the launched agent.
+
+## Presets — the config, published as data
+
+The config this launch built is published as a preset, so a builder can read it,
+validate it, and reuse it without reading the launcher:
+
+```
+meteora-launch/presets/safety-escrow.json
+```
+
+```bash
+node -e 'const p = require("./meteora-launch/presets"); console.log(p.listPresets()); console.log(p.loadPreset("safety-escrow").escrow);'
+```
+
+`presets/index.js` is dependency-free: it reads the JSON, checks the invariants a
+wrong value breaks *silently* (a fee percentage above 100, curve weights that do not
+describe the price points, escrow aimed at nothing), and returns `{ ok, errors }`.
+`loadPreset(name)` throws with every reason at once rather than the first.
+
+What makes this a **safety-escrow** preset and not a plain DBC config is the
+`escrow` block: the creator's share of the migration fee
+(`migrationFee.creatorFeePercentage`) is not spent, it funds the launched agent's
+slashable bond. The `ordering` block encodes the one step the chain taught us —
+claim trading fees **before** `migrate_to_damm_v2`, or the fee vaults leave with the
+migration and the claim can never execute.
+
+`tests/unit/meteora-preset.test.ts` pins the preset to the run it describes: every
+address in `provenance` must equal the matching entry in `launch-state.json`, so the
+published config cannot drift from the launch that produced it.
+
+Mapping the preset's enum-name strings onto the DBC SDK's enum members is the
+launcher's job, because this directory is where the SDK is installed.

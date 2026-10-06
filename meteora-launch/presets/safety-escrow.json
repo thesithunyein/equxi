@@ -1,0 +1,88 @@
+{
+  "name": "safety-escrow",
+  "version": 1,
+  "title": "Safety-escrow launch",
+  "summary": "A DBC launch whose graduation proceeds become the launched agent's slashable collateral.",
+  "useCase": "ai",
+  "why": "A launch that creates a token and a consequence at the same time. The config routes a slice of the graduation proceeds to the launch, and that slice is posted as an Equxi agent's bond, so the token's launch funds the collateral that backs the agent it launches. When the collateral is slashed, a counterparty can see it through a public read API before serving the agent.",
+
+  "token": {
+    "tokenType": "spl_token",
+    "tokenBaseDecimal": 6,
+    "tokenQuoteDecimal": 9,
+    "tokenAuthorityOption": "partner_update_authority",
+    "totalTokenSupply": 1000000000,
+    "leftover": 1000
+  },
+
+  "fee": {
+    "baseFeeMode": "fee_scheduler_linear",
+    "startingFeeBps": 100,
+    "endingFeeBps": 100,
+    "numberOfPeriod": 0,
+    "totalDuration": 0,
+    "dynamicFeeEnabled": false,
+    "collectFeeMode": "quote_token",
+    "creatorTradingFeePercentage": 50,
+    "poolCreationFee": 0,
+    "enableFirstSwapWithMinFee": false
+  },
+
+  "migration": {
+    "migrationOption": "met_damm_v2",
+    "migrationFeeOption": "customizable",
+    "migrationFee": {
+      "feePercentage": 10,
+      "creatorFeePercentage": 50
+    },
+    "migratedPoolFee": {
+      "collectFeeMode": "quote_token",
+      "dynamicFee": "enabled",
+      "poolFeeBps": 120,
+      "baseFeeMode": "fee_time_scheduler_linear"
+    }
+  },
+
+  "liquidityDistribution": {
+    "partnerLiquidityPercentage": 0,
+    "partnerPermanentLockedLiquidityPercentage": 100,
+    "creatorLiquidityPercentage": 0,
+    "creatorPermanentLockedLiquidityPercentage": 0
+  },
+
+  "curve": {
+    "shape": "three-segment linear",
+    "activationType": "timestamp",
+    "sqrtPrices": [0.000000001, 0.00000000105, 0.00000000125, 0.0000000015],
+    "liquidityWeights": [2, 1, 1],
+    "raisesQuoteSol": 1.4,
+    "graduatesAtSol": 0.698,
+    "note": "Price steps are deliberately tiny because this preset exists to demonstrate the mechanism — graduation, then escrow — not a price target. The absolute scale of the weights is what sets the graduation threshold; raise it for a mainnet-scale curve. The mechanism does not change."
+  },
+
+  "escrow": {
+    "protocol": "equxi",
+    "fundedBy": "migrationFee.creatorFee",
+    "bondLamports": 100000000,
+    "bondLockSeconds": 2592000,
+    "note": "Where this preset departs from a plain DBC launch: the quote the creator is entitled to at graduation is not spent, it is posted as the agent's slashable bond. bondLamports is Equxi's minimum; a curve whose threshold exceeds this funds the bond without a top-up."
+  },
+
+  "ordering": {
+    "mustClaimTradingFeesBeforeMigration": true,
+    "reason": "migrate_to_damm_v2 takes the curve's fee vaults with it. A creator trading fee that is still unclaimed at migration stays unclaimed forever — the call still reports the amount, but can no longer execute. Claim trading fees first."
+  },
+
+  "provenance": {
+    "network": "devnet",
+    "ranAt": "2026-10-04",
+    "config": "DkLTrHbx1oxktJmiSu8HNEduhEYnHaZAaHiVNeKDfG8u",
+    "baseMint": "7qxExXZ91PCJjaHW4NFHtkFcHNjupjehCuKBJkSKUU6h",
+    "pool": "GQDjSW193Bim5sYHjcBMqtsgGzJa8Bh5FdJc4JL9Fq6f",
+    "dammV2Config": "A8gMrEPJkacWkcb3DGwtJwTe16HktSEfvwtuDh2MCtck",
+    "agent": "9CvFbUciyP4APMVyzjLiR2znFmMTEPNqfGAP37PDNU4J",
+    "bond": "CU5R3w8Di4JKdkXzK68TWWrynUqUiAwDgXErUbsUMyJF",
+    "steps": "../launch-steps.json",
+    "readBack": "https://equxi.sithunyein.com/api/trust?agent=9CvFbUciyP4APMVyzjLiR2znFmMTEPNqfGAP37PDNU4J"
+  }
+}
