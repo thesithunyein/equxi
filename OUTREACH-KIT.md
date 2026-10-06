@@ -68,8 +68,8 @@ Ask one person who ships agents or runs a marketplace/API — the honest ask:
 
 A usable quote sounds like: *"Before I let an unknown agent call our API, I'd want to see
 that something gets taken from it if it misbehaves."* — logged as a name + date in
-`WINNING-PLAN.md` §1's Traction row. Do not smoothing it into marketing language; the
-credibility is in it being theirs.
+your own outreach log. Do not smooth it into marketing language; the credibility is in
+it being theirs.
 
 ## 6. Where to send it, in order of yield
 

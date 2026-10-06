@@ -544,7 +544,7 @@ victim **+0.2000** → `/api/trust` reports the compensation. Slash tx:
 > (`vault.totalSlashed grew by exactly the seizure`), which also makes the demo
 > re-recordable without resetting chain state. The 13/13 above is the re-run after the fix.
 
-Commands, timings, costs and fallbacks: [`DEMO-RUNBOOK.md`](DEMO-RUNBOOK.md).
+Commands, timings, costs and fallbacks: kept in a local runbook, not tracked in this repo.
 
 ## Still open: one escrow pool for every agent
 

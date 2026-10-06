@@ -40,3 +40,10 @@ dist/
 !eliza-plugin/dist/**
 
 .vercel
+
+# Local-only submission notes: kept on disk, never pushed.
+COLOSSEUM-SUBMISSION.md
+DEMO-RUNBOOK.md
+PITCH-SCRIPT.md
+WINNING-PLAN.md
+TRACK-READINESS.md

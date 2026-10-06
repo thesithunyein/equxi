@@ -76,8 +76,6 @@ https://equxi.sithunyein.com · Launch page: https://equxi.sithunyein.com/launch
 |---|---|
 | Tests, findings, counts | [`TEST-RESULTS.md`](TEST-RESULTS.md) |
 | Invariants and instruction specs | [`SPEC.md`](SPEC.md) |
-| Full submission write-up | [`COLOSSEUM-SUBMISSION.md`](COLOSSEUM-SUBMISSION.md) |
-| Track-by-track audit | [`TRACK-READINESS.md`](TRACK-READINESS.md) |
 | Live read API | https://equxi.sithunyein.com/api/trust |
 | Meteora DBC launch (second integration) | [`launch.html`](launch.html) |
 
