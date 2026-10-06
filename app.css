@@ -247,7 +247,7 @@ button { border: none; background: none; cursor: pointer; font: inherit; color: 
 
 /* Modal */
 .modal-overlay {
-  position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  position: fixed; inset: 0; background: rgba(28, 25, 22, 0.35); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
   display: none; align-items: center; justify-content: center; z-index: 200; padding: 24px;
 }
 .modal-overlay.open { display: flex; }
