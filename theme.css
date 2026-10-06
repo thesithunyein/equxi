@@ -603,6 +603,18 @@ img[src*="logo.webp"] {
   }
 }
 
+/* ------------------------------------------------------- icon-only nav links */
+
+/* GitHub and X are glyphs with no visible label, so their link box is only as
+ * big as the 14px icon. This padding grows the target (for a mouse or a
+ * finger) and the equal negative margin keeps the row's spacing and look
+ * exactly as it was. Both links carry an aria-label, so the glyphs are still
+ * announced by a screen reader. */
+.nav-link[aria-label] {
+  padding: 8px 10px;
+  margin: -8px -10px;
+}
+
 /* ------------------------------------------------------------------- motion */
 
 @media (prefers-reduced-motion: reduce) {
