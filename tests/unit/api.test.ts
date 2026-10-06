@@ -23,8 +23,11 @@ import { PublicKey } from "@solana/web3.js";
 // strips types rather than transpiling.
 import L from "../../lib/equxi-layout";
 import badge from "../../api/badge";
+import health from "../../api/health";
 import markets from "../../api/markets";
 import trust from "../../api/trust";
+import log from "../../lib/log";
+import throttle from "../../lib/rate-limit";
 
 /** Local aliases, because a default import does not bind the namespace types. */
 type FetchImpl = (url: string, init: { body: string }) => Promise<{
@@ -600,6 +603,19 @@ describe("read API (api/trust.js)", () => {
       };
     }
 
+    /** Run the handler against a stubbed RPC, restoring the real fetch after. */
+    async function handle(query: Record<string, string>, method = "GET", stub = fullStub()) {
+      const originalFetch = globalThis.fetch;
+      (globalThis as { fetch: unknown }).fetch = stub.fetchImpl;
+      try {
+        const { res, headers, bodyText } = makeRes();
+        await trust({ method, query }, res);
+        return { statusCode: res.statusCode, headers, body: bodyText() };
+      } finally {
+        (globalThis as { fetch: unknown }).fetch = originalFetch;
+      }
+    }
+
     it("answers a CORS preflight with 204", async () => {
       const { res } = makeRes();
       await trust({ method: "OPTIONS" }, res);
@@ -629,6 +645,36 @@ describe("read API (api/trust.js)", () => {
       } finally {
         (globalThis as { fetch: unknown }).fetch = originalFetch;
       }
+    });
+
+    it("answers 404 for a named agent that holds no account", async () => {
+      // A caller asking about one address has to be able to tell "not found"
+      // from "found, with nothing at stake". Only the first is a 404.
+      const out = await handle({ agent: OTHER_OWNER });
+      expect(out.statusCode).to.equal(404);
+
+      const body = JSON.parse(out.body);
+      expect(body.ok).to.equal(false);
+      expect(body.code).to.equal("AGENT_NOT_FOUND");
+      expect(body.address).to.equal(OTHER_OWNER);
+      expect(body.error).to.include(OTHER_OWNER);
+      expect(out.headers["x-equxi-status"]).to.equal("unknown");
+    });
+
+    it("answers 200 for an owner with no agents, because that is an answer", async () => {
+      // The distinction the 404 existence rests on: an owner address exists, it
+      // simply holds no agents, so it is not a missing resource. The empty stub
+      // is how "an owner with no agents" looks from the endpoint's side.
+      const out = await handle({ owner: OTHER_OWNER }, "GET", new StubRpc({}));
+      expect(out.statusCode).to.equal(200);
+      expect(JSON.parse(out.body).counts.agents).to.equal(0);
+    });
+
+    it("answers 200 for an agent that exists, with no unknown marker", async () => {
+      const out = await handle({ agent: AGENT_ADDR });
+      expect(out.statusCode).to.equal(200);
+      expect(JSON.parse(out.body).counts.agents).to.equal(1);
+      expect(out.headers["x-equxi-status"]).to.equal(undefined);
     });
   });
 
@@ -751,6 +797,46 @@ describe("read API (api/trust.js)", () => {
         if (before.vercelEnv !== undefined) process.env.VERCEL_ENV = before.vercelEnv;
       }
     });
+  });
+});
+
+/**
+ * The request throttle. It is the only thing standing between a client that
+ * varies its query on every request and a whole-program scan per request, so
+ * the two behaviours worth pinning are that it counts, and that it can never
+ * be the reason a legitimate read fails.
+ */
+describe("request throttle (lib/rate-limit.js)", () => {
+  /** A request shaped like the platform's, with a caller we control. */
+  function requestFrom(ip: string) {
+    return { headers: { "x-forwarded-for": ip }, socket: { remoteAddress: ip } } as never;
+  }
+
+  it("allows the budget and refuses the request after it", () => {
+    const ip = "198.51.100.9";
+    for (let i = 0; i < throttle.MAX_PER_WINDOW; i++) {
+      expect(throttle.limited(requestFrom(ip)), `refused request ${i + 1} of the budget`).to.equal(
+        false
+      );
+    }
+    expect(throttle.limited(requestFrom(ip))).to.equal(true);
+  });
+
+  it("counts each client separately", () => {
+    const other = "203.0.113.44";
+    expect(throttle.limited(requestFrom(other))).to.equal(false);
+  });
+
+  it("reads the first hop of a forwarded chain", () => {
+    expect(throttle.clientIp({ headers: { "x-forwarded-for": "9.9.9.9, 10.0.0.1" } } as never)).to.equal(
+      "9.9.9.9"
+    );
+    expect(throttle.clientIp({ headers: {} } as never)).to.equal("unknown");
+  });
+
+  it("fails open when the request carries nothing to key on", () => {
+    expect(throttle.limited(null as never)).to.equal(false);
+    expect(throttle.limited({} as never)).to.equal(false);
   });
 });
 
@@ -1131,6 +1217,197 @@ describe("markets API (api/markets.js)", () => {
     } finally {
       (globalThis as { fetch: unknown }).fetch = originalFetch;
       if (originalKey !== undefined) process.env.PANTA_API_KEY = originalKey;
+    }
+  });
+});
+
+/* ── health ───────────────────────────────────────────────────────────── */
+
+/**
+ * `GET /api/health` is the one endpoint that answers *is the read path up?*
+ * rather than *what is the state?*. Its two jobs are to say so honestly when
+ * the node does not answer, and to name the Panta feed this deployment is
+ * wired to without ever echoing the key.
+ */
+describe("health API (api/health.js)", () => {
+  function makeRes() {
+    const headers: Record<string, string> = {};
+    let body = "";
+    return {
+      res: {
+        statusCode: 0,
+        setHeader(name: string, value: string) {
+          headers[name] = value;
+        },
+        end(chunk?: string) {
+          body = chunk || "";
+        },
+      },
+      headers,
+      bodyText: () => body,
+    };
+  }
+
+  /** A fetch that answers one JSON-RPC call the way the test asks it to. */
+  type RpcFetch = () => Promise<{ ok: boolean; status: number; json: () => Promise<unknown> }>;
+
+  async function handle(rpc: RpcFetch, query: Record<string, string> = {}) {
+    const originalFetch = globalThis.fetch;
+    const before = {
+      rpc: process.env.EQUXI_RPC,
+      cluster: process.env.EQUXI_CLUSTER,
+    };
+    // Deterministic host: the assertion below is about what health reports, not
+    // about whatever endpoint this machine happens to prefer.
+    delete process.env.EQUXI_RPC;
+    delete process.env.EQUXI_CLUSTER;
+    (globalThis as { fetch: unknown }).fetch = rpc;
+    try {
+      const { res, headers, bodyText } = makeRes();
+      await health({ method: "GET", query }, res);
+      return { statusCode: res.statusCode, headers, body: JSON.parse(bodyText()) };
+    } finally {
+      (globalThis as { fetch: unknown }).fetch = originalFetch;
+      if (before.rpc === undefined) delete process.env.EQUXI_RPC;
+      else process.env.EQUXI_RPC = before.rpc;
+      if (before.cluster === undefined) delete process.env.EQUXI_CLUSTER;
+      else process.env.EQUXI_CLUSTER = before.cluster;
+    }
+  }
+
+  it("reports the upstream host, the slot and the latency when the node answers", async () => {
+    const out = await handle(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ result: 508_100_000 }),
+    }));
+
+    expect(out.statusCode).to.equal(200);
+    expect(out.body.ok).to.equal(true);
+    expect(out.body.upstream.reachable).to.equal(true);
+    expect(out.body.upstream.slot).to.equal(508_100_000);
+    expect(out.body.upstream.host).to.equal("api.devnet.solana.com");
+    expect(out.body.upstream.latencyMs).to.be.a("number");
+    expect(out.headers["cache-control"]).to.equal("no-store");
+    // Host only: a paid provider's URL can carry a key in its path.
+    expect(JSON.stringify(out.body)).to.not.include("https://");
+  });
+
+  it("answers 503 naming the reason when the node does not answer", async () => {
+    const out = await handle(async () => ({ ok: false, status: 503, json: async () => ({}) }));
+
+    expect(out.statusCode).to.equal(503);
+    expect(out.body.ok).to.equal(false);
+    expect(out.body.upstream.reachable).to.equal(false);
+    expect(out.body.upstream.error).to.be.a("string");
+  });
+
+  it("names a sandbox Panta feed without leaking the key", async () => {
+    const key = "pk_test_unit_only";
+    const before = process.env.PANTA_API_KEY;
+    process.env.PANTA_API_KEY = key;
+    try {
+      const out = await handle(async () => ({ ok: true, status: 200, json: async () => ({ result: 1 }) }));
+      expect(out.body.feeds.panta).to.deep.equal({ configured: true, sandbox: true });
+      expect(JSON.stringify(out.body)).to.not.include(key);
+    } finally {
+      if (before === undefined) delete process.env.PANTA_API_KEY;
+      else process.env.PANTA_API_KEY = before;
+    }
+  });
+
+  it("answers a preflight with 204 and other methods with 405", async () => {
+    const { res: preflight } = makeRes();
+    await health({ method: "OPTIONS" }, preflight);
+    expect(preflight.statusCode).to.equal(204);
+
+    const { res: posted, bodyText } = makeRes();
+    await health({ method: "POST" }, posted);
+    expect(posted.statusCode).to.equal(405);
+    expect(JSON.parse(bodyText()).error).to.match(/GET/);
+  });
+});
+
+/* ── access log ───────────────────────────────────────────────────────── */
+
+/**
+ * The access log is the deployment's only usage signal, and its one hard rule
+ * is that it can never change an answer: a request must succeed whether or not
+ * a line could be written.
+ */
+describe("access log (lib/log.js)", () => {
+  const ORIGINAL = {
+    vercel: process.env.VERCEL,
+    vercelEnv: process.env.VERCEL_ENV,
+    log: process.env.EQUXI_LOG,
+  };
+
+  function restore() {
+    if (ORIGINAL.vercel === undefined) delete process.env.VERCEL;
+    else process.env.VERCEL = ORIGINAL.vercel;
+    if (ORIGINAL.vercelEnv === undefined) delete process.env.VERCEL_ENV;
+    else process.env.VERCEL_ENV = ORIGINAL.vercelEnv;
+    if (ORIGINAL.log === undefined) delete process.env.EQUXI_LOG;
+    else process.env.EQUXI_LOG = ORIGINAL.log;
+  }
+
+  it("is silent unless a deployment or EQUXI_LOG asks for it", () => {
+    try {
+      delete process.env.VERCEL;
+      delete process.env.VERCEL_ENV;
+      delete process.env.EQUXI_LOG;
+      expect(log.enabled()).to.equal(false);
+
+      process.env.EQUXI_LOG = "1";
+      expect(log.enabled()).to.equal(true);
+
+      delete process.env.EQUXI_LOG;
+      process.env.VERCEL = "1";
+      expect(log.enabled()).to.equal(true);
+
+      process.env.EQUXI_LOG = "0";
+      expect(log.enabled()).to.equal(false);
+    } finally {
+      restore();
+    }
+  });
+
+  it("writes exactly one line per response, with the status and the latency", () => {
+    process.env.EQUXI_LOG = "1";
+    const lines: string[] = [];
+    const originalConsoleLog = console.log;
+    (console as { log: unknown }).log = (chunk: string) => lines.push(chunk);
+    try {
+      const res = { statusCode: 200, end: (_chunk?: string) => undefined };
+      log.track("trust", { method: "GET", query: { cluster: "devnet", agent: AGENT_ADDR } }, res);
+      res.statusCode = 404;
+      res.end("{}");
+      res.end("{}"); // A second end must not log a second line.
+
+      expect(lines).to.have.length(1);
+      const line = JSON.parse(lines[0]);
+      expect(line.route).to.equal("trust");
+      expect(line.method).to.equal("GET");
+      expect(line.status).to.equal(404);
+      expect(line.cluster).to.equal("devnet");
+      expect(line.target).to.equal(AGENT_ADDR);
+      expect(line.ms).to.be.a("number");
+    } finally {
+      (console as { log: unknown }).log = originalConsoleLog;
+      restore();
+    }
+  });
+
+  it("cannot fail a request when there is nothing to log onto", () => {
+    process.env.EQUXI_LOG = "1";
+    try {
+      expect(() => log.track("health", null, null)).to.not.throw();
+      expect(() => log.track("health", {}, {} as never)).to.not.throw();
+      expect(() =>
+        log.track("health", {} as never, { statusCode: 200, end: "not a function" } as never)
+      ).to.not.throw();
+    } finally {
+      restore();
     }
   });
 });

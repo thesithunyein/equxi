@@ -70,6 +70,35 @@ jobs:
           # that ships the markup without the script (or the reverse) still
           # returns 200 on every page and looks completely fine. Assert both
           # halves of the landing page are actually being served.
+          # contract <label> <url> <expected-status>
+          # The status is part of the API's contract, not a detail: a caller
+          # asking about one address branches on 404. Retried like `check`,
+          # because the previous build answers 200 here and a push can surface
+          # the new one a beat later.
+          contract() {
+            label="$1"; url="$2"; want="$3"
+            n=0; code=000
+            while [ $n -lt 6 ]; do
+              code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 -H 'cache-control: no-cache' "$url" 2>/dev/null || true)
+              if [ "$code" = "$want" ]; then
+                printf '%-18s %s\n' "$label" "$code"
+                return 0
+              fi
+              n=$((n+1))
+              if [ $n -lt 6 ]; then sleep 10; fi
+            done
+            printf '%-18s FAILED (last status %s, want %s)\n' "$label" "$code" "$want"
+            return 1
+          }
+
+          # A valid address that holds no agent account is a 404, so "not found"
+          # is distinguishable from "found, with nothing at stake". A named owner
+          # with no agents is still a 200: the address exists.
+          absent=SysvarRent111111111111111111111111111111111
+          contract "unknown agent" "$BASE/api/trust?agent=$absent" 404 || fail=1
+          contract "unknown owner" "$BASE/api/trust?owner=$absent" 200 || fail=1
+          contract "api/health" "$BASE/api/health" 200 || fail=1
+
           check "/ (live stats)" "$BASE/" 'data-fill="bonded"' || fail=1
           check "/landing.js" "$BASE/landing.js" "api/trust" || fail=1
 
@@ -78,8 +107,21 @@ jobs:
           # rather than fail: a third-party outage must not redden the build.
           markets=$(curl -s --max-time 20 -H 'cache-control: no-cache' "$BASE/api/markets" || true)
           case "$markets" in
-            *'"configured":true'*) echo "Panta feed: configured" ;;
+            *'"configured":true'*)
+              case "$markets" in
+                *'"sandbox":true'*) echo "::warning title=Panta feed::/api/markets is answering with SANDBOX fixtures (pk_test_). Set PANTA_API_KEY to a pk_live_ key to serve real markets." ;;
+                *) echo "Panta feed: configured (live)" ;;
+              esac
+              ;;
             *) echo "::warning title=Panta feed::/api/markets is not configured on production." ;;
+          esac
+
+          # Health names which Panta feed the deployment is wired to, so the
+          # sandbox state is visible without reading a payload the Explorer renders.
+          health=$(curl -s --max-time 20 -H 'cache-control: no-cache' "$BASE/api/health" || true)
+          case "$health" in
+            *'"reachable":true'*) echo "Health: upstream reachable" ;;
+            *) echo "::warning title=Health::/api/health did not report a reachable upstream." ;;
           esac
 
           title=$(curl -s --max-time 20 -H 'cache-control: no-cache' "$BASE/" | grep -o '<title>[^<]*</title>' || true)

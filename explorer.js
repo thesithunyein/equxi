@@ -244,6 +244,14 @@
             return null;
           })
           .then(function (body) {
+            // A pubkey may be an agent PDA or an owner wallet, and the reader
+            // should not have to know which. The API answers 404 for an address
+            // that holds no agent account, which is exactly the case the owner
+            // fallback below exists for, so a 404 on a single-agent read is
+            // handed on as an empty registry rather than treated as an error.
+            if (response.status === 404 && request.mode === "agent") {
+              return { ok: true, cluster: body && body.cluster, agents: [] };
+            }
             if (!response.ok || !body || !body.ok) {
               var failure = new Error(body && body.error ? body.error : "HTTP " + response.status);
               // The API answered and told us why. Do not blame the deployment.
@@ -254,9 +262,8 @@
           });
       })
       .then(function (body) {
-        // A pubkey may be an agent PDA or an owner wallet, and the reader should
-        // not have to know which. Try the cheap point read first, then the owner
-        // index, and only then report that nothing is registered.
+        // Try the cheap point read first, then the owner index, and only then
+        // report that nothing is registered.
         if (request.mode === "agent" && body.agents.length === 0) {
           return followOwnerFallback(request);
         }

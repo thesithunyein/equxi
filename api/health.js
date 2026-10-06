@@ -19,10 +19,17 @@
  *
  * The upstream is reported as its **host only**: a paid provider's URL can
  * carry an API key in its path, and health output gets pasted into issues.
+ *
+ * It also states which Panta feed this deployment is wired to. A `pk_test_` key
+ * answers with sandbox fixtures, which is a fact a reader of `/api/markets`
+ * should not have to discover from a disclaimer field — so the health payload
+ * names it. This is informational and never changes the status code: an
+ * unconfigured or sandbox feed is a deliberate configuration, not an outage.
  */
 "use strict";
 
 var trust = require("./trust.js");
+var log = require("../lib/log.js");
 
 /** A health check that can hang is not a health check. */
 var TIMEOUT_MS = 5000;
@@ -34,6 +41,17 @@ function hostOf(url) {
   } catch (error) {
     return "unparseable";
   }
+}
+
+/**
+ * Which Panta feed this deployment talks to. `sandbox` is a `pk_test_` key,
+ * whose answers are fixtures; `live` is a `pk_live_` key. Never a secret — only
+ * the mode is reported, never the key.
+ */
+function pantaFeed() {
+  var key = process.env.PANTA_API_KEY || "";
+  if (!key) return { configured: false, sandbox: null };
+  return { configured: true, sandbox: key.indexOf("pk_test_") === 0 };
 }
 
 /**
@@ -56,6 +74,10 @@ module.exports = async function handler(req, res) {
     return res.end(JSON.stringify({ ok: false, error: "method not allowed; use GET" }));
   }
 
+  // A health check is a request like any other; logging it is how an operator
+  // notices a poller that has started failing rather than merely slow.
+  log.track("health", req, res);
+
   var cluster = (req.query && req.query.cluster) || process.env.EQUXI_CLUSTER || "devnet";
   var rpcUrl = process.env.EQUXI_RPC || trust.CLUSTER_RPC[cluster];
 
@@ -71,6 +93,7 @@ module.exports = async function handler(req, res) {
     cluster: cluster,
     program: trust.PROGRAM_ID,
     upstream: { host: hostOf(rpcUrl) },
+    feeds: { panta: pantaFeed() },
     generatedAt: Math.floor(Date.now() / 1000),
   };
 

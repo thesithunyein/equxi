@@ -38,6 +38,7 @@
 
 var L = require("../lib/equxi-layout.js");
 var trust = require("./trust.js");
+var log = require("../lib/log.js");
 
 /** Badge colours by grade. `ungraded`/`unknown` are grey on purpose. */
 var GRADE_COLORS = {
@@ -242,6 +243,11 @@ module.exports = async function handler(req, res) {
     res.setHeader("content-type", "application/json; charset=utf-8");
     return res.end(JSON.stringify({ ok: false, error: "method not allowed; use GET" }));
   }
+
+  // One line per badge render. Worth having here specifically: a badge is
+  // hot-linked from READMEs, so its request pattern is the one no page load
+  // explains.
+  log.track("badge", req, res);
 
   var query = req.query || {};
   var format = query.format === "json" ? "json" : "svg";

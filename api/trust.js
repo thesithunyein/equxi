@@ -30,6 +30,14 @@
  * | `cluster=devnet\|testnet\|mainnet-beta` | RPC cluster (default `devnet`) |
  * | `rpc=<url>` | Explicit RPC endpoint. Development only: a deployment refuses it unless `EQUXI_ALLOW_RPC=1` |
  *
+ * A query that names one address (`agent=` or `owner=`) and finds nothing is
+ * still a `200`: an owner with no agents is an answer, not an error.
+ * `?agent=<pubkey>` is the one exception. A named agent that holds no account
+ * is a `404` with `code: "AGENT_NOT_FOUND"`, because a caller asking about a
+ * single address has to be able to tell "not found" from "found, with nothing
+ * at stake" — and only the first is a missing resource. A named owner is never
+ * a 404: the address exists, it just holds no agents.
+ *
  * A deployment can set `EQUXI_RPC` to make every read default to a dedicated
  * endpoint (for example RPC Fast's Focus plan); an explicit `?rpc=` still wins.
  */
@@ -37,6 +45,7 @@
 
 var L = require("../lib/equxi-layout.js");
 var throttle = require("../lib/rate-limit.js");
+var log = require("../lib/log.js");
 
 var CLUSTER_RPC = {
   devnet: "https://api.devnet.solana.com",
@@ -466,6 +475,10 @@ module.exports = async function handler(req, res) {
     return res.end(JSON.stringify({ ok: false, error: "method not allowed; use GET" }));
   }
 
+  // One line per real request, with the status and the latency. Attached here so
+  // it covers the throttle refusal and the error paths too, not just the reads.
+  log.track("trust", req, res);
+
   // Best effort, per instance: see lib/rate-limit.js for what this does and
   // does not cover. The CDN cache is the real shield for repeat readers.
   if (throttle.limited(req)) {
@@ -484,6 +497,27 @@ module.exports = async function handler(req, res) {
       fetchImpl: globalThis.fetch,
       now: Math.floor(Date.now() / 1000),
     });
+
+    // A named agent that does not exist is a 404, not an empty registry. See
+    // the note at the top of this file. The badge keeps its own rule — a grey
+    // `unknown` at 200 — because it is an image in someone's README, where a
+    // 404 renders as nothing at all.
+    var wanted = (req.query || {}).agent;
+    if (wanted && payload.counts.agents === 0) {
+      res.statusCode = 404;
+      res.setHeader("cache-control", "public, s-maxage=" + CACHE_SECONDS);
+      res.setHeader("x-equxi-status", "unknown");
+      return res.end(
+        JSON.stringify({
+          ok: false,
+          code: "AGENT_NOT_FOUND",
+          error: "no agent account at " + wanted + " on " + payload.cluster,
+          address: wanted,
+          cluster: payload.cluster,
+          program: payload.program,
+        })
+      );
+    }
 
     res.statusCode = 200;
     res.setHeader(

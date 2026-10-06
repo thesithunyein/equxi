@@ -335,6 +335,13 @@ curl "https://equxi.sithunyein.com/api/trust?agent=<pda>"
 curl "https://equxi.sithunyein.com/api/trust?owner=<wallet>"
 ```
 
+A named `agent=` that holds no account answers **`404`** with
+`code: "AGENT_NOT_FOUND"` and `x-equxi-status: unknown`, so a caller asking about
+one address can tell *not found* from *found, with nothing at stake*. A named
+`owner=` with no agents is a **`200`**: the address exists, it simply holds none.
+(The embeddable badge keeps its own rule — a grey `not found` at `200` — because
+it is an image in someone's README, where a `404` renders as nothing at all.)
+
 A deployment can set `EQUXI_RPC` to make every read default to a dedicated
 endpoint (for example RPC Fast's Focus plan); an explicit `?rpc=` still wins.
 
@@ -378,6 +385,27 @@ deduction, summing exactly to `score` (including the floor, which is recorded as
 its own entry so the arithmetic still closes). A counterparty can therefore check
 the number instead of trusting it, and `tests/unit/read.test.ts` pins the
 invariant.
+
+## Is the read path up?
+
+Every page on this site draws its numbers from one upstream RPC, and when that
+node is slow the pages still render — stale or empty, with nothing saying so.
+`GET /api/health` is that "so": one cheap `getSlot`, answered `200` with the
+slot and the round-trip time, or `503` with the reason. The upstream is reported
+as its **host only**, so a paid provider's key never leaves in a response body.
+
+```bash
+curl https://equxi.sithunyein.com/api/health
+# {"ok":true,"cluster":"devnet","upstream":{"host":"api.devnet.solana.com",
+#  "reachable":true,"slot":508100000,"latencyMs":141},
+#  "feeds":{"panta":{"configured":true,"sandbox":false}}}
+```
+
+It also states which Panta feed the deployment is wired to. A `pk_test_` key
+answers with sandbox fixtures, which a reader of `/api/markets` should not have
+to infer from a disclaimer, so `feeds.panta.sandbox` names it. This is
+informational and never changes the status code: an unconfigured or sandbox feed
+is a deliberate configuration, not an outage.
 
 ## Embeddable trust badge
 

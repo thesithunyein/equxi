@@ -45,6 +45,9 @@
  */
 "use strict";
 
+var throttle = require("../lib/rate-limit.js");
+var log = require("../lib/log.js");
+
 /** Panta's live API. Its router requires the trailing slash on every route. */
 var PANTA_BASE = "https://live-api.panta.market/api/v1";
 
@@ -215,6 +218,21 @@ module.exports = async function handler(req, res) {
   if (req.method !== "GET") {
     res.statusCode = 405;
     return res.end(JSON.stringify({ ok: false, error: "method not allowed; use GET" }));
+  }
+
+  log.track("markets", req, res);
+
+  // Best effort, per instance: see lib/rate-limit.js for what this does and does
+  // not cover. The partner feed is the shared resource being protected here.
+  if (throttle.limited(req)) {
+    res.statusCode = 429;
+    res.setHeader("retry-after", String(Math.ceil(throttle.WINDOW_MS / 1000)));
+    return res.end(
+      JSON.stringify({
+        ok: false,
+        error: "too many requests; markets are cached for " + CACHE_SECONDS + " seconds",
+      })
+    );
   }
 
   try {
