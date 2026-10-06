@@ -204,7 +204,7 @@
       <p>On-chain accountability infrastructure for autonomous AI agents on Solana.</p>
 
       <div style="display:flex;gap:8px;margin-bottom:24px;">
-        <span class="tag program">Program: 9p47Li...JVemQ</span>
+        <span class="tag program">Program: D7akK6a...dfvhc</span>
         <span class="tag devnet">Devnet</span>
         <span class="tag solana">Solana</span>
       </div>
@@ -212,18 +212,20 @@
       <!-- Overview -->
       <h2 id="overview">Overview</h2>
       <p>Equxi is a Solana program that solves a fundamental problem in AI agent commerce: <strong>nobody can trust an autonomous agent with real capital or financial obligations</strong>.</p>
-      <p>Traditional wallets only hold funds. They cannot enforce on-chain behavioral constraints, nor automatically seize an operator's collateral to compensate victims when an agent misbehaves. Equxi fixes this by providing:</p>
+      <p>Traditional wallets only hold funds. They cannot enforce on-chain behavioral constraints, nor seize an operator's collateral to compensate victims when an agent misbehaves. Equxi fixes this by providing:</p>
       <ul>
         <li><strong>Operator bonding</strong>: Agents must lock SOL as collateral before operating</li>
         <li><strong>Behavioral constraints</strong>: On-chain rules that limit what an agent can do (spend limits, program allowlists, timelocks)</li>
-        <li><strong>Automatic slashing</strong>: When rules are violated, the bond is slashed and victims are compensated</li>
+        <li><strong>Slashing by the config authority</strong>: A proven violation slashes the bond and victims are compensated. On-chain violation proofs and dispute windows are on the roadmap.</li>
         <li><strong>Trust scores</strong>: On-chain reputation that counterparties can verify before transacting</li>
       </ul>
 
       <div class="callout info">
         <i class="fa-solid fa-circle-info"></i>
-        <div>Equxi targets the <strong>Agentic Engineering</strong> grant category. It enables Web3 builders, autonomous traders, and agent frameworks to scale by providing financial accountability that counterparties can trust.</div>
+        <div>Equxi is a recipient of Superteam's <strong>Agentic Engineering</strong> grant, awarded August 28, 2026. It enables Web3 builders, autonomous traders, and agent frameworks to scale by providing financial accountability that counterparties can trust.</div>
       </div>
+
+      <p>The reference program is live on devnet, and the product surfaces are public: the Trust Explorer, the read-only trust API at <code>/api/trust</code>, the launch page, and the Panta markets feed at <code>/api/markets</code>.</p>
 
       <!-- Quick Start -->
       <h2 id="quickstart">Quick Start</h2>
@@ -248,7 +250,7 @@
 
       <pre><code>// Your agent is now live on Solana devnet
 // Constraints are enforced on-chain
-// If violated, slashing happens automatically</code></pre>
+// A proven violation is slashable by the config authority</code></pre>
 
       <!-- Installation -->
       <h2 id="installation">SDK Installation</h2>
@@ -402,6 +404,7 @@ console.log("Trust score:", agent.trustScore);</code></pre>
       </ol>
       <p>Slashing is non-custodial: the admin can trigger a seizure but can never receive the funds. A payout can never exceed its slash amount, a slash can only be compensated once, and payouts are bounded by the vault balance.</p>
       <p>The config authority is the program's <strong>upgrade authority</strong>. <code>initialize</code> takes no admin argument and verifies the signer against the program's <code>ProgramData</code> account, so the config can never be initialized with a stranger as admin.</p>
+      <p>Slashing today is authority-signed. On-chain violation proofs, dispute windows and decentralized slashing are the next roadmap items in <a href="https://github.com/thesithunyein/equxi/blob/main/SPEC.md" target="_blank">SPEC.md</a>.</p>
 
       <!-- Instructions -->
       <h2 id="instructions">Program Instructions</h2>
@@ -567,6 +570,7 @@ chmod +x setup.sh
       <div class="callout info">
         <i class="fa-solid fa-circle-info"></i>
         <div><strong>Current Devnet Program ID:</strong> <code>D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc</code><br />
+        <strong>Current build:</strong> unbonding-window, deployed 2026-10-04<br />
         <a href="https://explorer.solana.com/address/D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc?cluster=devnet" style="color:#93c5fd;" target="_blank">View on Solana Explorer →</a></div>
       </div>
 
