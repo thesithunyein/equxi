@@ -9,7 +9,6 @@
 <p align="center">
   <a href="https://equxi.sithunyein.com"><img src="https://img.shields.io/badge/Live-Site-9945FF?style=for-the-badge" alt="Live Site" /></a>
   <a href="https://github.com/thesithunyein/equxi/actions"><img src="https://img.shields.io/github/actions/workflow/status/thesithunyein/equxi/ci.yml?style=for-the-badge" alt="CI" /></a>
-  <a href="https://superteam.fun/earn/grants/agentic-engineering"><img src="https://img.shields.io/badge/Grant-Agentic%20Engineering-22c55e?style=for-the-badge" alt="Grant" /></a>
   <a href="https://explorer.solana.com/address/D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc?cluster=devnet"><img src="https://img.shields.io/badge/Program-Devnet-22c55e?style=for-the-badge" alt="Program" /></a>
   <a href="TEST-RESULTS.md"><img src="https://img.shields.io/badge/Tests-181%20in%20CI-3b82f6?style=for-the-badge" alt="Tests" /></a>
 </p>
@@ -136,7 +135,28 @@ The program's eleven instructions are live on devnet. All transactions confirmed
 
 ## Quick Start
 
-### Frontend
+### Prerequisites
+
+| You want to | You need |
+|-------------|----------|
+| Run the site and the read API | Node 18+ and nothing else — `api/` and `lib/` have **zero dependencies** |
+| Run the validator-free tests | Node 18+, then `npm install` |
+| Build or deploy the program | Solana CLI 2.1+, Rust stable, Anchor **0.31.2** |
+| Run the Panta flows | a free `pk_test_` key from [Panta](https://panta.market) — optional |
+
+### Environment
+
+Every variable is optional, and each one states its own absence in the response rather
+than failing quietly.
+
+| Variable | When set | When unset |
+|----------|----------|------------|
+| `PANTA_API_KEY` | `/api/markets` reads live data (`pk_live_…`) or sandbox fixtures (`pk_test_…`, labelled as such) | the endpoint answers **200** with `configured: false` and a note — never a fake-empty list, never a 500 that reads as an outage |
+| `EQUXI_RPC` | every read defaults to that endpoint | the public cluster node, `api.devnet.solana.com` |
+| `EQUXI_RPC_FALLBACKS` | comma-separated hosts tried when the primary fails | no fallback host |
+| `EQUXI_LOG` | `1` forces one structured JSON line per request, `0` silences it | on when running on Vercel, off locally |
+
+### Run the site and the read API
 
 ```bash
 git clone https://github.com/thesithunyein/equxi.git
@@ -145,16 +165,28 @@ cd equxi
 # Serves the site AND the api/ functions locally (no Vercel CLI, no build step).
 node dev-server.js
 
+#   Landing      http://localhost:4321/
 #   Dashboard    http://localhost:4321/app.html
 #   Explorer     http://localhost:4321/explorer.html
 #   Read API     http://localhost:4321/api/trust
 #   Badge        http://localhost:4321/api/badge?agent=<pda>
 #   Markets      http://localhost:4321/api/markets
+#   Health       http://localhost:4321/api/health
 ```
 
-Plain `npx serve .` also works for the dashboard, but the Trust Explorer needs
-`/api/trust` and `/api/badge`, which `dev-server.js` provides and a static server
-does not.
+Plain `npx serve .` also works for the landing page and the dashboard, but the Trust
+Explorer and the badge need `/api/trust` and `/api/badge`, which `dev-server.js` provides
+and a static server does not.
+
+To check any deployment's read path in one call:
+
+```bash
+curl https://equxi.sithunyein.com/api/health
+```
+
+It answers with the cluster, the program, **which build is serving you** (`commit`), whether
+the upstream node is reachable and at what latency, and whether the Panta feed is live or
+sandbox. It never contains a key.
 
 ### Program
 
@@ -194,16 +226,36 @@ migration at all, so it checks rather than assumes.
 
 ### Tests
 
+Everything CI runs, in the order it runs it:
+
 ```bash
 npm install
 
-# Wire formats, PDA seeds, IDL, SDK, read layer and read API. No validator, no
-# Solana toolchain, no network. About a second. This is the fast gate.
+# 1. The fast gate: wire formats, PDA seeds, IDL, SDK, read layer, read API,
+#    Panta routes and page copy. No validator, no Solana toolchain, no network.
 npm run test:unit
+#   → 206 passing in ~9s
 
-# The full program suite against a local validator (needs Anchor + Solana CLI).
-anchor test
+# 2. Typecheck everything the tests touch.
+npx tsc --noEmit
+#   → no output, exit 0
+
+# 3. Rust unit tests inside the program crate (no validator needed).
+cargo test --manifest-path programs/equxi/Cargo.toml --features no-entrypoint
+
+# 4. The full program suite against a local validator (Anchor + Solana CLI required).
+anchor test --skip-build
+#   → 181 passing
+
+# 5. The SDK and the plugin typecheck, each with their own tsconfig.
+cd sdk && npm install && npx tsc --noEmit && cd ..
+cd eliza-plugin && npm install && npx tsc --noEmit && cd ..
 ```
+
+CI runs all five on every push, plus a **structure job** that pins the files, the routes and
+the `vercel.json` header shape. A renamed module, a missing route, or an illegal key in the
+Vercel config fails the build instead of the deployment — which is exactly how a silent
+production freeze was caught and made impossible to repeat.
 
 `tests/unit/` is the contract for the account layouts in `SPEC.md`. It builds
 account buffers by hand, decodes them with the hand-written decoders, the read
@@ -230,33 +282,97 @@ layout change that is not mirrored in every client fails immediately.
 
 ## Architecture
 
+One bond, from an operator's wallet to the person deciding whether to trust an agent. Three
+layers, and the only thing they share is the program's account layout.
+
+```mermaid
+flowchart TB
+    L["Meteora DBC launch — devnet<br/>config → pool → curve → DAMM v2 → migrate"]
+
+    subgraph CHAIN["1 · On chain — Solana devnet"]
+        direction LR
+        OP["Operator wallet"] -->|"register_agent · create_bond · top_up_bond"| P(["Equxi program<br/>11 instructions"])
+        P -->|"execute_slash"| V[("Escrow vault")]
+        V -->|"compensate_victim"| VIC["Victim"]
+        P -.->|"withdraw_bond — after lock + 7-day unbonding"| OP
+    end
+
+    subgraph READ["2 · Read layer — serverless, zero dependencies"]
+        direction LR
+        T["GET /api/trust"] ~~~ G["GET /api/badge"] ~~~ M["GET /api/markets"] ~~~ H["GET /api/health"]
+    end
+
+    subgraph USE["3 · Consumers"]
+        direction LR
+        E["Trust Explorer"] ~~~ S["@equxi/sdk"] ~~~ RM["README badge"] ~~~ PM["Panta markets"]
+    end
+
+    L -->|"graduation proceeds fund the bond"| P
+    CHAIN -->|"getProgramAccounts"| READ
+    READ -->|"JSON · SVG"| USE
+```
+
+The contract between layer 1 and layer 2 is the account layout, and it is written down twice
+on purpose: as Rust structs the program serialises, and as decoders in
+[`lib/equxi-layout.js`](lib/equxi-layout.js). `tests/unit/layout.test.ts` decodes the same
+buffer with both, plus Anchor's own coder, and asserts all three agree — so a layout change
+that is not mirrored everywhere fails in CI instead of in production.
+
+### The tree, with real line counts
+
+Measured from the working tree; comments and blank lines included.
+
 ```
 equxi/
-├── programs/equxi/           Solana program (Rust/Anchor)
-│   └── src/
-│       ├── lib.rs            11 instructions, all live on devnet
-│       ├── state.rs          Account structs
-│       ├── error.rs          Error codes
-│       └── instructions/     Instruction handlers
-├── sdk/                      TypeScript SDK (src/idl/equxi.json is the IDL)
-│   └── src/read.ts           Query layer: list agents, bonds, slash history
-├── eliza-plugin/             elizaOS plugin (IDL-free; encodes from coder.ts)
-├── api/trust.js              GET /api/trust, public read API (Vercel function)
-├── api/badge.js              GET /api/badge, embeddable SVG trust badge
-├── api/markets.js            GET /api/markets, Panta read feed: list, market detail, positions
-├── api/health.js             GET /api/health, is the read path up, and which build
-├── lib/equxi-layout.js       Account layouts + scoring for the API (no deps)
-├── dev-server.js             Static server + read API for local development
-├── tests/unit/               Validator-free program, SDK, read API, Panta and copy tests
-├── SPEC.md                   Agent Accountability Standard (AAS-1)
-├── explorer.html             Trust Explorer (public, read-only)
-├── explorer.js               Explorer logic
-├── app.html                  Dashboard
-├── app.js                    Dashboard logic
-├── app.css                   Dashboard styles
-├── index.html                Landing page
-├── docs.html                 Documentation
-└── styles.css                Landing styles
+├── programs/equxi/src/            1,398 · 15 files   Rust program (Anchor 0.31.2)
+│   ├── lib.rs                       104   instruction surface
+│   ├── state.rs                     132   Config, Agent, Constraint, Bond, SlashRecord
+│   ├── error.rs                      44   error codes
+│   └── instructions/              1,118 · 12 files   11 handlers + mod
+│       └── largest: migrate_agent.rs 231 · withdraw_bond.rs 159 · top_up_bond.rs 130
+├── tests/equxi.test.ts              664   Anchor suite against a local validator (17 cases)
+├── tests/unit/                    4,217 · 8 files   validator-free, ~9s, no network
+│   ├── api.test.ts                1,785   trust, badge, markets, health — stubbed RPC + Panta
+│   ├── read.test.ts                 663   query filters, decoding, scoring
+│   ├── sdk.test.ts                  585   the IDL as shipped
+│   ├── layout.test.ts               483   discriminators, PDAs, Borsh
+│   ├── copy.test.ts                 206   page copy, cross-page links, one word per idea
+│   ├── panta.test.ts                193   Panta routes, bodies, headers
+│   ├── landing.test.ts              170   live landing stats
+│   └── meteora-preset.test.ts       132   the DBC preset, pinned to its launch
+├── api/                           2,071 · 8 files   read API (no dependencies)
+│   ├── trust.js                     723   GET /api/trust — agent, bond, slash history
+│   ├── markets.js                   410   GET /api/markets — list · market · positions
+│   ├── badge.js                     302   GET /api/badge — embeddable SVG grade
+│   └── health.js                    134   GET /api/health — is the read path up, which build
+├── lib/                           1,416 · 8 files   shared, dependency-free
+│   ├── equxi-layout.js              623   account layouts + scoring (the cross-layer contract)
+│   ├── panta.js                     212   Panta create · buy · attribute
+│   ├── log.js                        93   one structured line per request
+│   └── rate-limit.js                 81   per-instance throttle
+├── sdk/src/                       1,924 · 4 files   @equxi/sdk on npm
+├── eliza-plugin/src/              1,336 · 7 files   elizaOS plugin (IDL-free)
+├── meteora-launch/                2,286 · 10 files   the DBC launch, on devnet
+│   ├── launch-safety-bond.js        611   config → pool → curve → migrate → bond
+│   ├── presets/index.js             241   dependency-free preset loader + validator
+│   └── presets/safety-escrow.json    89   the config, published as data
+├── site                           5,180             6 pages, 3 scripts, no framework
+│   ├── explorer.html / explorer.js  489 / 1,335   Trust Explorer
+│   ├── app.html / app.js            223 / 1,085   operator dashboard
+│   ├── deck.html                    640   the pitch, as a page
+│   ├── docs.html                    632   documentation
+│   ├── index.html / landing.js      333 / 135
+│   └── launch.html / launch.js      308 / 189
+├── theme.css / app.css / styles.css 628 / 440 / 311
+├── dev-server.js                    115   site + api/ locally, no build step
+├── migrate.js                       340   v0.1 → v0.2 in place, then re-decoded to prove it
+├── prove-compensation.js            306   13/13 assertions against live devnet
+├── prove-unbonding.js               197   7/7 assertions against live devnet
+├── panta-agent-market.js            355   create and trade the agent-risk market
+├── SPEC.md                          225   Agent Accountability Standard (AAS-1)
+├── SECURITY-AUDIT.md                258   five risk areas and the repairs they produced
+├── TEST-RESULTS.md                  641   what ran, on which network, with what output
+└── vercel.json · tsconfig.json · Anchor.toml · Cargo.toml · package.json
 ```
 
 ## On-Chain Accounts
