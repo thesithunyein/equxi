@@ -257,6 +257,29 @@ async function fetchOne(call, address, name) {
 
 /* ── assembly ─────────────────────────────────────────────────────────── */
 
+/**
+ * Sum a set of profiles into the payload's `totals`. Shared by the live read and
+ * the snapshot fallback, so a filtered answer cannot report registry-wide totals
+ * beside a single agent's row.
+ */
+function totalsFor(profiles) {
+  var summed = profiles.reduce(
+    function (acc, p) {
+      acc.slashCount += p.profile.stats.slashCount;
+      acc.openSlashes += p.profile.stats.openSlashes;
+      acc.bondedLamports += p.profile.bond ? BigInt(p.profile.bond.amountLamports) : 0n;
+      return acc;
+    },
+    { slashCount: 0, openSlashes: 0, bondedLamports: 0n }
+  );
+  return {
+    slashCount: summed.slashCount,
+    openSlashes: summed.openSlashes,
+    bondedLamports: summed.bondedLamports.toString(),
+    bondedSol: Number(summed.bondedLamports) / L.LAMPORTS_PER_SOL,
+  };
+}
+
 /** Join the flat account lists into one profile per agent. */
 function assembleRegistry(agents, bonds, slashes, constraints, now) {
   var bondsByAgent = {};
@@ -299,13 +322,127 @@ function assembleRegistry(agents, bonds, slashes, constraints, now) {
   });
 }
 
+/* ── snapshot ─────────────────────────────────────────────────────────── */
+
+/**
+ * How long the last complete registry read may answer for when the node will not
+ * be read again.
+ *
+ * This exists because the public cluster endpoint rate-limits this deployment's
+ * shared egress address: a targeted lookup is five `getProgramAccounts` calls in
+ * a row, and a refusal there used to reach the reader as a 502 for an agent that
+ * plainly exists. Retries help; they cannot make a shared public node willing.
+ */
+var SNAPSHOT_TTL_S = 300;
+
+/** One entry per cluster-and-endpoint this instance has read. */
+var snapshots = {};
+
+/** Which registry a snapshot belongs to: one cluster on one endpoint. */
+function snapshotKey(query) {
+  var cluster = query.cluster || "devnet";
+  return cluster + "|" + (query.rpc || process.env.EQUXI_RPC || CLUSTER_RPC[cluster] || "");
+}
+
+/** The last complete read of that registry, if it is recent enough to trust. */
+function recall(key, now) {
+  var snap = snapshots[key];
+  if (!snap) return null;
+  if (now - snap.at > SNAPSHOT_TTL_S) return null;
+  return snap;
+}
+
+/**
+ * Answer one query from the last complete read.
+ *
+ * Only whole-registry reads are stored, so a targeted query is answered by
+ * filtering that. Returns null when the query names an address the snapshot does
+ * not contain, which is the one case where the failure is the honest answer: a
+ * registry read from minutes ago cannot tell "this agent does not exist" from
+ * "this agent was registered since", and a 404 drawn from it would be an
+ * invention.
+ */
+function fromSnapshot(snap, query, now, error) {
+  var payload = snap.payload;
+  var agents = payload.agents;
+
+  if (query.agent) {
+    agents = agents.filter(function (a) {
+      return a.address === query.agent;
+    });
+  } else if (query.owner) {
+    agents = agents.filter(function (a) {
+      return a.owner === query.owner;
+    });
+  }
+  if ((query.agent || query.owner) && agents.length === 0) return null;
+
+  var totals = totalsFor(agents);
+  var age = Math.max(0, now - snap.at);
+
+  return Object.assign({}, payload, {
+    stale: true,
+    snapshotAgeSeconds: age,
+    totals: totals,
+    counts: {
+      agents: agents.length,
+      bonds: agents.filter(function (a) {
+        return !!a.profile.bond;
+      }).length,
+      slashes: totals.slashCount,
+      constraints: agents.reduce(function (n, a) {
+        return n + a.constraints.length;
+      }, 0),
+    },
+    agents: agents,
+    warnings: payload.warnings.concat([
+      "The chain could not be read (" +
+        (error && error.message ? error.message : String(error)) +
+        "); this is the last complete registry read, from " +
+        age +
+        "s ago, so its numbers may have moved since.",
+    ]),
+  });
+}
+
 /* ── payload ──────────────────────────────────────────────────────────── */
 
 /**
  * Build the JSON payload for a request. Separated from the HTTP handler so the
  * tests can assert on the payload without constructing a `res` object.
+ *
+ * A read is attempted live. If the node refuses, the answer falls back to the
+ * last complete registry read this instance made, marked `stale` with its age
+ * and a warning that names the upstream failure. That is a deliberate trade: an
+ * old number a reader can see is old beats a 502 on a page whose entire claim is
+ * that the record is checkable. A badge passes `snapshot: false`, because a
+ * badge advertises a fresh read and must fail rather than quietly go stale.
  */
 async function buildResponse(query, deps) {
+  var allowSnapshot = !deps || deps.snapshot !== false;
+  var key = snapshotKey(query);
+
+  try {
+    var payload = await readRegistry(query, deps);
+    // Only the whole registry is worth keeping: it can answer any query.
+    if (allowSnapshot && !query.agent && !query.owner) {
+      snapshots[key] = { at: deps.now, payload: payload };
+    }
+    return payload;
+  } catch (error) {
+    var snap = allowSnapshot ? recall(key, deps.now) : null;
+    if (!snap) throw error;
+    var served = fromSnapshot(snap, query, deps.now, error);
+    if (!served) throw error;
+    return served;
+  }
+}
+
+/**
+ * The live read. Separated from `buildResponse` so the snapshot fallback wraps a
+ * function that does one thing and cannot recurse into itself.
+ */
+async function readRegistry(query, deps) {
   var now = deps.now;
 
   var cluster = query.cluster || "devnet";
@@ -396,15 +533,7 @@ async function buildResponse(query, deps) {
 
   var profiles = assembleRegistry(agents, bonds, slashes, constraints, now);
 
-  var totals = profiles.reduce(
-    function (acc, p) {
-      acc.slashes += p.profile.stats.slashCount;
-      acc.openSlashes += p.profile.stats.openSlashes;
-      acc.bondedLamports += p.profile.bond ? BigInt(p.profile.bond.amountLamports) : 0n;
-      return acc;
-    },
-    { slashes: 0, openSlashes: 0, bondedLamports: 0n }
-  );
+  var totals = totalsFor(profiles);
 
   /* --- reconciliation ------------------------------------------------------
    * Slash records are claims; the vault is custody. The records should sum to
@@ -483,12 +612,7 @@ async function buildResponse(query, deps) {
       slashes: slashes.length,
       constraints: constraints.length,
     },
-    totals: {
-      slashCount: totals.slashes,
-      openSlashes: totals.openSlashes,
-      bondedLamports: totals.bondedLamports.toString(),
-      bondedSol: Number(totals.bondedLamports) / L.LAMPORTS_PER_SOL,
-    },
+    totals: totals,
     vault: vault,
     reconciliation: reconciliation,
     agents: profiles,
@@ -563,9 +687,14 @@ module.exports = async function handler(req, res) {
     }
 
     res.statusCode = 200;
+    // A stale answer is still an answer, but it must not be allowed to sit in
+    // the CDN as long as a fresh one: the shorter life sends the next reader
+    // back to the chain sooner.
     res.setHeader(
       "cache-control",
-      "public, s-maxage=" + CACHE_SECONDS + ", stale-while-revalidate=" + STALE_SECONDS
+      payload.stale
+        ? "public, s-maxage=10"
+        : "public, s-maxage=" + CACHE_SECONDS + ", stale-while-revalidate=" + STALE_SECONDS
     );
     return res.end(JSON.stringify(payload));
   } catch (error) {
@@ -586,3 +715,8 @@ module.exports.createRpcWithFallback = createRpcWithFallback;
 module.exports.assembleRegistry = assembleRegistry;
 module.exports.fetchAccounts = fetchAccounts;
 module.exports.fetchOne = fetchOne;
+// For tests: the store is per instance and per process, so a suite that expects
+// a failure must not inherit a snapshot from the test before it.
+module.exports.resetSnapshots = function resetSnapshots() {
+  snapshots = {};
+};

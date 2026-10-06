@@ -248,6 +248,15 @@ function fullStub(): StubRpc {
 
 /* ── tests ────────────────────────────────────────────────────────────── */
 
+/**
+ * The read API remembers the last complete registry read for a few minutes, so
+ * a test that expects a failure must not inherit a snapshot from the one before
+ * it. Reset before every test, not just the ones that mention snapshots.
+ */
+beforeEach(() => {
+  trust.resetSnapshots();
+});
+
 describe("read API (api/trust.js)", () => {
   describe("declared layouts match the TypeScript decoder", () => {
     it("agrees on every account discriminator", () => {
@@ -811,6 +820,98 @@ describe("read API (api/trust.js)", () => {
         else process.env.EQUXI_RPC = before.primary;
         if (before.fallbacks === undefined) delete process.env.EQUXI_RPC_FALLBACKS;
         else process.env.EQUXI_RPC_FALLBACKS = before.fallbacks;
+      }
+    });
+  });
+
+  /**
+   * When the node will not be read, the last complete registry read beats a 502
+   * on a page whose whole claim is that the record is checkable — provided it
+   * says so, and provided it never invents the one answer a read from minutes
+   * ago cannot support: that an address does not exist.
+   */
+  describe("the snapshot fallback", () => {
+    // Must track SNAPSHOT_TTL_S in api/trust.js.
+    const TTL = 300;
+
+    /** The same stub, but every request now fails the way a rate-limited node does. */
+    function deadStub() {
+      const stub = fullStub();
+      stub.failWith = "getProgramAccounts failed with HTTP 429";
+      return stub;
+    }
+
+    it("answers a registry read from the last complete one when the node fails", async () => {
+      const live = await trust.buildResponse({}, { fetchImpl: fullStub().fetchImpl, now: NOW });
+      expect(live.agents.length).to.be.greaterThan(0);
+
+      const stale = await trust.buildResponse({}, { fetchImpl: deadStub().fetchImpl, now: NOW + 30 });
+
+      expect(stale.stale).to.equal(true);
+      expect(stale.snapshotAgeSeconds).to.equal(30);
+      expect(stale.agents.length).to.equal(live.agents.length);
+      expect(stale.totals.bondedLamports).to.equal(live.totals.bondedLamports);
+      // A stale answer has to admit what it is, in the payload a reader sees.
+      expect(stale.warnings.join(" ")).to.match(/could not be read/i);
+    });
+
+    it("answers a targeted read from the snapshot, with that agent's own totals", async () => {
+      await trust.buildResponse({}, { fetchImpl: fullStub().fetchImpl, now: NOW });
+
+      const stale = await trust.buildResponse(
+        { agent: AGENT_ADDR },
+        { fetchImpl: deadStub().fetchImpl, now: NOW + 10 }
+      );
+
+      expect(stale.stale).to.equal(true);
+      expect(stale.agents).to.have.length(1);
+      expect(stale.agents[0].address).to.equal(AGENT_ADDR);
+      // The registry's numbers must not sit beside a single agent's row.
+      expect(stale.counts.agents).to.equal(1);
+      expect(stale.totals.bondedLamports).to.equal("5000000000");
+      expect(stale.totals.slashCount).to.equal(1);
+    });
+
+    it("never turns a stale registry into a 404 for an address it never saw", async () => {
+      await trust.buildResponse({}, { fetchImpl: fullStub().fetchImpl, now: NOW });
+
+      try {
+        await trust.buildResponse(
+          { agent: OTHER_OWNER },
+          { fetchImpl: deadStub().fetchImpl, now: NOW + 10 }
+        );
+        expect.fail("should have thrown");
+      } catch (error) {
+        // A read from minutes ago cannot tell "no such agent" from "registered
+        // since", so the upstream failure is the honest answer here.
+        expect((error as Error).message).to.match(/429/);
+      }
+    });
+
+    it("forgets a snapshot once it is older than the window", async () => {
+      await trust.buildResponse({}, { fetchImpl: fullStub().fetchImpl, now: NOW });
+
+      try {
+        await trust.buildResponse({}, { fetchImpl: deadStub().fetchImpl, now: NOW + TTL + 1 });
+        expect.fail("should have thrown");
+      } catch (error) {
+        expect((error as Error).message).to.match(/429/);
+      }
+    });
+
+    it("is refused outright when the caller asks for a live read, as the badge does", async () => {
+      await trust.buildResponse({}, { fetchImpl: fullStub().fetchImpl, now: NOW });
+
+      try {
+        await trust.buildResponse(
+          {},
+          { fetchImpl: deadStub().fetchImpl, now: NOW + 1, snapshot: false }
+        );
+        expect.fail("should have thrown");
+      } catch (error) {
+        // A badge advertises a fresh read; a quiet 5-minute-old grade is the
+        // one thing it must never show.
+        expect((error as Error).message).to.match(/429/);
       }
     });
   });

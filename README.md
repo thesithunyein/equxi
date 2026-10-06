@@ -342,6 +342,17 @@ one address can tell *not found* from *found, with nothing at stake*. A named
 (The embeddable badge keeps its own rule — a grey `not found` at `200` — because
 it is an image in someone's README, where a `404` renders as nothing at all.)
 
+**A node that refuses is not a dead page.** The last complete registry read is
+remembered for a few minutes, and if the node then refuses — the public devnet
+endpoint rate-limits the shared egress address a burst of `getProgramAccounts`
+comes from — that read is answered from the remembered copy with `stale: true`,
+`snapshotAgeSeconds`, and a `warnings` entry naming the upstream failure. A
+targeted read is answered from it **only** when the snapshot holds that address:
+an agent the snapshot never saw stays an error, never a `404`, because a read
+from minutes ago cannot tell “does not exist” from “registered since”. The badge
+always asks for a live read and refuses the snapshot outright, because what it
+advertises is a fresh grade.
+
 A deployment can set `EQUXI_RPC` to make every read default to a dedicated
 endpoint (for example RPC Fast's Focus plan); an explicit `?rpc=` still wins.
 

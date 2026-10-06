@@ -180,9 +180,12 @@ async function buildBadge(query, deps) {
     });
   }
 
+  // `snapshot: false` on purpose. A badge advertises a fresh read on every
+  // request, so an old registry snapshot is exactly what it must not serve: the
+  // grey `unknown` below is the honest answer when the chain cannot be read.
   var payload = await trust.buildResponse(
     { agent: query.agent, cluster: query.cluster, rpc: query.rpc },
-    deps
+    Object.assign({}, deps, { snapshot: false })
   );
 
   var agent = payload.agents[0];

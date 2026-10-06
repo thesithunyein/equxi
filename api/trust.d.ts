@@ -90,11 +90,20 @@ declare namespace trust {
     };
     vault: EquxiLayout.VaultAccount | null;
     agents: ApiAgent[];
+    /**
+     * True when the node refused and this is the last complete registry read
+     * instead of a live one. Always paired with a warning naming the failure.
+     */
+    stale?: boolean;
+    /** How old that snapshot was, in seconds, when it was served. */
+    snapshotAgeSeconds?: number;
   }
 
   interface BuildResponseDeps {
     fetchImpl: FetchImpl;
     now: number;
+    /** Set false to refuse the snapshot fallback, as the badge does. */
+    snapshot?: boolean;
   }
 
   interface Located<T = unknown> {
@@ -146,6 +155,9 @@ declare namespace trust {
   function fetchAccounts(call: RpcCall, name: string, extraFilters?: unknown[]): Promise<Array<Located>>;
 
   function fetchOne(call: RpcCall, address: string, name: string): Promise<Located | null>;
+
+  /** Drop the in-memory snapshots. For tests, which must not inherit one. */
+  function resetSnapshots(): void;
 }
 
 export = trust;
