@@ -294,6 +294,48 @@ jobs:
             grep -q "/api/$route" dev-server.js || exit 1
           done
           echo "Read API complete"
+      - name: Verify vercel.json
+        run: |
+          # A rejected vercel.json fails the whole deployment, and the failure is
+          # invisible from here: Vercel builds nothing, so production keeps
+          # serving the previous commit while every other check stays green.
+          # That happened once — a `comment` key inside a header block, which the
+          # published schema forbids (`additionalProperties: false`) — and the
+          # site was frozen for hours before anyone noticed. Assert the shape here
+          # instead, where it costs one step instead of a stale production.
+          node -e '
+            const cfg = require("./vercel.json");
+            const problems = [];
+
+            if (cfg.buildCommand !== null) problems.push("buildCommand must be null: the functions are unbundled CommonJS");
+            if (cfg.outputDirectory !== ".") problems.push("outputDirectory must be \".\": the site is static files at the repo root");
+            if (cfg.framework !== null) problems.push("framework must be null: this project has no framework preset");
+
+            if (!Array.isArray(cfg.headers)) problems.push("headers must be an array");
+            (cfg.headers || []).forEach((block, i) => {
+              if (typeof block.source !== "string" || !block.source) problems.push(`headers[${i}].source is required`);
+              if (!Array.isArray(block.headers)) problems.push(`headers[${i}].headers must be an array`);
+              Object.keys(block).forEach((key) => {
+                if (key !== "source" && key !== "headers") problems.push(`headers[${i}].${key} is not allowed by the schema — a comment key here takes production down`);
+              });
+              (block.headers || []).forEach((header, j) => {
+                Object.keys(header).forEach((key) => {
+                  if (key !== "key" && key !== "value") problems.push(`headers[${i}].headers[${j}].${key} is not allowed by the schema`);
+                });
+                if (!header.key || typeof header.value !== "string") problems.push(`headers[${i}].headers[${j}] needs a key and a string value`);
+              });
+            });
+
+            if (problems.length) {
+              console.error("vercel.json would be rejected by the platform:");
+              problems.forEach((p) => console.error("  - " + p));
+              process.exit(1);
+            }
+            console.log(`vercel.json is valid: ${cfg.headers.length} header blocks`);
+          '
+          # JSON allows no comments, and neither does the schema, so the reasoning
+          # behind the cache policy lives where a reader will find it.
+          grep -q 'vercel.json' README.md || exit 1
       - name: Verify README
         run: |
           grep -q "Equxi" README.md || exit 1

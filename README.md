@@ -386,6 +386,18 @@ its own entry so the arithmetic still closes). A counterparty can therefore chec
 the number instead of trusting it, and `tests/unit/read.test.ts` pins the
 invariant.
 
+**Reads are cached at the edge, deliberately.** A registry read is a
+whole-program scan, so the policy is declared per route in
+[`vercel.json`](vercel.json): `s-maxage=30, stale-while-revalidate=300` for
+`/api/trust` and `/api/markets`, `s-maxage=30` for `/api/badge`, and `no-store`
+for `/api/health`. Numbers can therefore trail the chain by up to half a minute,
+which is why every payload carries `generatedAt` instead of implying it is live
+to the slot. That reasoning sits here rather than beside the rules because
+`vercel.json` takes no comments and the platform's schema rejects unknown keys —
+`npx`-free CI now asserts the file's shape, since a rejected config fails the
+whole deployment and leaves production on the previous commit with every other
+check still green.
+
 ## Is the read path up?
 
 Every page on this site draws its numbers from one upstream RPC, and when that
