@@ -27,8 +27,8 @@ a { text-decoration: none; color: inherit; }
    visible wash, quiet enough that the text is still what the eye reads first.
    The veil only softens it towards the page colour at the edges; fading it
    towards black is what used to make the whole page read as dark. */
-.bg-video { position: absolute; inset: -5%; width: 110%; height: 110%; object-fit: cover; opacity: 0.4; }
-.bg-overlay { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 40%, rgba(247,244,239,0.10) 0%, rgba(247,244,239,0.26) 55%, rgba(247,244,239,0.55) 100%); }
+.bg-video { position: absolute; inset: -5%; width: 110%; height: 110%; object-fit: cover; opacity: 0.32; }
+.bg-overlay { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 40%, rgba(247,244,239,0.16) 0%, rgba(247,244,239,0.28) 55%, rgba(247,244,239,0.55) 100%); }
 
 /* Page */
 .page { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; min-height: 100dvh; padding: 20px 32px; }
