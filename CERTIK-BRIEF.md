@@ -32,7 +32,7 @@ frameworks shipping wallet-holding agents.
 | Production Rust | **1,216 lines**, **15 files** |
 | Framework | Anchor **0.31.2** |
 | Instructions | **11** |
-| Value at risk today | 1.4 SOL across 6 devnet agents (small, and honestly so) |
+| Value at risk today | 1.8 SOL across 8 devnet agents as of 7 Oct (small, and honestly so) |
 
 Instructions: `initialize`, `create_vault`, `migrate_agent`, `register_agent`,
 `create_bond`, `top_up_bond`, `withdraw_bond`, `add_constraint`, `execute_slash`,
