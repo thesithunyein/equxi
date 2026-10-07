@@ -91,6 +91,9 @@
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
       font-size: 13px; color: var(--green); text-align: center;
       overflow-x: auto; white-space: nowrap; scrollbar-width: none;
+      /* theme.css's :not(pre) > code chip rule paints every inline <code>;
+         this strip is not a chip - let it sit directly on the card. */
+      background: none; padding: 0;
     }
     .dev-code::-webkit-scrollbar { display: none; }
     .dev-copy {
