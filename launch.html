@@ -199,7 +199,7 @@
             <div class="lx-tile-n">01</div>
           </div>
           <h3>Launch on DBC</h3>
-          <p>The token discovers its price on Meteora's Dynamic Bonding Curve. Half of the trading fees, and half of the 10% migration fee, route back to the launch.</p>
+          <p>The token prices itself on Meteora's curve. Half the trading fees, and half the 10% migration fee, route back to the launch.</p>
         </div>
         <div class="lx-tile">
           <div class="lx-tile-top">
@@ -207,7 +207,7 @@
             <div class="lx-tile-n">02</div>
           </div>
           <h3>Graduate into DAMM v2</h3>
-          <p>The final buy is a partial fill, so the curve stops exactly at the graduation threshold and moves into permanent liquidity instead of overshooting.</p>
+          <p>The final buy is a partial fill: the curve stops exactly at graduation and moves into permanent liquidity instead of overshooting.</p>
         </div>
         <div class="lx-tile">
           <div class="lx-tile-top">
@@ -215,7 +215,7 @@
             <div class="lx-tile-n">03</div>
           </div>
           <h3>Post it as a bond</h3>
-          <p>The claimed proceeds become the launched agent's bond: slashable collateral, with the ledger, lock and unbonding window enforced on chain.</p>
+          <p>The claimed proceeds become the agent's bond — slashable collateral, with the ledger, lock and unbonding window enforced on chain.</p>
         </div>
       </div>
     </div>
@@ -252,7 +252,7 @@
       <div class="lx-head">
         <div class="how-tag"><span class="badge-dot"></span> Limits</div>
         <h2 class="how-title">What this run does not prove</h2>
-        <p class="how-sub">Stated in the same place as the proof, so nobody has to find it on the chain.</p>
+        <p class="how-sub">Next to the proof, not buried on-chain.</p>
       </div>
       <div class="lx-cards">
         <div class="lx-tile">
@@ -261,7 +261,7 @@
             <div class="lx-tile-n">01</div>
           </div>
           <h3>Devnet, not mainnet</h3>
-          <p>Every transaction ran on devnet. Meteora's production migration keepers are mainnet-only, so the migration in this run was executed manually; the transaction is linked above.</p>
+          <p>Every transaction ran on devnet. Meteora's migration keepers only run on mainnet, so this migration was run manually — signature linked above.</p>
         </div>
         <div class="lx-tile">
           <div class="lx-tile-top">
@@ -277,7 +277,7 @@
             <div class="lx-tile-n">03</div>
           </div>
           <h3>0.0056 SOL left unclaimed</h3>
-          <p>Trading fees have to be claimed before migration: after <code>migrate_to_damm_v2</code> the fee vaults are gone. This run learned that too late; the README says so.</p>
+          <p>Trading fees must be claimed before migration — <code>migrate_to_damm_v2</code> takes the fee vaults with it. This run learned that too late. So does the README.</p>
         </div>
       </div>
     </div>
