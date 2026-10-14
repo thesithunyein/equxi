@@ -197,7 +197,9 @@ jobs:
           # parser as a dependency to check syntax.
           test -f .github/workflows/verify.yml || exit 1
           grep -q 'branches: \[main\]' .github/workflows/verify.yml || exit 1
-          grep -q 'equxi.sithunyein.com' .github/workflows/verify.yml || exit 1
+          # Either host is acceptable: the custom domain is paused at the
+          # registrar, and both names are the same production deployment.
+          grep -qE 'equxi\.(vercel\.app|sithunyein\.com)' .github/workflows/verify.yml || exit 1
           grep -q 'api/trust' .github/workflows/verify.yml || exit 1
           # Every page must load the shared theme. A page that quietly loses its
           # stylesheet is invisible in every other check.
@@ -339,5 +341,6 @@ jobs:
       - name: Verify README
         run: |
           grep -q "Equxi" README.md || exit 1
-          grep -q "equxi.sithunyein.com" README.md || exit 1
+          # Same either-host rule as the workflow check above.
+          grep -qE 'equxi\.(vercel\.app|sithunyein\.com)' README.md || exit 1
           echo "README is complete"

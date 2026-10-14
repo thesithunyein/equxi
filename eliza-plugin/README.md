@@ -1,6 +1,6 @@
 # @equxi/plugin-eliza
 
-On-chain guardrails for Solana AI agents via [Equxi](https://equxi.sithunyein.com).
+On-chain guardrails for Solana AI agents via [Equxi](https://equxi.vercel.app).
 
 Adds spend limits, timelocks, and bond enforcement to any Solana agent built on [elizaOS](https://github.com/elizaOS/eliza).
 
@@ -97,9 +97,9 @@ All enforced on Solana. No oracles needed for quantitative rules.
 
 Bond and slash history is public. Read it without a wallet:
 
-- **Explorer**: https://equxi.sithunyein.com/explorer.html
-- **Badge API**: `https://equxi.sithunyein.com/api/badge?agent=<agent-pda>`
-- **Registry API**: `https://equxi.sithunyein.com/api/trust`
+- **Explorer**: https://equxi.vercel.app/explorer.html
+- **Badge API**: `https://equxi.vercel.app/api/badge?agent=<agent-pda>`
+- **Registry API**: `https://equxi.vercel.app/api/trust`
 
 ## Program
 

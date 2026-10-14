@@ -7,23 +7,23 @@
 <p align="center"><strong>Slashable collateral for AI agents on Solana</strong></p>
 
 <p align="center">
-  <a href="https://equxi.sithunyein.com"><img src="https://img.shields.io/badge/Live-Site-9945FF?style=for-the-badge" alt="Live Site" /></a>
+  <a href="https://equxi.vercel.app"><img src="https://img.shields.io/badge/Live-Site-9945FF?style=for-the-badge" alt="Live Site" /></a>
   <a href="https://github.com/thesithunyein/equxi/actions"><img src="https://img.shields.io/github/actions/workflow/status/thesithunyein/equxi/ci.yml?style=for-the-badge" alt="CI" /></a>
   <a href="https://explorer.solana.com/address/D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc?cluster=devnet"><img src="https://img.shields.io/badge/Program-Devnet-22c55e?style=for-the-badge" alt="Program" /></a>
   <a href="https://github.com/thesithunyein/equxi/actions/workflows/ci.yml"><img src="https://img.shields.io/badge/Tests-236%20passing-3b82f6?style=for-the-badge" alt="Tests" /></a>
 </p>
 
 <p align="center">
-  <a href="https://equxi.sithunyein.com"><img src="assets/landing-hero.webp" alt="Equxi landing page: slashable collateral for AI agents, live on Solana devnet" width="880" /></a>
+  <a href="https://equxi.vercel.app"><img src="assets/landing-hero.webp" alt="Equxi landing page: slashable collateral for AI agents, live on Solana devnet" width="880" /></a>
 </p>
 
 ---
 
 ## Use it
 
-- **Check an agent:** [equxi.sithunyein.com/explorer.html](https://equxi.sithunyein.com/explorer.html). Search a name, an agent address or an owner wallet. No wallet connection, no account.
-- **Read the registry:** `curl https://equxi.sithunyein.com/api/trust`
-- **Embed a live grade:** `curl "https://equxi.sithunyein.com/api/badge?agent=<pda>"` returns an SVG that re-reads the chain on every request.
+- **Check an agent:** [equxi.vercel.app/explorer.html](https://equxi.vercel.app/explorer.html). Search a name, an agent address or an owner wallet. No wallet connection, no account.
+- **Read the registry:** `curl https://equxi.vercel.app/api/trust`
+- **Embed a live grade:** `curl "https://equxi.vercel.app/api/badge?agent=<pda>"` returns an SVG that re-reads the chain on every request.
 
 Every number is read from the program when you ask for it, including the parts that do not flatter this project.
 
@@ -69,13 +69,13 @@ counterparty reads the bond and slash history from one endpoint before dealing.
 
 | Component | Link |
 |-----------|------|
-| Landing page | [equxi.sithunyein.com](https://equxi.sithunyein.com) |
-| Trust Explorer | [equxi.sithunyein.com/explorer.html](https://equxi.sithunyein.com/explorer.html) |
-| Dashboard | [equxi.sithunyein.com/app.html](https://equxi.sithunyein.com/app.html) |
-| Documentation | [equxi.sithunyein.com/docs.html](https://equxi.sithunyein.com/docs.html) |
-| Launch (Meteora DBC) | [equxi.sithunyein.com/launch.html](https://equxi.sithunyein.com/launch.html) |
-| Pitch deck | [equxi.sithunyein.com/deck.html](https://equxi.sithunyein.com/deck.html) |
-| Read API | [`/api/trust`](https://equxi.sithunyein.com/api/trust) · [`/api/badge`](https://equxi.sithunyein.com/api/badge?agent=9CvFbUciyP4APMVyzjLiR2znFmMTEPNqfGAP37PDNU4J) · [`/api/markets`](https://equxi.sithunyein.com/api/markets) |
+| Landing page | [equxi.vercel.app](https://equxi.vercel.app) |
+| Trust Explorer | [equxi.vercel.app/explorer.html](https://equxi.vercel.app/explorer.html) |
+| Dashboard | [equxi.vercel.app/app.html](https://equxi.vercel.app/app.html) |
+| Documentation | [equxi.vercel.app/docs.html](https://equxi.vercel.app/docs.html) |
+| Launch (Meteora DBC) | [equxi.vercel.app/launch.html](https://equxi.vercel.app/launch.html) |
+| Pitch deck | [equxi.vercel.app/deck.html](https://equxi.vercel.app/deck.html) |
+| Read API | [`/api/trust`](https://equxi.vercel.app/api/trust) · [`/api/badge`](https://equxi.vercel.app/api/badge?agent=9CvFbUciyP4APMVyzjLiR2znFmMTEPNqfGAP37PDNU4J) · [`/api/markets`](https://equxi.vercel.app/api/markets) |
 | SDK | [`@equxi/sdk` on npm](https://www.npmjs.com/package/@equxi/sdk) |
 | Program | [`D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc`](https://explorer.solana.com/address/D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc?cluster=devnet) |
 | Network | Solana Devnet |
@@ -99,14 +99,14 @@ same set. Nothing needs to be taken on faith:
 ## Meteora DBC — a launch that funds its own collateral
 
 <p align="center">
-  <a href="https://equxi.sithunyein.com/launch.html"><img src="assets/launch-hero.webp" alt="The launch page: launch with safety escrow — a token launch whose graduation proceeds become the collateral behind the agent that runs it" width="880" /></a>
+  <a href="https://equxi.vercel.app/launch.html"><img src="assets/launch-hero.webp" alt="The launch page: launch with safety escrow — a token launch whose graduation proceeds become the collateral behind the agent that runs it" width="880" /></a>
 </p>
 
 A token launch on Meteora's dynamic bonding curve, configured so the share of the
 graduation proceeds a creator is entitled to is not spent but **posted as an Equxi agent's
 slashable bond** — the same transaction trail that creates the token creates the
 consequence for the agent that runs it. Ten transactions, each linked on
-[`launch.html`](https://equxi.sithunyein.com/launch.html), and the config published as a
+[`launch.html`](https://equxi.vercel.app/launch.html), and the config published as a
 reusable [preset](meteora-launch/presets/safety-escrow.json) a builder can validate and
 reuse.
 
@@ -181,7 +181,7 @@ and a static server does not.
 To check any deployment's read path in one call:
 
 ```bash
-curl https://equxi.sithunyein.com/api/health
+curl https://equxi.vercel.app/api/health
 ```
 
 It answers with the cluster, the program, **which build is serving you** (`commit`), whether
@@ -467,13 +467,13 @@ function ([`api/trust.js`](api/trust.js)) over
 
 ```bash
 # Every agent, with bond and slash history joined
-curl https://equxi.sithunyein.com/api/trust
+curl https://equxi.vercel.app/api/trust
 
 # One agent by its PDA address
-curl "https://equxi.sithunyein.com/api/trust?agent=<pda>"
+curl "https://equxi.vercel.app/api/trust?agent=<pda>"
 
 # Every agent owned by a wallet
-curl "https://equxi.sithunyein.com/api/trust?owner=<wallet>"
+curl "https://equxi.vercel.app/api/trust?owner=<wallet>"
 ```
 
 A named `agent=` that holds no account answers **`404`** with
@@ -559,7 +559,7 @@ slot and the round-trip time, or `503` with the reason. The upstream is reported
 as its **host only**, so a paid provider's key never leaves in a response body.
 
 ```bash
-curl https://equxi.sithunyein.com/api/health
+curl https://equxi.vercel.app/api/health
 # {"ok":true,"cluster":"devnet","upstream":{"host":"api.devnet.solana.com",
 #  "reachable":true,"slot":508100000,"latencyMs":141},
 #  "feeds":{"panta":{"configured":true,"sandbox":false}}}
@@ -577,12 +577,12 @@ The registry is only useful where agents are already shown, so any agent can wea
 its own grade:
 
 ```bash
-curl "https://equxi.sithunyein.com/api/badge?agent=<pda>"                 # SVG
-curl "https://equxi.sithunyein.com/api/badge?agent=<pda>&format=json"    # numbers
+curl "https://equxi.vercel.app/api/badge?agent=<pda>"                 # SVG
+curl "https://equxi.vercel.app/api/badge?agent=<pda>&format=json"    # numbers
 ```
 
 ```markdown
-[![Equxi trust](https://equxi.sithunyein.com/api/badge?agent=<pda>)](https://equxi.sithunyein.com/explorer.html?agent=<pda>)
+[![Equxi trust](https://equxi.vercel.app/api/badge?agent=<pda>)](https://equxi.vercel.app/explorer.html?agent=<pda>)
 ```
 
 The badge re-reads the chain on **every** request, so it cannot silently go
@@ -633,16 +633,16 @@ Panta-powered functionality appears. It is carried in the JSON payload
 
 ```bash
 # The feed itself (200 even when the integration is switched off; see below)
-curl https://equxi.sithunyein.com/api/markets
+curl https://equxi.vercel.app/api/markets
 
 # Filtered, with Panta's cursor pagination forwarded
-curl "https://equxi.sithunyein.com/api/markets?category=sports&status=open&createdBy=me&limit=50"
+curl "https://equxi.vercel.app/api/markets?category=sports&status=open&createdBy=me&limit=50"
 
 # One market, with the spot prices the list route omits
-curl "https://equxi.sithunyein.com/api/markets?market=<marketId>"
+curl "https://equxi.vercel.app/api/markets?market=<marketId>"
 
 # A wallet's positions, with claim eligibility
-curl "https://equxi.sithunyein.com/api/markets?wallet=<pubkey>"
+curl "https://equxi.vercel.app/api/markets?wallet=<pubkey>"
 ```
 
 With a `pk_test_` key — the sandbox shape the fixture below comes from:
@@ -845,7 +845,7 @@ Everything above is checked by a test or by a real transaction.
 ## Built by
 
 One person, and the history says so: every commit in this repository is
-[Sithu Nyein](https://sithunyein.com)'s — the Anchor program, the TypeScript SDK, the
+[Sithu Nyein](https://github.com/thesithunyein)'s — the Anchor program, the TypeScript SDK, the
 elizaOS plugin, the serverless read API, the Trust Explorer and every test suite above.
 The repo is public and MIT licensed ([`LICENSE`](LICENSE)).
 

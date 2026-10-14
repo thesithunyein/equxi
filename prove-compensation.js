@@ -40,7 +40,7 @@ const { Connection, Keypair, PublicKey, LAMPORTS_PER_SOL } = require("@solana/we
 const { EquxiClient } = require("./sdk/dist");
 
 const RPC = process.env.EQUXI_RPC || "https://api.devnet.solana.com";
-const API = process.env.EQUXI_API || "https://equxi.sithunyein.com/api/trust";
+const API = process.env.EQUXI_API || "https://equxi.vercel.app/api/trust";
 const PROGRAM_ID = new PublicKey("D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc");
 
 // The key that owns the config account on devnet, i.e. the slash/compensate authority.

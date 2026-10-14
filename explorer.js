@@ -33,7 +33,7 @@
   var MARKETS = "/api/markets";
   var BADGE = "/api/badge";
   var EXPLORER = "https://explorer.solana.com";
-  var SITE = "https://equxi.sithunyein.com";
+  var SITE = "https://equxi.vercel.app";
 
   var el = {
     form: document.getElementById("searchForm"),

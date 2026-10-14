@@ -1,6 +1,6 @@
 # @equxi/sdk
 
-TypeScript SDK for [Equxi](https://equxi.sithunyein.com) — slashable collateral and accountability for AI agents on Solana.
+TypeScript SDK for [Equxi](https://equxi.vercel.app) — slashable collateral and accountability for AI agents on Solana.
 
 An agent's operator bonds SOL behind the agent. If the agent breaks a rule, anyone can trigger a proportional slash on-chain, and victims get compensated from the bond. The bond is the agent's skin in the game.
 
@@ -80,7 +80,7 @@ Plus PDA helpers (`findConfigPDA`, `findVaultPDA`, `findAgentPDA`, `findBondPDA`
 
 ## Links
 
-- Live app: <https://equxi.sithunyein.com/app.html>
-- Explorer (verify any agent's bond): <https://equxi.sithunyein.com/explorer.html>
+- Live app: <https://equxi.vercel.app/app.html>
+- Explorer (verify any agent's bond): <https://equxi.vercel.app/explorer.html>
 - elizaOS plugin: [`@equxi/plugin-eliza`](https://github.com/thesithunyein/equxi/tree/main/eliza-plugin)
 - Repo: <https://github.com/thesithunyein/equxi>

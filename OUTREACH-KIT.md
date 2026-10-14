@@ -16,13 +16,13 @@ their name attached. Devnet SOL is worthless; saying so is fine.
 
 They need a Solana wallet that supports devnet (Phantom) — nothing else, no spend.
 
-1. Open **https://equxi.sithunyein.com/app.html** and switch Phantom to **Devnet**.
+1. Open **https://equxi.vercel.app/app.html** and switch Phantom to **Devnet**.
 2. Tell us their wallet address (or paste it in the DM) — **we send 0.5 devnet SOL** so
    they never touch a faucet. (Ask us for the send; it costs nothing.)
 3. In the dashboard: **Register agent** (pick any name), then **Lock bond** with the
    **0.1 SOL** minimum.
 4. Done. Their agent appears in the public registry at
-   **https://equxi.sithunyein.com/explorer.html** and in
+   **https://equxi.vercel.app/explorer.html** and in
    `GET /api/trust?agent=<their agent PDA>` — as operator #1 who is not the founder.
 
 Optional, if they want to see the consequence side: they can watch (not run) the slash
@@ -46,14 +46,14 @@ theirs and withdrawable after the window.
 > isn't me** to register an agent and lock the 0.1 SOL minimum. It takes ~5 minutes:
 > I'll send you the devnet SOL, you click register + bond in the dashboard, and your
 > agent shows up in the public registry. Zero cost, nothing to install. Want me to hand
-> you the SOL right now? — https://equxi.sithunyein.com
+> you the SOL right now? — https://equxi.vercel.app
 
 ## 4. Community post (Superteam / Solana / elizaOS discords)
 
 > **First external operator for a devnet trust layer — 5 minutes, no cost.**
 > Equxi bonds agents with slashable SOL on devnet: a violation moves money from the bond
-> into an escrow vault and out to the victim, all on chain (11 instructions, 181 tests,
-> live read API: equxi.sithunyein.com/api/trust). I need the registry to contain one
+> into an escrow vault and out to the victim, all on chain (11 instructions, 223 tests,
+> live read API: equxi.vercel.app/api/trust). I need the registry to contain one
 > operator that isn't the builder — register an agent and lock the 0.1 SOL devnet
 > minimum, and I'll send you the SOL first so it costs nothing. You keep the bond, you
 > can withdraw it after the window, and I'll credit you in the repo if you want.

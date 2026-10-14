@@ -3,8 +3,13 @@
 > **Read this first.** Two different things live in this document, and they must not
 > be confused:
 >
+> **Counts current as of 2026-10-07:** `npm run test:unit` passes **206** assertions and
+> the on-chain suite passes **17**, so the figure to quote is **223** total, plus 13 Rust
+> unit tests. Rows further down this file are dated run logs and some predate that growth
+> (163, 164 and 180 are older snapshots of the same suites).
+>
 > * **JavaScript/TypeScript** checks — these have been **executed** and the results
->   are recorded below. `npm run test:unit` runs **163** assertions over the wire
+>   are recorded below. `npm run test:unit` runs **206** assertions over the wire
 >   formats, PDA seeds, IDL, SDK, read layer, and read API with no validator. The
 >   read API additionally has **live devnet evidence** (below), which is the one
 >   place a real network was involved.
@@ -612,7 +617,7 @@ against the running system rather than inferred from the other two:
 * **The Explorer renders a markets card** (`#markets`) and a per-agent
   `Market on this agent` section inside each expanded row.
 
-Observed live, `https://equxi.sithunyein.com/explorer.html` at `4073ac8`:
+Observed live, `https://equxi.vercel.app/explorer.html` at `4073ac8`:
 
 | Behaviour | Observed |
 |-----------|----------|

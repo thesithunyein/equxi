@@ -28,7 +28,11 @@ jobs:
     steps:
       - name: Check the pages a judge opens
         run: |
-          BASE=https://equxi.sithunyein.com
+          # The custom domain is paused at the registrar — its nameservers are
+          # gone, so the apex and every subdomain fail to resolve — and the
+          # production alias is what a judge can actually open. Vercel serves
+          # both names, so this is a one-line flip back once DNS is restored.
+          BASE=https://equxi.vercel.app
           WANT=$(printf '%s' "$GITHUB_SHA" | cut -c1-7)
           # Built once, so the quoting lives in one place rather than in every
           # test: `"commit":"<sha>"` exactly, quotes included.
@@ -89,7 +93,10 @@ jobs:
             return 1
           }
 
-          for path in "" explorer.html app.html docs.html deck.html api/trust; do
+          # launch.html is on the list because it is the link filed with the
+          # Meteora track: the page a judge is most likely to open was the one
+          # page this check never opened.
+          for path in "" explorer.html app.html docs.html deck.html launch.html api/trust; do
             check "/${path:-}" "$BASE/$path" "" || fail=1
           done
 

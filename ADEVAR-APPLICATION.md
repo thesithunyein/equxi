@@ -51,7 +51,7 @@ plus `SlashRecord`), PDA-seeded, with the escrow vault owned by the program. The
 `withdraw_bond` gated by the lock plus the unbonding window. The admin pays to record a
 violation (rent + fee) — slashing is a cost centre, never a revenue path.
 
-**Security posture already in place.** 181 tests in CI (17 on-chain + 164 validator-free)
+**Security posture already in place.** 223 tests in CI (17 on-chain + 206 validator-free)
 plus 13 Rust unit tests, in 5 green CI jobs on every push. Two defects were found by
 verification and fixed in public: the read API publishing slash records as if they were
 escrow (it now publishes the reconciliation and names the 0.2 SOL discrepancy), and the exit
@@ -68,7 +68,7 @@ seized for the record it pays (the read API reports the mismatch); devnet only; 
 operators yet. Escrow segregation is roadmap item 1.
 
 **Links.** Repo: https://github.com/thesithunyein/equxi · Live:
-https://equxi.sithunyein.com · Launch page: https://equxi.sithunyein.com/launch.html
+https://equxi.vercel.app · Launch page: https://equxi.vercel.app/launch.html
 
 ## 2. Evidence index
 
@@ -76,14 +76,14 @@ https://equxi.sithunyein.com · Launch page: https://equxi.sithunyein.com/launch
 |---|---|
 | Tests, findings, counts | [`TEST-RESULTS.md`](TEST-RESULTS.md) |
 | Invariants and instruction specs | [`SPEC.md`](SPEC.md) |
-| Live read API | https://equxi.sithunyein.com/api/trust |
+| Live read API | https://equxi.vercel.app/api/trust |
 | Meteora DBC launch (second integration) | [`launch.html`](launch.html) |
 
 ## 3. Short note on why the repo qualifies
 
 Their judging is codebase complexity, architectural clarity, repo completeness, and ecosystem
 impact. All four already exist: an 11-instruction program with live state and a migration
-executed against it, an explicit invariant set, five green CI jobs with 181 tests, LICENSE,
+executed against it, an explicit invariant set, five green CI jobs with 223 tests, LICENSE,
 SECURITY.md, and a public defect log — plus a second integration (Meteora DBC) that turns a
 token's graduation proceeds into the agent's collateral.
 

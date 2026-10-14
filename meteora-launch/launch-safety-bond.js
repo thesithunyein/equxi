@@ -71,7 +71,7 @@ const EQUXI_PROGRAM_ID = new PublicKey("D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQd
 // The token being launched. One billion supply, 6 decimals, SOL quote.
 const TOKEN_NAME = "Escrowed Agent";
 const TOKEN_SYMBOL = "EAGT";
-const TOKEN_URI = "https://equxi.sithunyein.com/meteora-launch.json";
+const TOKEN_URI = "https://equxi.vercel.app/meteora-launch.json";
 
 // How much SOL the launch's buyer pushes through the curve. The curve is deliberately
 // small so graduation is reachable on devnet at all: this config graduates at ~0.7 SOL
@@ -573,7 +573,7 @@ async function stageBond() {
   const sig = await send(tx, [keypair], keypair.publicKey);
   saveState({ agent: agent.toBase58(), bond: bond.toBase58(), bondLamports: bondLamports.toString(), bondTx: sig });
   log("create_bond", sig, `bond=${bond.toBase58()} amount=${Number(bondLamports) / LAMPORTS_PER_SOL} SOL`);
-  console.log(`  read it back: https://equxi.sithunyein.com/api/trust?agent=${agent.toBase58()}`);
+  console.log(`  read it back: https://equxi.vercel.app/api/trust?agent=${agent.toBase58()}`);
 }
 
 module.exports = { equxi, loadKeypair, connection };

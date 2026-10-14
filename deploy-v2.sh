@@ -190,7 +190,7 @@ fi
 echo ""
 echo "=== Verification ==="
 sol program show "$PROGRAM_ID" | head -6
-curl -s https://equxi.sithunyein.com/api/trust | node -e '
+curl -s https://equxi.vercel.app/api/trust | node -e '
 let s = ""; process.stdin.on("data", d => s += d).on("end", () => {
   const j = JSON.parse(s);
   console.log("agents", j.counts.agents, "| vault", j.vault ? "present" : "MISSING");

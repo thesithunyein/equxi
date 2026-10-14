@@ -27,7 +27,7 @@ The result is readable through Equxi's public API with no privileged access — 
 launch created is graded, with the bond `locked` and `withdrawable: false`:
 
 ```
-GET https://equxi.sithunyein.com/api/trust?agent=9CvFbUciyP4APMVyzjLiR2znFmMTEPNqfGAP37PDNU4J
+GET https://equxi.vercel.app/api/trust?agent=9CvFbUciyP4APMVyzjLiR2znFmMTEPNqfGAP37PDNU4J
 { "name": "EAGT", "grade": "A", "score": 92,
   "bond": { "amountSol": 0.1, "isActive": true, "locked": true, "expired": false, "withdrawable": false } }
 ```
