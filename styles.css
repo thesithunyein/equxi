@@ -155,6 +155,10 @@ body.menu-open .menu-toggle { position: relative; z-index: 110; }
   padding: 12px 0; transition: color 0.2s;
 }
 .mobile-nav-link:hover { color: var(--purple); }
+/* The X row is glyph-only — "X" beside the logo printed as "X x" — so it needs
+   the width the word used to give it: the icon on its own is a 20px tap target,
+   which is under what a thumb can reliably hit. */
+.mobile-nav-icon { padding-left: 24px; padding-right: 24px; }
 .desktop-only { display: inline-flex; }
 
 /* Mobile */
