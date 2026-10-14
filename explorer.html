@@ -227,7 +227,18 @@
       display: flex; align-items: baseline; justify-content: space-between;
       gap: 10px; flex-wrap: wrap;
     }
-    .x-market-title { font-weight: 600; font-size: 14px; }
+    /* A Panta market that has not been titled yet is named by its 44-character
+       id, which has no space in it to break at. Its min-content width is the
+       whole name, and that floor climbs the flex and grid chain until `main`
+       was 477px wide on a 390px phone — every card on the page shifted right
+       and the overhang clipped by theme.css's `overflow-x: hidden`. Breaking
+       the name, and letting these boxes shrink below their content, keeps the
+       page inside the viewport. */
+    .x-market-title { font-weight: 600; font-size: 14px; overflow-wrap: anywhere; }
+    .x-market-list,
+    .x-market-row,
+    .x-market-head,
+    .x-market-stats { min-width: 0; }
     .x-market-phase {
       font-size: 11px; padding: 3px 9px; border-radius: 999px; background: #fffdf9;
       color: var(--muted); white-space: nowrap;
