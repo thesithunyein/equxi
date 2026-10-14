@@ -220,25 +220,26 @@
       padding: 10px 14px; border-radius: 0 10px 10px 0; font-size: 13px;
       color: #8a5e1d; margin-top: 14px; line-height: 1.55;
     }
-    .x-market-list { margin-top: 4px; }
+    /* Everything this card prints is Panta's, and Panta prints strings with no
+       space in them: an untitled market is named by its 44-character base58
+       id, and a created-with note carries a full URL. Either one sets a
+       min-content floor, and the floor climbs the flex and grid chain until
+       `main` measured 477px inside a 390px phone — the tiles, the search field
+       and all fifty rows shifted right, with theme.css's `overflow-x: hidden`
+       clipping the overhang instead of anyone being able to scroll to it.
+       `overflow-wrap` is inherited, so one declaration on the list covers the
+       id, the URL and whatever Panta names a market next; `min-width: 0` is
+       what lets the flex boxes around them honour it. */
+    .x-market-list { margin-top: 4px; overflow-wrap: anywhere; }
     .x-market-row { border-top: 1px solid rgba(28,25,22,0.10); padding: 13px 0 3px; }
     .x-market-list .x-market-row:first-child { border-top: none; padding-top: 8px; }
     .x-market-head {
       display: flex; align-items: baseline; justify-content: space-between;
       gap: 10px; flex-wrap: wrap;
+      min-width: 0;
     }
-    /* A Panta market that has not been titled yet is named by its 44-character
-       id, which has no space in it to break at. Its min-content width is the
-       whole name, and that floor climbs the flex and grid chain until `main`
-       was 477px wide on a 390px phone — every card on the page shifted right
-       and the overhang clipped by theme.css's `overflow-x: hidden`. Breaking
-       the name, and letting these boxes shrink below their content, keeps the
-       page inside the viewport. */
-    .x-market-title { font-weight: 600; font-size: 14px; overflow-wrap: anywhere; }
-    .x-market-list,
-    .x-market-row,
-    .x-market-head,
     .x-market-stats { min-width: 0; }
+    .x-market-title { font-weight: 600; font-size: 14px; }
     .x-market-phase {
       font-size: 11px; padding: 3px 9px; border-radius: 999px; background: #fffdf9;
       color: var(--muted); white-space: nowrap;
