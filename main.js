@@ -38,6 +38,10 @@
         menuBtn.classList.toggle("active", open);
         mobileNav.classList.toggle("open", open);
         menuBtn.setAttribute("aria-expanded", open ? "true" : "false");
+        // One switch for the stacking fix in styles.css: the overlay is inside
+        // `.page`, whose z-index ties with the sections that follow it, and a
+        // fixed child cannot escape its ancestor's stacking context.
+        document.body.classList.toggle("menu-open", open);
         document.body.style.overflow = open ? "hidden" : "";
       };
       menuBtn.addEventListener("click", function () {

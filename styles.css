@@ -138,6 +138,18 @@ a { text-decoration: none; color: inherit; }
   gap: 24px; padding: 80px 20px;
 }
 .mobile-nav.open { display: flex; }
+/* The overlay is a child of `.page`, and `.page` carries `z-index: 1` — the
+   same value the sections stacked after it use (`.live-section`, `.how-section`,
+   `.dev-section`, `.site-footer`). A fixed child cannot climb out of its
+   ancestor's stacking context, so those later siblings painted over the open
+   menu: on a phone the live tiles and the "network right now" heading sat on
+   top of the links, and `elementFromPoint` returned them — the band was not
+   just ugly, it was untappable. While the menu is up, the page outranks them.
+   The toggle is lifted for the same reason: it is the only way to close the
+   menu, and an overlay that covers the whole viewport was hiding its own
+   close button behind itself. */
+body.menu-open .page { z-index: 200; }
+body.menu-open .menu-toggle { position: relative; z-index: 110; }
 .mobile-nav-link {
   font-size: 20px; font-weight: 500; color: var(--text);
   padding: 12px 0; transition: color 0.2s;
