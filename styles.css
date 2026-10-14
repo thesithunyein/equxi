@@ -150,7 +150,12 @@ a { text-decoration: none; color: inherit; }
   .page { padding: 12px 16px; }
   .nav { display: none; }
   .menu-toggle { display: flex; }
-  .desktop-only { display: none; }
+  /* theme.css is linked after this file and gives `.btn-primary` a `display`
+     of its own. That ties on specificity and wins on order, so the header's
+     desktop-only CTA stayed on a phone, squeezed between the wordmark and the
+     menu button. Two classes deep, this rule wins instead — the same fix
+     deck.html uses against the same tie. */
+  .desktop-only.desktop-only { display: none; }
   .header { padding: 8px 0; }
   .logo img { width: 32px; height: 32px; }
   .logo-text { font-size: 16px; }

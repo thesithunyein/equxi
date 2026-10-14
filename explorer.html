@@ -325,12 +325,14 @@
            the operator, not the reader: without bonded agents this page is
            empty. So the call to action is the same everywhere. -->
       <a href="app.html" class="btn-primary desktop-only">Register an agent</a>
-      <button class="menu-toggle" id="menuToggle" aria-label="Menu">
+      <button class="menu-toggle" id="menuToggle" aria-label="Menu" aria-controls="mobileNav" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
     </header>
+    <!-- The same six destinations as the header nav, in the same order. It
+         listed Docs twice and opened on Docs, which is not where the desktop
+         nav starts. -->
     <div class="mobile-nav" id="mobileNav">
-      <a href="docs.html" class="mobile-nav-link">Docs</a>
       <a href="app.html" class="mobile-nav-link">Dashboard</a>
       <a href="explorer.html" class="mobile-nav-link">Explorer</a>
       <a href="docs.html" class="mobile-nav-link">Docs</a>
@@ -483,6 +485,7 @@
     </footer>
   </div>
 
+  <script src="main.js"></script>
   <script src="explorer.js"></script>
 </body>
 </html>

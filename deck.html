@@ -319,6 +319,79 @@
       .bg-video { display: none; }
     }
 
+    /* Phone. The slides are composed against 1280x720, so at 390px the
+       two-column grids, the four metric columns and the five-step flow run
+       past the right edge, where `html { overflow-x: hidden }` in theme.css
+       clips them: slide 3 lost "Register" and "Compensate" with no way to
+       scroll to either. Below 768px every block that is a row becomes a
+       column, and the flow reads top to bottom. */
+    @media (max-width: 768px) {
+      .slide {
+        /* 100vw takes in the scrollbar and 100vh takes in the browser chrome,
+           which on a phone is a slide taller than the screen it is centred
+           in. 100% and 100dvh are the visible box. */
+        width: 100%;
+        min-height: 100dvh;
+        padding: 44px 20px 52px;
+      }
+
+      .slide-num { bottom: 16px; right: 20px; }
+
+      .tag { margin-bottom: 20px; }
+      .lead { margin-top: 14px; }
+
+      .grid,
+      .two-col {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin-top: 28px;
+      }
+
+      .card { padding: 18px; }
+
+      /* Five steps, two arrows and the icon padding measure 730px on one row.
+         Stacked, with the arrow turned to point down the page, all five stay
+         readable and in order. */
+      .flow {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+        margin-top: 28px;
+      }
+      .step {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 14px;
+        text-align: left;
+        min-width: 0;
+      }
+      .step-icon { width: 34px; height: 34px; flex-shrink: 0; margin: 0; }
+      .arrow {
+        align-self: center;
+        transform: rotate(90deg);
+        font-size: 16px;
+        line-height: 1;
+      }
+
+      .metrics {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 22px 16px;
+        margin-top: 28px;
+      }
+      .metric-val { font-size: 26px; }
+      .metric-label { font-size: 11px; }
+
+      .items { margin-top: 24px; }
+      .items li { font-size: 13px; gap: 10px; padding: 12px 0; }
+
+      /* The two-button rows wrapped mid-label at this width, which reads as
+         broken text rather than a second button. */
+      .row,
+      .contact-row { flex-wrap: wrap; justify-content: center; margin-top: 24px; }
+      .btn { padding: 12px 18px; font-size: 14px; }
+    }
+
     /* Print / export — one slide per 16:9 page, so "Save as PDF" at this size
        hands the pitch video a clean set of slides with nothing screen-only.
        The page box matches the 1280x720 the slides are designed against. */
