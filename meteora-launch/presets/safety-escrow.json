@@ -83,6 +83,6 @@
     "agent": "9CvFbUciyP4APMVyzjLiR2znFmMTEPNqfGAP37PDNU4J",
     "bond": "CU5R3w8Di4JKdkXzK68TWWrynUqUiAwDgXErUbsUMyJF",
     "steps": "../launch-steps.json",
-    "readBack": "https://equxi.vercel.app/api/trust?agent=9CvFbUciyP4APMVyzjLiR2znFmMTEPNqfGAP37PDNU4J"
+    "readBack": "https://www.equxi.tech/api/trust?agent=9CvFbUciyP4APMVyzjLiR2znFmMTEPNqfGAP37PDNU4J"
   }
 }

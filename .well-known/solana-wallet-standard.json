@@ -2,11 +2,11 @@
   "manifest_version": "1.0.0",
   "name": "Equxi",
   "description": "Solana-native trust layer for AI agents",
-  "iconUrl": "https://equxi.vercel.app/assets/logo.webp",
+  "iconUrl": "https://www.equxi.tech/assets/logo.webp",
   "wechatDisplayName": "Equxi",
   "alternateLinks": [
     {
-      "uri": "https://equxi.vercel.app",
+      "uri": "https://www.equxi.tech",
       "label": "Homepage"
     },
     {

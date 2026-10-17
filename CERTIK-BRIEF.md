@@ -5,8 +5,8 @@
 
 - **Project:** Equxi — slashable collateral for AI agents on Solana
 - **Repo (public):** https://github.com/thesithunyein/equxi
-- **Live site:** https://equxi.vercel.app
-- **Launch page (Meteora integration):** https://equxi.vercel.app/launch.html
+- **Live site:** https://www.equxi.tech
+- **Launch page (Meteora integration):** https://www.equxi.tech/launch.html
 - **Program (devnet):** `D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc`
 - **Colosseum submission link:** ⬜ paste once submitted
 - **Contact for scoping call:** sithunyein.mailto@gmail.com
@@ -132,6 +132,6 @@ plan, not a parallel one.
 | AAS-1 invariants | [`SPEC.md`](SPEC.md) |
 | Unbonding-window upgrade | `5tK2dMyRC9YpKnvGG6PcDPjy1ygEKJeofUAdCgWL3c1jzoGhZQEGdcDHHYkmyP4iQU8WXMJmS5gnixHzb2wYsdho` (slot 507390281) |
 | `top_up_bond` upgrade | `QsbAk8qwip1QtMvbm28GupDD3eAHaLGnDpBC48e4zYE7PYfQK5q9Zfrs8fxmz9ieoSQx41jJBsVsmxoC4t6pWrC` (slot 507402154) |
-| Live Registry / read API | https://equxi.vercel.app/api/trust |
+| Live Registry / read API | https://www.equxi.tech/api/trust |
 | Meteora DBC launch evidence | [`launch.html`](launch.html) · [`meteora-launch/README.md`](meteora-launch/README.md) |
 | CI (verifier of record) | https://github.com/thesithunyein/equxi/actions |

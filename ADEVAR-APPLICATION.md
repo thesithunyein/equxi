@@ -68,7 +68,7 @@ seized for the record it pays (the read API reports the mismatch); devnet only; 
 operators yet. Escrow segregation is roadmap item 1.
 
 **Links.** Repo: https://github.com/thesithunyein/equxi · Live:
-https://equxi.vercel.app · Launch page: https://equxi.vercel.app/launch.html
+https://www.equxi.tech · Launch page: https://www.equxi.tech/launch.html
 
 ## 2. Evidence index
 
@@ -76,7 +76,7 @@ https://equxi.vercel.app · Launch page: https://equxi.vercel.app/launch.html
 |---|---|
 | Tests, findings, counts | [`TEST-RESULTS.md`](TEST-RESULTS.md) |
 | Invariants and instruction specs | [`SPEC.md`](SPEC.md) |
-| Live read API | https://equxi.vercel.app/api/trust |
+| Live read API | https://www.equxi.tech/api/trust |
 | Meteora DBC launch (second integration) | [`launch.html`](launch.html) |
 
 ## 3. Short note on why the repo qualifies

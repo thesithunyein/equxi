@@ -617,7 +617,7 @@ against the running system rather than inferred from the other two:
 * **The Explorer renders a markets card** (`#markets`) and a per-agent
   `Market on this agent` section inside each expanded row.
 
-Observed live, `https://equxi.vercel.app/explorer.html` at `4073ac8`:
+Observed live, `https://www.equxi.tech/explorer.html` at `4073ac8`:
 
 | Behaviour | Observed |
 |-----------|----------|

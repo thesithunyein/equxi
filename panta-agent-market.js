@@ -136,7 +136,7 @@ async function create() {
   const agentAddress = opt("--agent");
   const agentName = opt("--name", "unnamed");
   const resolveByLabel = opt("--resolve-by");
-  const imageUrl = opt("--image", "https://equxi.vercel.app/assets/logo.webp");
+  const imageUrl = opt("--image", "https://www.equxi.tech/assets/logo.webp");
 
   if (!agentAddress || !resolveByLabel) {
     console.error("usage: node panta-agent-market.js create --agent <agentPDA> --name <name> --resolve-by <YYYY-MM-DD> [--key <keypair.json>] [--image <url>] [--dry-run]");

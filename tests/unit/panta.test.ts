@@ -41,12 +41,12 @@ describe("panta flows (lib/panta.js)", () => {
       wallet: WALLET,
       question: "q",
       resolutionRule: "r",
-      sourcesOfTruth: ["https://equxi.vercel.app/api/trust"],
+      sourcesOfTruth: ["https://www.equxi.tech/api/trust"],
       category: "crypto",
       startTime: 1,
       endTime: 2,
       resolutionTime: 3,
-      imageUrl: "https://equxi.vercel.app/assets/logo.webp",
+      imageUrl: "https://www.equxi.tech/assets/logo.webp",
     });
 
     expect(calls.length).to.equal(1);
@@ -155,7 +155,7 @@ describe("panta flows (lib/panta.js)", () => {
     expect(plan.question).to.include(AGENT);
     expect(plan.resolutionRule).to.include("D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc");
     expect(plan.sourcesOfTruth[0]).to.equal(
-      "https://equxi.vercel.app/api/trust?agent=" + AGENT
+      "https://www.equxi.tech/api/trust?agent=" + AGENT
     );
     expect(plan.sourcesOfTruth.length).to.equal(2);
 

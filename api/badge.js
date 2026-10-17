@@ -5,7 +5,7 @@
  * the distribution half of the Explorer: any README, dapp, or agent card can
  * show
  *
- *   [![Equxi trust](https://equxi.vercel.app/api/badge?agent=<pda>)](https://equxi.vercel.app/explorer.html?agent=<pda>)
+ *   [![Equxi trust](https://www.equxi.tech/api/badge?agent=<pda>)](https://www.equxi.tech/explorer.html?agent=<pda>)
  *
  * and it will keep telling the truth on its own, because every request re-reads
  * the chain. A badge is not a certificate; it is a live view.
@@ -227,7 +227,7 @@ async function buildBadge(query, deps) {
       slashCount: profile.stats.slashCount,
       openSlashes: profile.stats.openSlashes,
       breakdown: profile.breakdown,
-      explorer: "https://equxi.vercel.app/explorer.html?agent=" + agent.address,
+      explorer: "https://www.equxi.tech/explorer.html?agent=" + agent.address,
     },
   };
 }
