@@ -33,7 +33,10 @@
     </div>
     <nav class="sidebar-nav">
       <a href="#overview" class="sidebar-link active" data-section="dashboard">
-        <i class="fa-solid fa-grid-2"></i><span>Overview</span>
+        <!-- fa-grid-2 is a Pro icon: in the free bundle its ::before is empty,
+             so the first item rendered with a hole where every other one had a
+             glyph. Cells-large is the free equivalent. -->
+        <i class="fa-solid fa-table-cells-large"></i><span>Overview</span>
       </a>
       <a href="#agents" class="sidebar-link" data-section="agents">
         <i class="fa-solid fa-robot"></i><span>Agents</span>
@@ -43,26 +46,27 @@
       </a>
       <a href="#constraints" class="sidebar-link" data-section="constraints">
         <i class="fa-solid fa-list-check"></i><span>Rules</span>
-      </a>        <a href="explorer.html" class="sidebar-link">
-          <i class="fa-solid fa-magnifying-glass"></i>
-          <span>Trust Explorer</span>
-        </a>
-        <a href="docs.html" class="sidebar-link">
-          <i class="fa-solid fa-book"></i><span>Docs</span>
-        </a>
-        <a href="deck.html" class="sidebar-link">
-          <i class="fa-solid fa-chalkboard"></i><span>Pitch deck</span>
-        </a>
-        <a href="#activity" class="sidebar-link" data-section="activity">
+      </a>
+      <a href="#activity" class="sidebar-link" data-section="activity">
         <i class="fa-solid fa-clock-rotate-left"></i><span>Activity</span>
       </a>
+      <a href="explorer.html" class="sidebar-link">
+        <i class="fa-solid fa-magnifying-glass"></i><span>Trust Explorer</span>
+      </a>
     </nav>
+    <!-- The deck is for someone judging the company, not for someone about to
+         lock SOL, so it stays in the page footers where it already is. Docs
+         stays reachable but below the working set: it is a reference, not a
+         place you operate from. -->
     <div class="sidebar-footer">
-      <a href="https://x.com/equxi_ai" class="sidebar-link sidebar-x" target="_blank">
-        <i class="fa-brands fa-x-twitter"></i>
+      <a href="docs.html" class="sidebar-link">
+        <i class="fa-solid fa-book"></i><span>Docs</span>
       </a>
       <a href="index.html" class="sidebar-link">
         <i class="fa-solid fa-arrow-left"></i><span>Home</span>
+      </a>
+      <a href="https://x.com/equxi_ai" class="sidebar-link sidebar-x" target="_blank">
+        <i class="fa-brands fa-x-twitter"></i>
       </a>
     </div>
   </aside>
