@@ -68,8 +68,7 @@ function usage() {
       "AAS-2 reference verifier",
       "",
       "  node aas2.js keygen --out <dir>",
-      "  node aas2.js verify --agreement <file> --output <file> [options]",
-      "  node aas2.js verify-receipt --receipt <file> --agreement <file> --output <file> [options]",
+      "  node aas2.js verify --agreement <file> --output <file> [options]",      "  node aas2.js verify-receipt --receipt <file> --agreement <file> --output <file> [options]",
       "  node aas2.js prove --agreement <file> --output <file> --index <n> [options]",
       "  node aas2.js check-proof --proof <file>",
       "  node aas2.js attach --receipt <file> --anchor <file> [--out <file>]",
@@ -146,6 +145,13 @@ function publicKeyArg(value) {
   if (trimmed.charAt(0) === "{") {
     try {
       var parsed = JSON.parse(trimmed);
+      if (parsed && Array.isArray(parsed.keys)) {
+        var usable = parsed.keys.filter(function (entry) {
+          return entry && entry.status === "active" && entry.use === "aas-2-receipt";
+        });
+        var chosen = usable[0] || parsed.keys[0];
+        if (chosen && typeof chosen.public_key === "string") return chosen.public_key;
+      }
       if (parsed && typeof parsed.public_key === "string") return parsed.public_key;
     } catch (error) {
       // Not our JSON; let the key parser give the real error.
@@ -186,18 +192,21 @@ function printSummary(result, extras) {
 
 function cmdKeygen(args) {
   var outDir = path.resolve(args.out || ".aas2");
+  var name = args.name || "aas2-verifier";
+  if (!/^[A-Za-z0-9._-]+$/.test(name)) fail("--name must be a simple file name");
+
   var pair = keys.generateKeyPair();
   var publicKey = keys.publicKeyBase64(pair.publicKey);
 
   fs.mkdirSync(outDir, { recursive: true });
-  var privatePath = path.join(outDir, "aas2-verifier.pem");
+  var privatePath = path.join(outDir, name + ".pem");
   fs.writeFileSync(
     privatePath,
     pair.privateKey.export({ type: "pkcs8", format: "pem" }),
     { mode: 0o600 }
   );
 
-  var publicPath = writeJson(path.join(outDir, "aas2-verifier.pub.json"), {
+  var publicPath = writeJson(path.join(outDir, name + ".pub.json"), {
     alg: "ed25519",
     public_key: publicKey,
     note: "Publish this key. The matching private key must never be committed.",

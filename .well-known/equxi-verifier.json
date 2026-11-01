@@ -1,0 +1,25 @@
+{
+  "v": "aas-2/verifier-keys/0.1",
+  "issuer": "Equxi",
+  "homepage": "https://www.equxi.tech",
+  "spec": "https://github.com/thesithunyein/equxi/blob/main/AAS-2.md",
+  "keys": [
+    {
+      "key_id": "equxi-aas2-2026-11",
+      "algorithm": "Ed25519",
+      "use": "aas-2-receipt",
+      "status": "active",
+      "public_key": "keb2jWbISneQIJ1luc9U9NML1Tzat7+3GR9Z7ZssWK0=",
+      "public_key_encoding": "raw-base64",
+      "not_before": "2026-11-01T00:00:00Z",
+      "not_after": null,
+      "rulesets": [
+        "equxi/checks@0.1.0"
+      ]
+    }
+  ],
+  "rotation": {
+    "policy": "Publish a successor key at least 30 days before it signs. Keep retired keys listed so receipts signed with them stay verifiable.",
+    "revocation": "Set status to revoked. Never delete a key that has signed a published receipt."
+  }
+}

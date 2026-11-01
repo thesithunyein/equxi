@@ -229,6 +229,33 @@ describe("AAS-2 fixture: product feed", () => {
   });
 });
 
+/* ── published identity ──────────────────────────────────────────────── */
+
+describe("published verifier identity", () => {
+  it("lists one active Ed25519 receipt key with a 32-byte public key", () => {
+    const doc = JSON.parse(
+      fs.readFileSync(path.join(__dirname, "..", "..", ".well-known", "equxi-verifier.json"), "utf8")
+    );
+
+    expect(doc.v).to.equal("aas-2/verifier-keys/0.1");
+    expect(doc.keys).to.be.an("array").with.length.greaterThan(0);
+
+    const ids = new Set();
+    for (const entry of doc.keys) {
+      expect(entry.algorithm).to.equal("Ed25519");
+      expect(entry.use).to.equal("aas-2-receipt");
+      expect(["active", "retired", "revoked"]).to.include(entry.status);
+      expect(Buffer.from(entry.public_key, "base64")).to.have.length(32);
+      expect(ids.has(entry.key_id)).to.equal(false);
+      ids.add(entry.key_id);
+    }
+
+    const active = doc.keys.filter((entry: AnyJson) => entry.status === "active");
+    expect(active).to.have.length(1);
+    expect(doc.rotation.policy).to.be.a("string").and.not.equal("");
+  });
+});
+
 /* ── merkle ──────────────────────────────────────────────────────────── */
 
 describe("Merkle commitment", () => {
