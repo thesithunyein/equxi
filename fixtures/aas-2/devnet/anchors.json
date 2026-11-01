@@ -1,0 +1,20 @@
+{
+  "agreement": {
+    "tx": "3NgdHnkJ4CbS7Jqa3oJ5Le8mHG4VcAYzJVGJ3rhcseE8Kt141CdgoAa4zDJhduzGynVqmwGq7c9o2UtgoyzcgoV",
+    "slot": 517474123,
+    "block_time": 1793531175,
+    "memo": "equxi:aas2:v0.1:agreement:sha256:13e38c6fb83249c2003a6b63ac8dbca79ecf7628ddeb2bdfd523d6f1ed78d231"
+  },
+  "output": {
+    "tx": "Wp4pNPuxQvy1Rdct7MgR5VkK1Ruf3JYDg3mas4UJHQYWSTYUZvAztwjv37iDkP35cigjiXpB2f1jjyt44RAR7tL",
+    "slot": 517474174,
+    "block_time": 1793531187,
+    "memo": "equxi:aas2:v0.1:output:sha256:55eb72228b4983d16a66e96c12aa51b06839acd3c6c0ce252d7a485bc17e25af"
+  },
+  "receipt": {
+    "tx": "5cHEwKoeYZU7qANR4X5b3bjvR8mEiG113mrgDtgJmCZnuk232UFoGf4zjLSQoN6nfmHGPcBoAdYzRA6hoPidemp5",
+    "slot": 517474344,
+    "block_time": 1793531227,
+    "memo": "equxi:aas2:v0.1:receipt:sha256:f0df540651a6e6a41fd032f9dfb53d5e1512ae4e25914c8008833ec1c2dd7f38"
+  }
+}

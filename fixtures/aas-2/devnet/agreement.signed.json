@@ -1,0 +1,82 @@
+{
+  "v": "aas-2/0.1",
+  "id": "agr_demo_product_feed_0001",
+  "ruleset": "equxi/checks@0.1.0",
+  "customer": {
+    "id": "did:demo:customer",
+    "name": "Demo Customer"
+  },
+  "provider": {
+    "id": "did:demo:provider",
+    "name": "Demo Provider"
+  },
+  "deliverable": {
+    "kind": "records",
+    "format": "csv",
+    "expected_count": 20,
+    "fields": [
+      "sku",
+      "name",
+      "category",
+      "price",
+      "currency"
+    ]
+  },
+  "checks": [
+    {
+      "id": "record_count",
+      "expected": 20
+    },
+    {
+      "id": "required_fields",
+      "fields": [
+        "sku",
+        "name",
+        "category",
+        "price",
+        "currency"
+      ]
+    },
+    {
+      "id": "field_types",
+      "schema": {
+        "sku": "string",
+        "name": "string",
+        "category": "string",
+        "price": "decimal",
+        "currency": "string"
+      }
+    },
+    {
+      "id": "unique",
+      "field": "sku"
+    },
+    {
+      "id": "deadline",
+      "at": "2026-12-01T00:00:00Z",
+      "tolerance_seconds": 0
+    }
+  ],
+  "remedy": {
+    "kind": "refund_percent",
+    "percent": 10
+  },
+  "dispute": {
+    "review_hours": 48
+  },
+  "privacy": {
+    "public_receipt": "hashes_only",
+    "report": "parties_only"
+  },
+  "created_at": "2026-11-01T00:00:00Z",
+  "signatures": {
+    "customer": {
+      "key": "6cd+XgfQ0Xequ3ZmE4gy1RzeKLNJBidSzRnjHgP9lGs=",
+      "sig": "wi2FASVtc7t6W3IAuzQRggDjHedtbFj+l3TubwtGuo6f3p82EOhnGF4Y79L06lAZu2k6z+5MzIP58gETDO52Bw=="
+    },
+    "provider": {
+      "key": "Ay9cPIJQtbdLbZf2ZnNvhvxm7LDtPJKL9dsxRnN98fk=",
+      "sig": "K5y+xONtP5BdT7EJdfVr5rr8Rpe8XbIM7G20CHUEVOXOIrTW67FoJTFTQ/G2FEneWQlGLK+tFt5PH/8g7xSbBg=="
+    }
+  }
+}

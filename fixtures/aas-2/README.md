@@ -87,6 +87,28 @@ node aas2.js prove --agreement fixtures/aas-2/agreement.product-feed.json \
 node aas2.js check-proof --proof .aas2/proof-16.json
 ```
 
+## Live L3 proof
+
+`devnet/` holds a real three-anchor run on Solana devnet from 2026-11-01. It
+contains the signed agreement, the provider submission, the three transactions
+with their slots, the private report, and the final L3 receipt. The receipt
+verifies with:
+
+```sh
+node aas2.js verify-receipt \
+  --receipt fixtures/aas-2/devnet/receipt.json \
+  --agreement fixtures/aas-2/devnet/agreement.signed.json \
+  --output fixtures/aas-2/output.product-feed.csv \
+  --verifier-key .well-known/equxi-verifier.json \
+  --provider-key fixtures/aas-2/devnet/provider.pub.json \
+  --report fixtures/aas-2/devnet/report.json \
+  --rpc https://api.devnet.solana.com
+```
+
+All twelve steps pass, including `submitted_at_clock` and `anchors_on_chain`.
+See `devnet/README.md` for the transactions and the limits of what the run
+proves.
+
 ## Why this fixture
 
 It is boring on purpose. A product feed is a real AI delivery, the failures are

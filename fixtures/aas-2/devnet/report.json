@@ -1,0 +1,427 @@
+{
+  "v": "aas-2/0.1",
+  "agreement": "sha256:13e38c6fb83249c2003a6b63ac8dbca79ecf7628ddeb2bdfd523d6f1ed78d231",
+  "raw_output": "sha256:55eb72228b4983d16a66e96c12aa51b06839acd3c6c0ce252d7a485bc17e25af",
+  "canonical_records": "sha256:06a7b1ac636283bcefd2f6e5df5897a9a98a92f99a39a9d495f4b608cc3153ee",
+  "merkle_root": "sha256:8744dd3649ae147c0b8f2ffeb645ea1f1ea80eea224cd37938a245440b513828",
+  "ruleset": {
+    "id": "equxi/checks",
+    "version": "0.1.0",
+    "hash": "sha256:6f93f757882eab93487240e84e731619905560fc4d07f78b3949765ab60250d6",
+    "url": "https://www.equxi.tech/aas-2/rulesets/equxi-checks-0.1.0.json"
+  },
+  "submitted_at": "2026-11-01T11:06:27.000Z",
+  "columns": {
+    "declared": [
+      "sku",
+      "name",
+      "category",
+      "price",
+      "currency"
+    ],
+    "extra": []
+  },
+  "summary": {
+    "expected": 20,
+    "received": 20,
+    "passed_records": 16,
+    "failed_records": [
+      3,
+      8,
+      10,
+      16
+    ],
+    "failed_record_count": 4
+  },
+  "checks": [
+    {
+      "id": "record_count",
+      "passed": true,
+      "failed_count": 0,
+      "details": {
+        "expected": 20,
+        "actual": 20,
+        "delta": 0
+      }
+    },
+    {
+      "id": "required_fields",
+      "passed": false,
+      "failed_count": 2,
+      "details": {
+        "category": [
+          3,
+          10
+        ]
+      }
+    },
+    {
+      "id": "field_types",
+      "passed": false,
+      "failed_count": 1,
+      "details": {
+        "price": [
+          {
+            "index": 8,
+            "value": "n/a",
+            "expected": "decimal"
+          }
+        ]
+      }
+    },
+    {
+      "id": "unique",
+      "passed": false,
+      "failed_count": 1,
+      "details": {
+        "sku": [
+          {
+            "value": "SKU-0002",
+            "indices": [
+              1,
+              16
+            ],
+            "extra": [
+              16
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "deadline",
+      "passed": true,
+      "failed_count": 0,
+      "details": {
+        "at": "2026-12-01T00:00:00Z",
+        "submitted_at": "2026-11-01T11:06:27.000Z",
+        "tolerance_seconds": 0,
+        "late_seconds": 0
+      }
+    }
+  ],
+  "records": [
+    {
+      "index": 0,
+      "record": {
+        "sku": "SKU-0001",
+        "name": "Aurora Desk Lamp",
+        "category": "Home",
+        "price": "34.5",
+        "currency": "USD"
+      },
+      "checks": {
+        "required_fields": true,
+        "field_types": true,
+        "unique": true
+      },
+      "leaf": "sha256:b331995633740cc2f977bc4a785f0a0a372a01999154a4378b4fb5947da95ec8"
+    },
+    {
+      "index": 1,
+      "record": {
+        "sku": "SKU-0002",
+        "name": "Pulse Wireless Mouse",
+        "category": "Electronics",
+        "price": "24.99",
+        "currency": "USD"
+      },
+      "checks": {
+        "required_fields": true,
+        "field_types": true,
+        "unique": true
+      },
+      "leaf": "sha256:2dedce8a75a60557ac7f7b267de5a33c69e55b353f4c65e13a62517669c2e6ff"
+    },
+    {
+      "index": 2,
+      "record": {
+        "sku": "SKU-0003",
+        "name": "Trail Bottle 750",
+        "category": "Outdoors",
+        "price": "18",
+        "currency": "USD"
+      },
+      "checks": {
+        "required_fields": true,
+        "field_types": true,
+        "unique": true
+      },
+      "leaf": "sha256:2f29174099947cbc573833c0d2408756cdf72b75ca7576108028fbc450141493"
+    },
+    {
+      "index": 3,
+      "record": {
+        "sku": "SKU-0004",
+        "name": "Linen Throw",
+        "category": "",
+        "price": "42",
+        "currency": "USD"
+      },
+      "checks": {
+        "required_fields": false,
+        "field_types": true,
+        "unique": true
+      },
+      "leaf": "sha256:4cd1d21a17337b502411d072c8bf2ab95d8db90680ea709792ed1c48b9af32ba"
+    },
+    {
+      "index": 4,
+      "record": {
+        "sku": "SKU-0005",
+        "name": "USB-C Hub 7-in-1",
+        "category": "Electronics",
+        "price": "59.9",
+        "currency": "USD"
+      },
+      "checks": {
+        "required_fields": true,
+        "field_types": true,
+        "unique": true
+      },
+      "leaf": "sha256:a871cf1145b94c5af6e5ec3ebeb20e38864b3a97649c7d89bab69a2d9c38ccc7"
+    },
+    {
+      "index": 5,
+      "record": {
+        "sku": "SKU-0006",
+        "name": "Ceramic Mug 350",
+        "category": "Home",
+        "price": "12",
+        "currency": "USD"
+      },
+      "checks": {
+        "required_fields": true,
+        "field_types": true,
+        "unique": true
+      },
+      "leaf": "sha256:d592509d745cddc035faece4827cf8a9b999c8b8c92ab91d96f76f2572ac43d3"
+    },
+    {
+      "index": 6,
+      "record": {
+        "sku": "SKU-0007",
+        "name": "Camp Stool",
+        "category": "Outdoors",
+        "price": "29",
+        "currency": "USD"
+      },
+      "checks": {
+        "required_fields": true,
+        "field_types": true,
+        "unique": true
+      },
+      "leaf": "sha256:a81c38a258fda120b532ee8ac4dba86e2c36666cf9b9e2774b7628ce1533c8a6"
+    },
+    {
+      "index": 7,
+      "record": {
+        "sku": "SKU-0008",
+        "name": "Noise-Cancelling Headphones",
+        "category": "Electronics",
+        "price": "129",
+        "currency": "USD"
+      },
+      "checks": {
+        "required_fields": true,
+        "field_types": true,
+        "unique": true
+      },
+      "leaf": "sha256:f77c67e4f8af18a15cb306f25f6445ba8284f8ec1eaef5ff7de92ea297168577"
+    },
+    {
+      "index": 8,
+      "record": {
+        "sku": "SKU-0009",
+        "name": "Bamboo Cutting Board",
+        "category": "Home",
+        "price": "n/a",
+        "currency": "USD"
+      },
+      "checks": {
+        "required_fields": true,
+        "field_types": false,
+        "unique": true
+      },
+      "leaf": "sha256:8f40021d9b5354caf76d43db8068c34e03cb27b3bdce9a8f30da90621a052edc"
+    },
+    {
+      "index": 9,
+      "record": {
+        "sku": "SKU-0010",
+        "name": "Compact Lantern",
+        "category": "Outdoors",
+        "price": "15.75",
+        "currency": "USD"
+      },
+      "checks": {
+        "required_fields": true,
+        "field_types": true,
+        "unique": true
+      },
+      "leaf": "sha256:f437455fee0173f908d1840805e430e7476cc3eac3abcb224f8c3170a4e97750"
+    },
+    {
+      "index": 10,
+      "record": {
+        "sku": "SKU-0011",
+        "name": "Mechanical Keyboard",
+        "category": "",
+        "price": "89",
+        "currency": "USD"
+      },
+      "checks": {
+        "required_fields": false,
+        "field_types": true,
+        "unique": true
+      },
+      "leaf": "sha256:b31067ae353cf45f87e1d7f2471289f4ce39786c767ed92476ae048082cd5a76"
+    },
+    {
+      "index": 11,
+      "record": {
+        "sku": "SKU-0012",
+        "name": "Cotton Bath Towel",
+        "category": "Home",
+        "price": "16.2",
+        "currency": "USD"
+      },
+      "checks": {
+        "required_fields": true,
+        "field_types": true,
+        "unique": true
+      },
+      "leaf": "sha256:6392f156a7d04aee32890926eaad3e6828b1f7155600ce73315eebee210e7b82"
+    },
+    {
+      "index": 12,
+      "record": {
+        "sku": "SKU-0013",
+        "name": "Trail Backpack 22L",
+        "category": "Outdoors",
+        "price": "64",
+        "currency": "USD"
+      },
+      "checks": {
+        "required_fields": true,
+        "field_types": true,
+        "unique": true
+      },
+      "leaf": "sha256:84b982e243446aec5b4d8ee1a1c37b722d96989815ac1e0cd28102478839ca4c"
+    },
+    {
+      "index": 13,
+      "record": {
+        "sku": "SKU-0014",
+        "name": "4K Webcam",
+        "category": "Electronics",
+        "price": "74.99",
+        "currency": "USD"
+      },
+      "checks": {
+        "required_fields": true,
+        "field_types": true,
+        "unique": true
+      },
+      "leaf": "sha256:a990ea0c43a8cd2f0b72da706b3c7ae7295eddac94d08b5751c2225cfab5efb1"
+    },
+    {
+      "index": 14,
+      "record": {
+        "sku": "SKU-0015",
+        "name": "Glass Food Container",
+        "category": "Home",
+        "price": "14.3",
+        "currency": "USD"
+      },
+      "checks": {
+        "required_fields": true,
+        "field_types": true,
+        "unique": true
+      },
+      "leaf": "sha256:27af14d6158cf7145619637f69d7db1f4cd197ae5e01d5b147361d96ff86c9c7"
+    },
+    {
+      "index": 15,
+      "record": {
+        "sku": "SKU-0016",
+        "name": "Titanium Spork",
+        "category": "Outdoors",
+        "price": "9.5",
+        "currency": "USD"
+      },
+      "checks": {
+        "required_fields": true,
+        "field_types": true,
+        "unique": true
+      },
+      "leaf": "sha256:8434ad34139abbd7e9fcb864d7d166a5d38902fcdc99216286194ee935f41135"
+    },
+    {
+      "index": 16,
+      "record": {
+        "sku": "SKU-0002",
+        "name": "Pulse Wireless Mouse (replacement)",
+        "category": "Electronics",
+        "price": "24.99",
+        "currency": "USD"
+      },
+      "checks": {
+        "required_fields": true,
+        "field_types": true,
+        "unique": false
+      },
+      "leaf": "sha256:39ee1b7de7b6cd6d84d1f07c44f4f43e244832aea92599db580746f28e9d1d2b"
+    },
+    {
+      "index": 17,
+      "record": {
+        "sku": "SKU-0018",
+        "name": "Smart Plug Mini",
+        "category": "Electronics",
+        "price": "19.99",
+        "currency": "USD"
+      },
+      "checks": {
+        "required_fields": true,
+        "field_types": true,
+        "unique": true
+      },
+      "leaf": "sha256:2981af84833aeda20115d38e21c3064867fc0173c4699dfa88be7dfb9a319a53"
+    },
+    {
+      "index": 18,
+      "record": {
+        "sku": "SKU-0019",
+        "name": "Wool Socks 3-Pack",
+        "category": "Outdoors",
+        "price": "21",
+        "currency": "USD"
+      },
+      "checks": {
+        "required_fields": true,
+        "field_types": true,
+        "unique": true
+      },
+      "leaf": "sha256:93e5827d01f8b08221c73b763f3abdb61a26c353c612f66fb17d7dc1d1cba420"
+    },
+    {
+      "index": 19,
+      "record": {
+        "sku": "SKU-0020",
+        "name": "Desk Organizer",
+        "category": "Home",
+        "price": "27.6",
+        "currency": "USD"
+      },
+      "checks": {
+        "required_fields": true,
+        "field_types": true,
+        "unique": true
+      },
+      "leaf": "sha256:b8a4d96b21fae6245d493e65df6d47f64e31fa9d9aabde9c83a086602d7f9b87"
+    }
+  ],
+  "verdict": "failed_checks",
+  "created_at": "2026-11-01T11:06:49.921Z"
+}

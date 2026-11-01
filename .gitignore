@@ -42,8 +42,7 @@ dist/
 .vercel
 
 # Local AAS-2 scratch: test keys and request/response captures.
-.aas2/
-.aas2-test/
+.aas2*/
 
 # Local-only submission notes: kept on disk, never pushed.
 COLOSSEUM-SUBMISSION.md

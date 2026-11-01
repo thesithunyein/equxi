@@ -1,0 +1,136 @@
+{
+  "v": "aas-2/0.1",
+  "agreement": "sha256:13e38c6fb83249c2003a6b63ac8dbca79ecf7628ddeb2bdfd523d6f1ed78d231",
+  "raw_output": "sha256:55eb72228b4983d16a66e96c12aa51b06839acd3c6c0ce252d7a485bc17e25af",
+  "canonical_records": "sha256:06a7b1ac636283bcefd2f6e5df5897a9a98a92f99a39a9d495f4b608cc3153ee",
+  "merkle_root": "sha256:8744dd3649ae147c0b8f2ffeb645ea1f1ea80eea224cd37938a245440b513828",
+  "ruleset": {
+    "id": "equxi/checks",
+    "version": "0.1.0",
+    "hash": "sha256:6f93f757882eab93487240e84e731619905560fc4d07f78b3949765ab60250d6",
+    "url": "https://www.equxi.tech/aas-2/rulesets/equxi-checks-0.1.0.json"
+  },
+  "evidence_level": "L3",
+  "submitted_at": "2026-11-01T11:06:27.000Z",
+  "summary": {
+    "expected": 20,
+    "received": 20,
+    "passed_records": 16,
+    "failed_records": [
+      3,
+      8,
+      10,
+      16
+    ],
+    "failed_record_count": 4
+  },
+  "checks": [
+    {
+      "id": "record_count",
+      "passed": true,
+      "failed_count": 0,
+      "details": {
+        "expected": 20,
+        "actual": 20,
+        "delta": 0
+      }
+    },
+    {
+      "id": "required_fields",
+      "passed": false,
+      "failed_count": 2,
+      "details": {
+        "category": [
+          3,
+          10
+        ]
+      }
+    },
+    {
+      "id": "field_types",
+      "passed": false,
+      "failed_count": 1,
+      "details": {
+        "price": [
+          {
+            "index": 8,
+            "expected": "decimal"
+          }
+        ]
+      }
+    },
+    {
+      "id": "unique",
+      "passed": false,
+      "failed_count": 1,
+      "details": {
+        "sku": [
+          {
+            "indices": [
+              1,
+              16
+            ],
+            "extra": [
+              16
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "deadline",
+      "passed": true,
+      "failed_count": 0,
+      "details": {
+        "at": "2026-12-01T00:00:00Z",
+        "submitted_at": "2026-11-01T11:06:27.000Z",
+        "tolerance_seconds": 0,
+        "late_seconds": 0
+      }
+    }
+  ],
+  "verdict": "failed_checks",
+  "report_hash": "sha256:c9f38ade6d1cc6f457e760a67ead289c6d27b9748875aa4416ee627e09f9f25c",
+  "limits": [
+    "Checks are limited to the published ruleset; they do not prove factual accuracy.",
+    "The receipt binds the submitted output hash; it does not prove which model or process produced it.",
+    "A failed check is a verification result, not a legal breach.",
+    "Deadline used the output anchor block time.",
+    "Record indices are zero-based."
+  ],
+  "created_at": "2026-11-01T11:06:49.921Z",
+  "anchors": {
+    "agreement": {
+      "tx": "3NgdHnkJ4CbS7Jqa3oJ5Le8mHG4VcAYzJVGJ3rhcseE8Kt141CdgoAa4zDJhduzGynVqmwGq7c9o2UtgoyzcgoV",
+      "slot": 517474123,
+      "block_time": 1793531175,
+      "memo": "equxi:aas2:v0.1:agreement:sha256:13e38c6fb83249c2003a6b63ac8dbca79ecf7628ddeb2bdfd523d6f1ed78d231"
+    },
+    "output": {
+      "tx": "Wp4pNPuxQvy1Rdct7MgR5VkK1Ruf3JYDg3mas4UJHQYWSTYUZvAztwjv37iDkP35cigjiXpB2f1jjyt44RAR7tL",
+      "slot": 517474174,
+      "block_time": 1793531187,
+      "memo": "equxi:aas2:v0.1:output:sha256:55eb72228b4983d16a66e96c12aa51b06839acd3c6c0ce252d7a485bc17e25af"
+    },
+    "receipt": {
+      "tx": "5cHEwKoeYZU7qANR4X5b3bjvR8mEiG113mrgDtgJmCZnuk232UFoGf4zjLSQoN6nfmHGPcBoAdYzRA6hoPidemp5",
+      "slot": 517474344,
+      "block_time": 1793531227,
+      "memo": "equxi:aas2:v0.1:receipt:sha256:f0df540651a6e6a41fd032f9dfb53d5e1512ae4e25914c8008833ec1c2dd7f38"
+    }
+  },
+  "signatures": {
+    "verifier": {
+      "key": "keb2jWbISneQIJ1luc9U9NML1Tzat7+3GR9Z7ZssWK0=",
+      "sig": "mIfaZgZPf/VQrsXovOBNHyDmyoglH+fefnjn+hTq+K9/6R8Vu9DhxwMJ2Hi9NAxbM21AWHvLzuOeZ+BLIfV5Bg=="
+    },
+    "report": {
+      "key": "keb2jWbISneQIJ1luc9U9NML1Tzat7+3GR9Z7ZssWK0=",
+      "sig": "DRD4lXxxIbksRKw3YLXwhH2yiQXuMghJ4Sf1bZ0Jo2EU9qJW0r5twUK+rNv80Zuf21aRTdohMbufD8cvj/9oCA=="
+    },
+    "provider": {
+      "key": "Ay9cPIJQtbdLbZf2ZnNvhvxm7LDtPJKL9dsxRnN98fk=",
+      "sig": "6CTWVcuajmOqxgRqTrWk04jGt0SiypFbkM/JeT6nLF2XC0rA9P+xShJkJacnfK9UwsO8ZUMynG2zNmvhNF0FCg=="
+    }
+  }
+}

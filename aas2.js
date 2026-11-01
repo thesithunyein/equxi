@@ -15,6 +15,13 @@
  *   node aas2.js prove --agreement ... --output ... --index 3
  *   node aas2.js check-proof --proof proof.json
  *
+ * The L3 path adds the wallet commands:
+ *
+ *   node aas2.js sign-agreement --agreement ... --customer-key ... --provider-key ... --out ...
+ *   node aas2.js sign-submission --agreement ... --output ... --submitted-at ... --key ... --out ...
+ *   node aas2.js anchor --kind agreement|output|receipt ... --keypair ... --rpc ... --out ...
+ *   node aas2.js attach --receipt pending.json --anchor receipt-anchor.json --out final.json
+ *
  * Exit codes: 0 success, 1 verification failed, 2 usage, 3 incomplete (an L3
  * receipt waiting for its receipt anchor).
  */
@@ -22,10 +29,13 @@
 
 var fs = require("node:fs");
 var path = require("node:path");
+var crypto = require("node:crypto");
 
 var canonical = require("./lib/aas2/canonical.js");
 var keys = require("./lib/aas2/keys.js");
 var anchorsLib = require("./lib/aas2/anchors.js");
+var receiptLib = require("./lib/aas2/receipt.js");
+var anchorTxLib = require("./lib/aas2/anchor-tx.js");
 var verifyLib = require("./lib/aas2/verify.js");
 
 var EXIT_OK = 0;
@@ -67,12 +77,19 @@ function usage() {
     [
       "AAS-2 reference verifier",
       "",
-      "  node aas2.js keygen --out <dir>",
-      "  node aas2.js verify --agreement <file> --output <file> [options]",      "  node aas2.js verify-receipt --receipt <file> --agreement <file> --output <file> [options]",
+      "  node aas2.js keygen --out <dir> [--name <basename>]",
+      "  node aas2.js verify --agreement <file> --output <file> [options]",
+      "  node aas2.js verify-receipt --receipt <file> --agreement <file> --output <file> [options]",
       "  node aas2.js prove --agreement <file> --output <file> --index <n> [options]",
       "  node aas2.js check-proof --proof <file>",
       "  node aas2.js attach --receipt <file> --anchor <file> [--out <file>]",
       "  node aas2.js hash --file <file> | --agreement <file> | --ruleset <file>",
+      "",
+      "L3 wallet commands",
+      "  node aas2.js sign-agreement --agreement <file> --customer-key <pem> [--provider-key <pem>] --out <file>",
+      "  node aas2.js sign-submission --agreement <file> --output <file> --submitted-at <rfc3339> --key <pem> --out <file>",
+      "  node aas2.js anchor-keygen --out <file> [--airdrop <sol> --rpc <url>]",
+      "  node aas2.js anchor --kind <agreement|output|receipt> [--hash <hash> | --agreement/--output/--receipt <file>] --keypair <file> --rpc <url> --out <file>",
       "",
       "verify options",
       "  --submitted-at <rfc3339>   provider timestamp; defaults to now",
@@ -161,6 +178,25 @@ function publicKeyArg(value) {
   return raw;
 }
 
+/** A submission signature is raw base64 or the JSON `sign-submission` writes. */
+function providerSignatureArg(value) {
+  var raw = keyArg(value);
+  if (typeof raw !== "string") return { sig: raw };
+
+  var trimmed = raw.trim();
+  if (trimmed.charAt(0) === "{") {
+    var parsed = JSON.parse(trimmed);
+    if (!parsed.sig) throw new Error("submission file has no sig");
+    return parsed;
+  }
+
+  return { sig: trimmed };
+}
+
+function publicKeyOf(privateKey) {
+  return keys.publicKeyBase64(crypto.createPublicKey(privateKey));
+}
+
 function printSummary(result, extras) {
   var receipt = result.receipt;
   var summary = receipt.summary;
@@ -218,6 +254,125 @@ function cmdKeygen(args) {
   return EXIT_OK;
 }
 
+function cmdSignAgreement(args) {
+  if (!args.agreement || !args.out) fail("--agreement and --out are required");
+  if (!args["customer-key"] && !args["provider-key"]) {
+    fail("pass --customer-key and/or --provider-key");
+  }
+
+  var agreement = readJson(args.agreement, "agreement");
+  verifyLib.validateAgreement(agreement);
+
+  var payload = verifyLib.withoutSignatures(agreement);
+  var signatures = Object.assign({}, agreement.signatures || {});
+
+  [
+    ["customer", args["customer-key"]],
+    ["provider", args["provider-key"]],
+  ].forEach(function (entry) {
+    if (!entry[1]) return;
+    var privateKey = keys.privateKeyFromPem(keyArg(entry[1]));
+    signatures[entry[0]] = {
+      key: publicKeyOf(privateKey),
+      sig: keys.sign(privateKey, keys.DOMAINS.agreement, payload),
+    };
+  });
+
+  agreement.signatures = signatures;
+  console.log("written   " + writeJson(args.out, agreement));
+  return EXIT_OK;
+}
+
+function cmdSignSubmission(args) {
+  if (!args.agreement || !args.output || !args["submitted-at"] || !args.key) {
+    fail("--agreement, --output, --submitted-at, and --key are required");
+  }
+  if (Number.isNaN(Date.parse(args["submitted-at"]))) fail("--submitted-at must be an RFC 3339 timestamp");
+
+  var agreement = readJson(args.agreement, "agreement");
+  verifyLib.validateAgreement(agreement);
+
+  var output = readFile(args.output, "output");
+  var parsed = canonical.parseCsv(output, agreement.deliverable.fields);
+  var records = canonical.canonicalRecords(agreement, parsed);
+
+  var payload = receiptLib.submissionPayload({
+    agreementHash: receiptLib.agreementHash(agreement),
+    rawOutputHash: canonical.hashBytes(output),
+    canonicalRecordsHash: canonical.hashJson(records),
+    submittedAt: args["submitted-at"],
+  });
+
+  var privateKey = keys.privateKeyFromPem(keyArg(args.key));
+  var document = Object.assign({ v: "aas-2/submission/0.1" }, payload, {
+    key: publicKeyOf(privateKey),
+    sig: keys.sign(privateKey, keys.DOMAINS.submission, payload),
+  });
+
+  if (args.out) console.log("written   " + writeJson(args.out, document));
+  else console.log(JSON.stringify(document, null, 2));
+  return EXIT_OK;
+}
+
+async function cmdAnchorKeygen(args) {
+  if (!args.out) fail("--out is required");
+
+  var keypair = anchorTxLib.generateKeypair();
+  console.log("keypair   " + anchorTxLib.saveKeypair(args.out, keypair));
+  console.log("public    " + keypair.publicKey.toBase58());
+
+  if (args.airdrop !== undefined) {
+    if (!args.rpc) fail("--rpc is required with --airdrop");
+    var sol = Number(args.airdrop);
+    if (!Number.isFinite(sol) || sol <= 0) fail("--airdrop must be a positive SOL amount");
+
+    var connection = anchorTxLib.connect(args.rpc);
+    var signature = await anchorTxLib.requestAirdrop(connection, keypair.publicKey, sol);
+    console.log("airdrop   " + signature);
+    console.log("balance   " + (await connection.getBalance(keypair.publicKey)) / 1e9 + " SOL");
+  }
+
+  return EXIT_OK;
+}
+
+async function cmdAnchor(args) {
+  if (!args.kind || !args.keypair || !args.rpc) {
+    fail("--kind, --keypair, and --rpc are required");
+  }
+
+  var hash = args.hash;
+  if (!hash) {
+    if (args.kind === "agreement" && args.agreement) {
+      hash = receiptLib.agreementHash(readJson(args.agreement, "agreement"));
+    } else if (args.kind === "output" && args.output) {
+      hash = canonical.hashBytes(readFile(args.output, "output"));
+    } else if (args.kind === "receipt" && args.receipt) {
+      hash = receiptLib.coreHash(readJson(args.receipt, "receipt"));
+    } else {
+      fail("pass --hash, or --agreement/--output/--receipt for the matching --kind");
+    }
+  }
+
+  var memo = anchorsLib.memoFor(args.kind, hash);
+  var connection = anchorTxLib.connect(args.rpc);
+  var payer = anchorTxLib.loadKeypair(args.keypair);
+  var anchor = await anchorTxLib.submitAnchor(connection, payer, args.kind, hash);
+
+  /* Read the transaction back before reporting success: a signed transaction is
+   * not evidence if the memo landed in a different instruction than expected. */
+  var read = await anchorsLib.readAnchor(args.rpc, anchor.tx);
+  if (read.kind !== args.kind || read.hash !== hash) {
+    throw new Error("on-chain memo does not match the submitted anchor");
+  }
+
+  if (args.out) console.log("written   " + writeJson(args.out, anchor));
+  else console.log(JSON.stringify(anchor, null, 2));
+
+  console.log("slot      " + anchor.slot + "  block_time " + anchor.block_time);
+  console.log("memo      " + memo);
+  return EXIT_OK;
+}
+
 function cmdVerify(args) {
   if (!args.agreement || !args.output) fail("--agreement and --output are required");
 
@@ -235,9 +390,11 @@ function cmdVerify(args) {
   }
 
   var providerSignature;
+  var providerKey = args["provider-key"];
   if (args["provider-sig"]) {
-    var rawSig = fs.readFileSync(args["provider-sig"], "utf8").trim();
-    providerSignature = rawSig;
+    var submission = providerSignatureArg(args["provider-sig"]);
+    providerSignature = submission.sig;
+    if (!providerKey && submission.key) providerKey = submission.key;
   }
 
   var result = verifyLib.verifyOutput({
@@ -247,7 +404,7 @@ function cmdVerify(args) {
     createdAt: args.now,
     evidenceLevel: args.level || "L1",
     verifierPrivateKey: privateKey,
-    providerPublicKey: args["provider-key"],
+    providerPublicKey: providerKey,
     providerSignature: providerSignature,
     anchors: args.anchors ? readJson(args.anchors, "anchors") : undefined,
     ruleset: args.ruleset,
@@ -404,6 +561,10 @@ async function main() {
     if (command === "check-proof") return cmdCheckProof(args);
     if (command === "attach") return cmdAttach(args);
     if (command === "hash") return cmdHash(args);
+    if (command === "sign-agreement") return cmdSignAgreement(args);
+    if (command === "sign-submission") return cmdSignSubmission(args);
+    if (command === "anchor-keygen") return await cmdAnchorKeygen(args);
+    if (command === "anchor") return await cmdAnchor(args);
   } catch (error) {
     console.error("error: " + error.message);
     if (process.env.AAS2_DEBUG) console.error(error.stack);
@@ -415,5 +576,8 @@ async function main() {
 }
 
 main().then(function (code) {
-  process.exit(code);
+  /* Setting the exit code instead of calling process.exit lets fetch and RPC
+   * handles close first; a forced exit during that close trips a libuv assertion
+   * on Windows even after the command has printed its result. */
+  process.exitCode = code;
 });

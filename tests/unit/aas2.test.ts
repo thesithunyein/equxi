@@ -14,6 +14,7 @@ const { expect } = require("chai");
 
 const fs = require("node:fs");
 const path = require("node:path");
+const { execFileSync } = require("node:child_process");
 
 const canonical = require("../../lib/aas2/canonical.js");
 const checks = require("../../lib/aas2/checks.js");
@@ -21,6 +22,7 @@ const merkle = require("../../lib/aas2/merkle.js");
 const keys = require("../../lib/aas2/keys.js");
 const receiptLib = require("../../lib/aas2/receipt.js");
 const anchorsLib = require("../../lib/aas2/anchors.js");
+const anchorTxLib = require("../../lib/aas2/anchor-tx.js");
 const verifyLib = require("../../lib/aas2/verify.js");
 const verifyHandler = require("../../api/verify.js");
 
@@ -788,6 +790,38 @@ describe("anchors", () => {
     expect(read.anchor.slot).to.equal(555);
     expect(read.anchor.memo).to.equal(memo);
   });
+
+  it("reads base58 memo data and versioned account keys", async () => {
+    const memo = anchorsLib.memoFor("agreement", hash);
+    const base58 =
+      "3fEpuKGmpmTSoazEMM4UTCTU43xbLRfTtiuAh2kY4HQVPHdpRKe2y5uF2cx61JCURKHZ3teYJXvqP6oUX1U6nfmLsKKCxbf99Njru8JWe9HK6wHGpbCgHkPXFBnSgGTwmy2fv";
+
+    const fetchStub = async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        result: {
+          slot: 556,
+          blockTime: 1_763_200_001,
+          transaction: {
+            message: {
+              accountKeys: [
+                { pubkey: anchorsLib.MEMO_PROGRAM_ID, signer: false, writable: false },
+                { pubkey: "provider", signer: true, writable: true },
+              ],
+              instructions: [{ programIdIndex: 0, data: base58 }],
+            },
+          },
+        },
+      }),
+    });
+
+    const read = await anchorsLib.readAnchor("https://rpc.example", "sig", fetchStub);
+
+    expect(read.kind).to.equal("agreement");
+    expect(read.hash).to.equal(hash);
+    expect(read.anchor.memo).to.equal(memo);
+  });
 });
 
 /* ── API ─────────────────────────────────────────────────────────────── */
@@ -895,5 +929,57 @@ describe("POST /api/verify", () => {
 
     expect(res.statusCode).to.equal(400);
     expect(JSON.parse(bodyText()).error).to.equal("invalid_body");
+  });
+});
+
+/* ── anchor submission ──────────────────────────────────────────────── */
+
+describe("anchor submission", () => {
+  it("builds a memo instruction and round-trips a keypair under plain Node", () => {
+    /* The web3 CJS build trips ts-mocha's ESM loader on this Node version, so
+     * the check runs in the same plain-Node process the CLI uses. */
+    const script = [
+      'const fs=require("node:fs"),os=require("node:os"),path=require("node:path");',
+      'const a=require("./lib/aas2/anchor-tx.js");',
+      'const anchors=require("./lib/aas2/anchors.js");',
+      'const hash="sha256:"+"0".repeat(64);',
+      'const memo=anchors.memoFor("output",hash);',
+      "const ix=a.memoInstruction(memo);",
+      'const dir=fs.mkdtempSync(path.join(os.tmpdir(),"aas2-"));',
+      "const kp=a.generateKeypair();",
+      'const file=a.saveKeypair(path.join(dir,"k.json"),kp);',
+      "const loaded=a.loadKeypair(file);",
+      "console.log(JSON.stringify({",
+      "program:ix.programId.toBase58(),keys:ix.keys.length,data:ix.data.toString('utf8'),",
+      "keypair:loaded.publicKey.toBase58()===kp.publicKey.toBase58(),",
+      "memo:memo",
+      "}));",
+      'fs.rmSync(dir,{recursive:true,force:true});',
+    ].join("\n");
+
+    const output = execFileSync(process.execPath, ["-e", script], {
+      cwd: path.join(__dirname, "..", ".."),
+      encoding: "utf8",
+    });
+    const result = JSON.parse(output.trim());
+
+    expect(result.program).to.equal(anchorsLib.MEMO_PROGRAM_ID);
+    expect(result.keys).to.equal(0);
+    expect(result.data).to.equal(result.memo);
+    expect(result.keypair).to.equal(true);
+  });
+
+  it("retries until the node reports a block time", async () => {
+    let calls = 0;
+    const connection = {
+      getTransaction: async () => {
+        calls += 1;
+        return calls < 2 ? { slot: 9, blockTime: null } : { slot: 9, blockTime: 1762000000 };
+      },
+    };
+
+    const anchor = await anchorTxLib.waitForAnchor(connection, "sig", 3);
+    expect(anchor).to.deep.equal({ tx: "sig", slot: 9, block_time: 1762000000 });
+    expect(calls).to.equal(2);
   });
 });

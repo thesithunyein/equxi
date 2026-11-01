@@ -477,7 +477,8 @@ Equxi implements AAS-2 with the following deliberate boundaries:
 - **One verifier key.** A deployment publishes its verifier key at `/.well-known/equxi-verifier.json`. That document lists the active `key_id`, algorithm, validity, rulesets, and rotation policy; receipts carry the raw public key inline, so the file maps a receipt to a published identity. `POST /api/verify` answers 503 rather than issuing an unsigned receipt when `EQUXI_AAS2_VERIFIER_KEY` is unset. In production the key SHOULD be distinct from the AAS-1 admin key, so a compromised receipt signer cannot slash. That is a trusted-verifier model, not a trustless one.
 - **Open ruleset.** The check implementations and the ruleset document are published. The receipt commits to the ruleset hash.
 - **CLI first.** `node aas2.js verify --agreement ... --output ...` is the reference path. The API wraps the same code. `verify-receipt` re-checks a receipt independently, and `prove --index i` produces the selective-disclosure proof for record `i`.
-- **Fixtures first.** `fixtures/aas-2/` pins both the check semantics and the content hashes. `tests/unit/aas2.test.ts` runs the fixture and every pinned hash against the implementation.
+- **Anchors are writable.** `node aas2.js anchor --kind ... --keypair ... --rpc ...` submits the SPL Memo transaction and reads it back before reporting success. `sign-agreement` and `sign-submission` produce the signatures L2 and L3 require.
+- **Fixtures first.** `fixtures/aas-2/` pins both the check semantics and the content hashes. `tests/unit/aas2.test.ts` runs the fixture and every pinned hash against the implementation. `fixtures/aas-2/devnet/` pins a live three-anchor L3 run with its transactions, slots, and receipt so the on-chain path is reproducible.
 
 The reference implementation does not claim that AAS-2 is trustless, that a receipt proves factual accuracy, or that a failed check is a breach.
 
