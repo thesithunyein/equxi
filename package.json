@@ -7,6 +7,7 @@
   "scripts": {
     "test": "ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts",
     "test:unit": "ts-mocha -p ./tsconfig.json -t 60000 tests/unit/*.test.ts",
+    "aas2": "node aas2.js",
     "build:sdk": "cd sdk && npm install && npm run build",
     "lint:program": "cargo clippy --manifest-path programs/equxi/Cargo.toml --all-targets -- -D warnings"
   },

@@ -1,0 +1,3 @@
+# AAS-2 fixtures pin hashes over the exact uploaded bytes. Line-ending
+# normalization would change raw_output_hash on a Windows checkout.
+fixtures/aas-2/* -text

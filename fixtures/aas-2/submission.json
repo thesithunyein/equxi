@@ -1,0 +1,8 @@
+{
+  "v": "aas-2/0.1",
+  "agreement": "agreement.product-feed.json",
+  "output": "output.product-feed.csv",
+  "submitted_at": "2026-11-15T10:00:00Z",
+  "provider": {"id": "did:demo:provider"},
+  "note": "Fixture clock and unsigned submission. The expected receipt is L1: verifier signature only, no provider signature, no anchors. In production, submitted_at comes from the output anchor block time and the provider signs this payload."
+}

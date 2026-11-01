@@ -30,6 +30,7 @@ var API_ROUTES = {
   "/api/badge": require("./api/badge.js"),
   "/api/markets": require("./api/markets.js"),
   "/api/health": require("./api/health.js"),
+  "/api/verify": require("./api/verify.js"),
 };
 
 var ROOT = __dirname;

@@ -1,0 +1,82 @@
+{
+  "v": "aas-2/0.1",
+  "id": "equxi/checks",
+  "version": "0.1.0",
+  "spec": "https://www.equxi.tech/AAS-2.md",
+  "canonicalization": {
+    "json": "jcs-rfc8785",
+    "csv": "csv-rfc4180",
+    "decimal": "aas-2/s6.3",
+    "unicode": "NFC"
+  },
+  "merkle": {
+    "hash": "sha256",
+    "leaf_prefix": "0x00",
+    "node_prefix": "0x01",
+    "odd": "promote"
+  },
+  "checks": [
+    {
+      "id": "record_count",
+      "scope": "deliverable",
+      "inputs": {
+        "expected": "integer >= 1"
+      },
+      "pass": "parsed record count equals expected",
+      "failure_report": [
+        "expected",
+        "actual",
+        "delta"
+      ]
+    },
+    {
+      "id": "required_fields",
+      "scope": "record",
+      "inputs": {
+        "fields": "array of top-level field names"
+      },
+      "pass": "every field exists, is not null, and is not empty after NFC and trim",
+      "failure_report": [
+        "per field, the failing record indices"
+      ]
+    },
+    {
+      "id": "field_types",
+      "scope": "record",
+      "inputs": {
+        "schema": "map of field name to string | integer | decimal | boolean | date"
+      },
+      "pass": "every present value matches its declared type",
+      "failure_report": [
+        "per field, {index, expected} in the public receipt",
+        "per field, {index, value, expected} in the private report"
+      ]
+    },
+    {
+      "id": "unique",
+      "scope": "record",
+      "inputs": {
+        "field": "top-level field name"
+      },
+      "pass": "the first occurrence of a canonical value passes; every later occurrence fails",
+      "failure_report": [
+        "per duplicate, {indices, extra} in the public receipt",
+        "per duplicate, {value, indices, extra} in the private report"
+      ]
+    },
+    {
+      "id": "deadline",
+      "scope": "deliverable",
+      "inputs": {
+        "at": "RFC 3339 UTC",
+        "tolerance_seconds": "integer 0..300, default 0"
+      },
+      "pass": "submitted_at <= at + tolerance_seconds",
+      "failure_report": [
+        "at",
+        "submitted_at",
+        "late_seconds"
+      ]
+    }
+  ]
+}
