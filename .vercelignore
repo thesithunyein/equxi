@@ -1,0 +1,12 @@
+# Internal working documents. Not part of the public site.
+ADEVAR-APPLICATION.md
+CERTIK-BRIEF.md
+OUTREACH-KIT.md
+SECURITY-AUDIT.md
+TEST-RESULTS.md
+PROVIDER-ONBOARDING.md
+
+# Local key material, environment files, and CLI state.
+.aas2*
+.env*
+.vercel
