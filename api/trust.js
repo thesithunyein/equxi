@@ -2,7 +2,7 @@
  * `GET /api/trust` — the public read API.
  *
  * This is the programmatic half of Equxi's accountability claim. A counterparty
- * (or a judge) should not have to read Rust to answer one question: *does this
+ * should not have to read Rust to answer one question: *does this
  * agent have collateral at risk, and has it ever been slashed?* This endpoint
  * answers it as JSON.
  *

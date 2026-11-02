@@ -52,7 +52,6 @@
         <a href="explorer.html" class="nav-link">Explorer</a>
         <a href="docs.html" class="nav-link">Docs</a>
         <a href="aas-2.html" class="nav-link active">AAS-2</a>
-        <a href="launch.html" class="nav-link">Launch</a>
         <a href="https://github.com/thesithunyein/equxi" class="nav-link" target="_blank" title="Source on GitHub" aria-label="GitHub"><svg class="a2-nav-ico" aria-hidden="true" focusable="false"><use href="#i-github" /></svg></a>
         <a href="https://x.com/equxi_ai" class="nav-link" target="_blank" title="Equxi on X" aria-label="X"><svg class="a2-nav-ico" aria-hidden="true" focusable="false"><use href="#i-x" /></svg></a>
       </nav>
@@ -65,7 +64,6 @@
       <a href="explorer.html" class="mobile-nav-link">Explorer</a>
       <a href="docs.html" class="mobile-nav-link">Docs</a>
       <a href="aas-2.html" class="mobile-nav-link">AAS-2</a>
-      <a href="launch.html" class="mobile-nav-link">Launch</a>
       <a href="https://github.com/thesithunyein/equxi" class="mobile-nav-link" target="_blank"><svg class="a2-nav-ico" aria-hidden="true" focusable="false"><use href="#i-github" /></svg> GitHub</a>
       <a href="https://x.com/equxi_ai" class="mobile-nav-link mobile-nav-icon" target="_blank" title="Equxi on X" aria-label="Equxi on X"><svg class="a2-nav-ico" aria-hidden="true" focusable="false"><use href="#i-x" /></svg></a>
     </div>
@@ -76,8 +74,9 @@
           <div class="a2-eyebrow">AAS-2 · Proof of delivery · 0.1</div>
           <h1>A receipt that stands on its own.</h1>
           <p class="a2-lead">
-            Turn an agent delivery into a signed, reproducible record. Anyone can rerun the
-            checks, verify the signature, and confirm the timeline without asking the provider.
+            Turn an agent delivery into a signed, reproducible record. The checks are published, so
+            you can rerun them in the browser or on your own machine, confirm the signature, and
+            place the delivery in time without asking the provider.
           </p>
           <div class="a2-actions">
             <a class="a2-btn a2-btn--solid" href="#verify">
@@ -144,11 +143,11 @@
         <div class="a2-section-head">
           <div>
             <div class="a2-eyebrow">The standard</div>
-            <h2>One receipt. Three strengths of evidence.</h2>
+            <h2>The same receipt at three evidence levels.</h2>
           </div>
           <p class="a2-section-sub">
-            An agreement chooses the level it needs. The format never changes — only what the
-            receipt can prove without asking anyone to trust the provider.
+            An agreement chooses the level it needs. The format stays the same. The level sets what
+            the receipt can prove without asking anyone to trust the provider.
           </p>
         </div>
 
@@ -191,7 +190,8 @@
           </div>
           <p class="a2-section-sub">
             Run the published mainnet proof, or verify a receipt you were given. Every hash is
-            recomputed and, at L3, the memos are read from Solana. Nothing is stored.
+            recomputed and, at L3, the memos are read from Solana. The endpoint does not write the
+            receipt to a database.
           </p>
         </div>
 
@@ -204,8 +204,9 @@
 
             <div class="a2-pane" role="tabpanel" id="a2-pane-published" aria-labelledby="a2-tab-published" data-a2-pane="published">
               <p class="a2-pane-lead">
-                A real delivery anchored on Solana mainnet on 2 November 2026. Twelve checks,
-                three memos, one core hash.
+                A pinned example delivery anchored on Solana mainnet on 2 November 2026. The anchor
+                is real. The product data is a test fixture, included so the check can be rerun
+                byte for byte.
               </p>
               <div class="a2-artifacts">
                 <div class="a2-artifact">
@@ -261,9 +262,9 @@
               <div class="a2-field">
                 <label for="a2-file-cluster">Chain check</label>
                 <select id="a2-file-cluster">
-                  <option value="offline">Offline — signatures and hashes only</option>
-                  <option value="mainnet">Solana mainnet — read the anchors</option>
-                  <option value="devnet">Solana devnet — read the anchors</option>
+                  <option value="offline">Offline: signatures and hashes only</option>
+                  <option value="mainnet">Solana mainnet: read the anchors</option>
+                  <option value="devnet">Solana devnet: read the anchors</option>
                 </select>
               </div>
               <button class="a2-btn a2-btn--solid" type="button" data-a2-run="files">Verify receipt</button>
@@ -285,7 +286,7 @@
         <div class="a2-section-head">
           <div>
             <div class="a2-eyebrow">For implementers</div>
-            <h2>Small surface. Verifiable guarantees.</h2>
+            <h2>The format is small on purpose.</h2>
           </div>
           <p class="a2-section-sub">
             The reference implementation is one way to do it, not the definition. Anything that
@@ -356,7 +357,7 @@
             <ul>
               <li>That the content is accurate or useful.</li>
               <li>That a failed check is a legal breach.</li>
-              <li>That the verifier itself is honest — v0.1 trusts the signing key, and the registry makes it identifiable.</li>
+              <li>That the verifier itself is honest. v0.1 trusts the signing key, and the registry makes it identifiable.</li>
             </ul>
           </div>
         </div>
@@ -374,7 +375,7 @@
           <h2>Start with a proof you can check.</h2>
         </div>
         <div class="a2-actions">
-          <a class="a2-btn a2-btn--solid" href="#verify">Verify the mainnet receipt</a>
+          <a class="a2-btn a2-btn--solid" href="#verify">Verify the pinned receipt</a>
           <a class="a2-btn" href="https://github.com/thesithunyein/equxi/blob/main/AAS-2.md" target="_blank" rel="noopener">Specification</a>
         </div>
       </section>
@@ -391,8 +392,6 @@
           <a href="aas-2.html">AAS-2</a>
           <a href="app.html">Dashboard</a>
           <a href="explorer.html">Explorer</a>
-          <a href="launch.html">Launch</a>
-          <a href="deck.html">Pitch deck</a>
           <a href="https://github.com/thesithunyein/equxi" target="_blank" rel="noopener">GitHub</a>
           <a href="https://x.com/equxi_ai" target="_blank" rel="noopener">X</a>
         </nav>

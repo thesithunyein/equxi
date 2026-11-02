@@ -8,7 +8,7 @@
   let PROGRAM_ID;
   let walletConnected = false;
   let walletAddress = null;
-  let phantom = null;
+  let activeWallet = null;
   let connection = null;
 
   let cachedAgents = [];
@@ -134,9 +134,19 @@
   }
 
   /* ── Helpers ────────────────────────────────────────────────────────── */
+  function getWallets() {
+    var found = [];
+    var phantomProvider = window.phantom && window.phantom.solana && window.phantom.solana.isPhantom
+      ? window.phantom.solana
+      : (window.solana && window.solana.isPhantom ? window.solana : null);
+    if (phantomProvider) found.push({ name: "Phantom", provider: phantomProvider });
+    if (window.solflare && window.solflare.isSolflare) found.push({ name: "Solflare", provider: window.solflare });
+    if (window.backpack && window.backpack.isBackpack) found.push({ name: "Backpack", provider: window.backpack });
+    return found;
+  }
   function getPhantom() {
-    if (window.phantom && window.phantom.solana && window.phantom.solana.isPhantom) return window.phantom.solana;
-    if (window.solana && window.solana.isPhantom) return window.solana;
+    var wallets = getWallets();
+    for (var i = 0; i < wallets.length; i++) if (wallets[i].name === "Phantom") return wallets[i].provider;
     return null;
   }
   // A missing value reads as "N/A", never as a lone dash that can be mistaken
@@ -199,6 +209,15 @@
       }
       return { agents: agents, bonds: bonds, constraints: constraints };
     } catch (e) { console.warn("Fetch accounts failed:", e); return { agents: [], bonds: [], constraints: [] }; }
+  }
+
+  async function refreshBalance() {
+    if (!walletConnected || !connection) return;
+    try {
+      var bal = await connection.getBalance(new solanaWeb3.PublicKey(walletAddress));
+      document.getElementById("walletBalance").textContent = lamportsToSol(bal) + " SOL";
+      document.getElementById("walletBalance").style.display = "inline";
+    } catch (e) { /* keep the last known balance */ }
   }
 
   async function refreshData() {
@@ -272,30 +291,45 @@
 
   /* ── Wallet ─────────────────────────────────────────────────────────── */
   async function connectWallet() {
+    if (walletConnected) { await disconnectWallet(); return; }
+    var wallets = getWallets();
+    if (wallets.length === 0) {
+      openModal("Connect a wallet",
+        '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">This dashboard needs a Solana browser wallet. Install one, then reload this page.</p>' +
+        '<div class="form-actions" style="justify-content:flex-start;gap:10px;flex-wrap:wrap;">' +
+        '<a class="btn-primary" href="https://phantom.app/" target="_blank" rel="noopener">Phantom</a>' +
+        '<a class="btn-outline" href="https://solflare.com/" target="_blank" rel="noopener">Solflare</a>' +
+        '<a class="btn-outline" href="https://backpack.app/" target="_blank" rel="noopener">Backpack</a>' +
+        '</div>'
+      );
+      return;
+    }
+    if (wallets.length === 1) { await connectWith(wallets[0]); return; }
+    openModal("Connect a wallet",
+      '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">More than one wallet is available in this browser.</p>' +
+      wallets.map(function (w, i) {
+        return '<button class="btn-outline" id="walletPick' + i + '" style="width:100%;margin-bottom:8px;justify-content:center;">' + w.name + '</button>';
+      }).join("")
+    );
+    wallets.forEach(function (w, i) {
+      document.getElementById("walletPick" + i).onclick = function () { closeModal(); connectWith(w); };
+    });
+  }
+
+  async function connectWith(wallet) {
     var btn = document.getElementById("connectWallet");
-    phantom = getPhantom();
-    if (!phantom) {
-      showToast("Phantom wallet not found. Install from phantom.app");
-      window.open("https://phantom.app/", "_blank");
-      return;
-    }
-    if (walletConnected) {
-      try { await phantom.disconnect(); } catch (e) { /* ignore */ }
-      walletConnected = false; walletAddress = null;
-      cachedAgents = []; cachedBonds = []; cachedConstraints = []; cachedActivity = [];
-      localStorage.setItem("equxi_disconnected", "1");
-      setWalletUI(false); renderAll(); showToast("Disconnected");
-      return;
-    }
+    activeWallet = wallet;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Connecting...</span>';
     btn.disabled = true;
     try {
-      var resp = await phantom.connect();
+      var resp = await wallet.provider.connect();
+      var publicKey = resp && resp.publicKey ? resp.publicKey : wallet.provider.publicKey;
+      if (!publicKey) throw new Error("No public key returned");
       walletConnected = true;
-      walletAddress = resp.publicKey.toString();
+      walletAddress = publicKey.toString();
       localStorage.removeItem("equxi_disconnected");
       connection = new solanaWeb3.Connection(SOLANA_RPC, "confirmed");
-      var bal = await connection.getBalance(resp.publicKey);
+      var bal = await connection.getBalance(publicKey);
       document.getElementById("walletBalance").textContent = lamportsToSol(bal) + " SOL";
       document.getElementById("walletBalance").style.display = "inline";
       setWalletUI(true, walletAddress);
@@ -305,8 +339,16 @@
     } catch (err) {
       console.error("Connect error:", err);
       setWalletUI(false); btn.disabled = false;
-      showToast("Connection rejected");
+      showToast(err && err.message ? err.message : "Connection rejected");
     }
+  }
+
+  async function disconnectWallet() {
+    try { if (activeWallet) await activeWallet.provider.disconnect(); } catch (e) { /* ignore */ }
+    walletConnected = false; walletAddress = null; activeWallet = null;
+    cachedAgents = []; cachedBonds = []; cachedConstraints = []; cachedActivity = [];
+    localStorage.setItem("equxi_disconnected", "1");
+    setWalletUI(false); renderAll(); showToast("Disconnected");
   }
 
   function setWalletUI(connected, addr) {
@@ -353,7 +395,7 @@
       var bal = await connection.getBalance(new solanaWeb3.PublicKey(walletAddress));
       var balSol = bal / 1e9;
       if (balSol < requiredSol + 0.005) {
-        showToast("Insufficient balance: need " + (requiredSol + 0.005).toFixed(4) + " SOL but have " + balSol.toFixed(4) + " SOL");
+        showToast("Insufficient balance: need " + (requiredSol + 0.005).toFixed(4) + " SOL but have " + balSol.toFixed(4) + " SOL. Get devnet SOL at faucet.solana.com");
         return false;
       }
       return true;
@@ -369,7 +411,8 @@
     tx.feePayer = new solanaWeb3.PublicKey(walletAddress);
 
     // Always use signTransaction + sendRawTransaction — proven working for register/bond/constraint
-    var signed = await phantom.signTransaction(tx);
+    if (!activeWallet || !activeWallet.provider) throw new Error("Reconnect your wallet");
+    var signed = await activeWallet.provider.signTransaction(tx);
     var raw = signed.serialize({ requireAllSignatures: false });
     var sig = await connection.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 3 });
     console.log('TX sent:', sig);
@@ -557,11 +600,19 @@
   /* ── Render ─────────────────────────────────────────────────────────── */
   function renderAll() { updateStats(); renderActivity(); renderAgents(); renderBonds(); renderConstraints(); }
   function updateStats() {
-    document.getElementById("totalAgents").textContent = cachedAgents.length || "0";
-    document.getElementById("totalBonds").textContent = cachedBonds.filter(function (b) { return b.isActive; }).length || "0";
+    // Before a wallet is connected there is nothing to count. A zero would read
+    // as "you have none", which is a different statement from "not loaded".
+    if (!walletConnected) {
+      ["totalAgents", "totalBonds", "totalStaked", "totalSlashes"].forEach(function (id) {
+        document.getElementById(id).textContent = "n/a";
+      });
+      return;
+    }
+    document.getElementById("totalAgents").textContent = cachedAgents.length;
+    document.getElementById("totalBonds").textContent = cachedBonds.filter(function (b) { return b.isActive; }).length;
     var totalLocked = cachedBonds.filter(function (b) { return b.isActive; }).reduce(function (sum, b) { return sum + Number(b.amount); }, 0);
     document.getElementById("totalStaked").textContent = totalLocked ? lamportsToSol(totalLocked) : "0";
-    document.getElementById("totalSlashes").textContent = cachedAgents.filter(function (a) { return a.status === "slashed"; }).length || "0";
+    document.getElementById("totalSlashes").textContent = cachedAgents.filter(function (a) { return a.status === "slashed"; }).length;
   }
   function renderActivity() {
     var target = document.getElementById("activityList");
@@ -618,8 +669,7 @@
       var agentName = agentObj ? agentObj.name : short(b.agent);
       var buttons = '';
       if (b.isActive) {
-        buttons = '<button class="btn-outline" onclick="window._withdrawBond(\'' + b.pubkey + '\',\'' + b.agent + '\')">Withdraw</button>' +
-          '<button class="btn-slash" onclick="window._openSlash(\'' + b.pubkey + '\',\'' + b.agent + '\',\'' + b.amount + '\',\'' + agentName + '\')">Slash</button>';
+        buttons = '<button class="btn-outline" onclick="window._withdrawBond(\'' + b.pubkey + '\',\'' + b.agent + '\')">Withdraw</button>';
       }
       return '<div class="bond-card"><div class="bond-icon"><i class="fa-solid fa-shield-halved"></i></div><div class="bond-info"><h3>' + lamportsToSol(b.amount) + ' SOL</h3><p>' + agentName + ' · ' + (b.isActive ? (withdrawable ? "Expired, withdrawable" : (expired ? "Unbonding, still slashable" : "Locked")) : "Withdrawn") + '</p></div><div class="bond-amount"><div class="value">' + (b.isActive ? "Active" : "Closed") + '</div><div class="label">' + (b.expiresAt ? new Date(b.expiresAt * 1000).toLocaleDateString() : "") + '</div></div>' + buttons + '</div>';
     }).join("");
@@ -638,7 +688,7 @@
     }
     target.innerHTML = cachedConstraints.map(function (c) {
       var iconClass = c.type === "spend" ? "fa-coins" : c.type === "program" ? "fa-cube" : c.type === "timelock" ? "fa-clock" : "fa-gauge-high";
-      return '<div class="constraint-card"><div class="constraint-header"><div class="constraint-icon ' + c.type + '"><i class="fa-solid ' + iconClass + '"></i></div><h3>' + c.title + '</h3></div><div class="constraint-row"><span class="label">Status</span><span class="value">' + (c.enforced ? "Active" : "Pending") + '</span></div><div class="constraint-status"><span class="dot"></span>' + (c.enforced ? "Enforced" : "Pending") + '</div></div>';
+      return '<div class="constraint-card"><div class="constraint-header"><div class="constraint-icon ' + c.type + '"><i class="fa-solid ' + iconClass + '"></i></div><h3>' + c.title + '</h3></div><div class="constraint-row"><span class="label">Status</span><span class="value">' + (c.enforced ? "Recorded" : "Pending") + '</span></div><div class="constraint-status"><span class="dot"></span>' + (c.enforced ? "Recorded" : "Pending") + '</div></div>';
     }).join("");
   }
   /**
@@ -711,10 +761,9 @@
       if (!walletConnected) { showToast("Connect wallet first"); return; }
       if (cachedAgents.length === 0) { showToast("Register an agent first"); return; }
       var opts = cachedAgents.filter(function (a) { return a.status === "active"; }).map(function (a) { return '<option value="' + a.pubkey + '">' + a.name + '</option>'; }).join("");
-      openModal("Add a rule",
-        '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">A rule names what the agent may do. Breaking it moves collateral to the victim.</p>' +
+      openModal("Add a spending limit",
+        '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">The limit is stored on-chain with the agent. The program does not block a transaction that breaks it, and any slash is a separate decision by the authority.</p>' +
         '<div class="form-group"><label>Agent</label><select id="conAgent">' + opts + '</select></div>' +
-        '<div class="form-group"><label>Rule</label><select id="conType"><option value="0">Spending Limit</option><option value="1">Allowed Programs</option><option value="2">Timelock</option><option value="3">Speed Limit</option></select></div>' +
         '<div class="form-group"><label>Max spend (SOL)</label><input type="number" id="conMaxAmount" placeholder="e.g. 5" min="0.01" step="0.01" /></div>' +
         // Asked in days, not seconds. "Period (seconds): 86400" is a puzzle for
         // the person actually filling the form.
@@ -835,7 +884,7 @@
 
   async function handleConstraint() {
     var agentPubkey = document.getElementById("conAgent") ? document.getElementById("conAgent").value : "";
-    var typeIdx = parseInt(document.getElementById("conType") ? document.getElementById("conType").value : "0");
+    var typeIdx = 0;
     var maxAmountSol = parseFloat(document.getElementById("conMaxAmount") ? document.getElementById("conMaxAmount").value : "1");
     var periodSecs = parseInt(document.getElementById("conPeriod") ? document.getElementById("conPeriod").value : "86400");
     if (!agentPubkey) { showToast("Select an agent"); return; }
@@ -950,83 +999,6 @@
 
   window._withdrawBond = withdrawBond;
 
-  window._openSlash = function (bondPubkey, agentPubkey, bondAmount, agentName) {
-    openModal("Slash Bond",
-      '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">Slash <strong>' + agentName + '</strong>\'s bond. The amount moves from the bond into the program-owned escrow vault, where it can be paid to a victim.</p>' +
-      '<div class="form-group"><label>Slash Amount (SOL)</label><input type="number" id="slashAmount" placeholder="e.g. 0.1" min="0.01" step="0.01" max="' + lamportsToSol(bondAmount) + '" /><p class="hint">Max: ' + lamportsToSol(bondAmount) + ' SOL</p></div>' +
-      '<div class="form-group"><label>Reason</label><input type="text" id="slashReason" placeholder="e.g. Rule violation: exceeded spending limit" maxlength="128" /></div>' +
-      '<div class="form-actions"><button class="btn-ghost" onclick="closeModal()">Cancel</button><button class="btn-danger" id="slashSubmit">Slash Bond</button></div>'
-    );
-    document.getElementById("slashSubmit").onclick = function () { handleSlash(bondPubkey, agentPubkey); };
-  };
-
-  async function handleSlash(bondPubkey, agentPubkey) {
-    var amountSol = parseFloat(document.getElementById("slashAmount") ? document.getElementById("slashAmount").value : "");
-    var reason = document.getElementById("slashReason") ? document.getElementById("slashReason").value.trim() : "";
-    if (!amountSol || amountSol < 0.01) { showToast("Enter a valid amount"); return; }
-    if (!reason) { showToast("Enter a reason"); return; }
-    if (!(await checkMinBalance(0.01))) return;
-    closeModal(); showTxPending("Slashing bond...");
-    try {
-      var operator = new solanaWeb3.PublicKey(walletAddress);
-      var configPDA = solanaWeb3.PublicKey.findProgramAddressSync([bytes("config")], PROGRAM_ID)[0];
-      var slashIdx = 0;
-      try {
-        var cfgInfo = await connection.getAccountInfo(configPDA);
-        if (cfgInfo && cfgInfo.data) {
-          // Config: disc(8) + admin(32) + total_agents(8) + total_bonds(8) + total_slashed(8) = offset 56
-          slashIdx = Number(new DataView(cfgInfo.data.buffer, cfgInfo.data.byteOffset + 56).getBigUint64(0, true));
-        }
-      } catch (e) { console.warn("Could not read config for slash nonce:", e); }
-      var agentKey = new solanaWeb3.PublicKey(agentPubkey);
-      var nonceBytes = new Uint8Array(8);
-      new DataView(nonceBytes.buffer).setBigUint64(0, BigInt(slashIdx), true);
-      var slashRecordPDA = solanaWeb3.PublicKey.findProgramAddressSync(
-        [bytes("slash"), agentKey.toBuffer(), nonceBytes], PROGRAM_ID
-      )[0];
-      var disc = await instrDiscriminator("execute_slash");
-      var data = concat(disc, strWithLen(reason), u64le(Math.floor(amountSol * 1e9)));
-
-      // ABI differs on the vault account (v0.2 routes slashed funds into
-      // program-owned escrow; v0.1 credited the admin directly):
-      //   v0.2 — [config, vault, agent, bond, slashRecord, authority, sys]
-      //   v0.1 — [config, agent, bond, slashRecord, authority, sys]
-      var ver = await detectProgramVersion();
-      var slashKeys = [
-        { pubkey: configPDA, isSigner: false, isWritable: true },
-      ];
-      if (ver !== 1) {
-        var vaultPDA = solanaWeb3.PublicKey.findProgramAddressSync([bytes("vault")], PROGRAM_ID)[0];
-        slashKeys.push({ pubkey: vaultPDA, isSigner: false, isWritable: true });
-      }
-      slashKeys.push(
-        { pubkey: agentKey, isSigner: false, isWritable: true },
-        { pubkey: new solanaWeb3.PublicKey(bondPubkey), isSigner: false, isWritable: true },
-        { pubkey: slashRecordPDA, isSigner: false, isWritable: true },
-        { pubkey: operator, isSigner: true, isWritable: true },  // authority = config.admin
-        { pubkey: solanaWeb3.SystemProgram.programId, isSigner: false, isWritable: false },
-      );
-      var slashIx = new solanaWeb3.TransactionInstruction({
-        keys: slashKeys,
-        programId: PROGRAM_ID, data: data,
-      });
-      var tx = new solanaWeb3.Transaction().add(slashIx);
-      var sig = await sendAndWait(tx);
-      showTxSuccess("Bond slashed: " + amountSol + " SOL", sig);
-      await Promise.all([refreshData(), refreshBalance()]);
-    } catch (err) {
-      console.error("Slash error:", err);
-      var msg = err.message || "Transaction failed";
-      if (msg.includes("User rejected") || msg.includes("cancelled")) msg = "Cancelled";
-      else if (msg.indexOf("innerInstructions") !== -1 || msg.indexOf("Expected an array value") !== -1) {
-        // Phantom's preview parser glitch on account-creation txs — the tx itself is valid
-        msg = "Phantom preview glitch. Click Slash again to retry.";
-      }
-      else if (msg.length > 200) msg = msg.substring(0, 200) + "...";
-      showTxError(msg);
-    }
-  }
-
   /* ── Boot ──────────────────────────────────────────────────────────── */
   function boot() {
     try { PROGRAM_ID = new solanaWeb3.PublicKey(PROGRAM_ID_STR); } catch (e) {
@@ -1039,24 +1011,32 @@
       if (walletBtn) {
         walletBtn.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); connectWallet(); });
       }
-      phantom = getPhantom();
-      if (phantom) {
-        phantom.on("connect", function () {
-          walletConnected = true; walletAddress = phantom.publicKey.toString();
+      var phantomProvider = getPhantom();
+      if (phantomProvider) {
+        var phantomWallet = { name: "Phantom", provider: phantomProvider };
+        phantomProvider.on("connect", function () {
+          activeWallet = phantomWallet;
+          walletConnected = true; walletAddress = phantomProvider.publicKey.toString();
           localStorage.removeItem("equxi_disconnected");
           connection = new solanaWeb3.Connection(SOLANA_RPC, "confirmed");
-          setWalletUI(true, walletAddress); refreshData();
+          setWalletUI(true, walletAddress); refreshData(); refreshBalance();
+        });
+        phantomProvider.on("accountChanged", function (publicKey) {
+          if (!publicKey) { disconnectWallet(); return; }
+          walletAddress = publicKey.toString();
+          setWalletUI(true, walletAddress); refreshData(); refreshBalance();
         });
         // Silent reconnect only if user did not explicitly disconnect
         if (!localStorage.getItem("equxi_disconnected")) {
-        phantom.connect({ onlyIfTrusted: true }).then(function (resp) {
+        phantomProvider.connect({ onlyIfTrusted: true }).then(function (resp) {
           if (resp && resp.publicKey) {
+            activeWallet = phantomWallet;
             walletConnected = true;
             walletAddress = resp.publicKey.toString();
             localStorage.removeItem("equxi_disconnected");
             connection = new solanaWeb3.Connection(SOLANA_RPC, "confirmed");
             setWalletUI(true, walletAddress);
-            refreshData();
+            refreshData(); refreshBalance();
           }
         }).catch(function () {});
         }

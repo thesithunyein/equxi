@@ -409,7 +409,7 @@ export class EquxiClient {
 
   /**
    * The public trust profile for one agent: bond, slash history, derived grade.
-   * This is the single call a counterparty or a judge needs.
+   * This is the single call a counterparty needs.
    */
   async getTrustProfile(agentPDA: PublicKey, now = Math.floor(Date.now() / 1000)): Promise<TrustProfile> {
     const agent = await this.getAgent(agentPDA);

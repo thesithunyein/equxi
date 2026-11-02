@@ -282,7 +282,7 @@
   <!-- No background video here. The explorer is a lookup tool people open
        repeatedly: the footage billed 21 MB a visit for motion sitting behind
        the numbers, which is the one thing on this page that must stay legible.
-       It stays on the landing, launch and deck pages. -->
+       It stays on the landing page. -->
 
   <div class="page">
     <header class="header">
@@ -294,7 +294,6 @@
         <a href="app.html" class="nav-link">Dashboard</a>
         <a href="explorer.html" class="nav-link">Explorer</a>
         <a href="docs.html" class="nav-link">Docs</a>
-        <a href="launch.html" class="nav-link">Meteora launch</a>
         <a href="https://github.com/thesithunyein/equxi" class="nav-link" target="_blank" title="Source on GitHub" aria-label="GitHub"><i class="fa-brands fa-github" aria-hidden="true"></i></a>
         <a href="https://x.com/equxi_ai" class="nav-link" target="_blank" title="Equxi on X" aria-label="X"><i class="fa-brands fa-x-twitter" aria-hidden="true"></i></a>
       </nav>
@@ -313,7 +312,6 @@
       <a href="app.html" class="mobile-nav-link">Dashboard</a>
       <a href="explorer.html" class="mobile-nav-link">Explorer</a>
       <a href="docs.html" class="mobile-nav-link">Docs</a>
-      <a href="launch.html" class="mobile-nav-link">Meteora launch</a>
       <a href="https://github.com/thesithunyein/equxi" class="mobile-nav-link" target="_blank"><i class="fa-brands fa-github" aria-hidden="true"></i> GitHub</a>
       <a href="https://x.com/equxi_ai" class="mobile-nav-link mobile-nav-icon" target="_blank" title="Equxi on X" aria-label="Equxi on X"><i class="fa-brands fa-x-twitter" aria-hidden="true"></i></a>
       <a href="app.html" class="btn-primary" style="width:100%;margin-top:12px;">Open App</a>
@@ -369,8 +367,8 @@
           </div>
           <div class="x-help-item">
             <p><span class="x-help-title">Collateral at stake.</span> SOL the owner locked on chain
-            behind the agent. If the agent breaks a rule, this is the money that pays the victim,
-            and the owner cannot take it back while it is locked.</p>
+            behind the agent. If a slash is upheld, this is the money that pays the victim, and the
+            owner cannot take it back while it is locked.</p>
           </div>
           <div class="x-help-item">
             <p><span class="x-help-title">Slashes recorded.</span> Times collateral has actually
@@ -378,9 +376,10 @@
             yet; <span class="x-pill paid">compensated</span> means the money reached them.</p>
           </div>
           <div class="x-help-item">
-            <p><span class="x-help-title">Rules.</span> The on-chain rules the owner attached to the
-            agent, such as a spend cap or a timelock. A rule is what makes a promise enforceable,
-            and a slash is what answers a broken one.</p>
+            <p><span class="x-help-title">Rules.</span> The terms the owner recorded on-chain with
+            the agent, such as a spend cap or a timelock. They are a public statement of intent.
+            The program stores them but does not block a transaction that breaks one; a slash is a
+            separate decision by the program authority.</p>
           </div>
           <div class="x-help-item">
             <p><span class="x-help-title">Escrow for victims.</span> The program account that holds
@@ -389,7 +388,8 @@
           </div>
           <p class="x-help-note" style="margin-top:14px;">
             Numbers here come from <span class="x-mono">GET /api/trust</span> on
-            <span id="clusterName" class="x-mono">devnet</span>, read live from the program at request time.
+            <span id="clusterName" class="x-mono">devnet</span>, read from the program and cached
+            for up to 30 seconds at the edge.
           </p>
         </div>
       </details>
@@ -403,10 +403,10 @@
         <div class="x-fold-body">
           <div class="x-help-item">
             <p><span class="x-help-title">Embed a live grade.</span>
-            <span class="x-mono">GET /api/badge?agent=&lt;pda&gt;</span> returns an SVG that re-reads
-            the chain on every request, so it cannot go stale or be faked by copying markup. Add
-            <span class="x-mono">&amp;format=json</span> for the numbers instead. Open any agent below
-            for the exact snippet.</p>
+            <span class="x-mono">GET /api/badge?agent=&lt;pda&gt;</span> returns an SVG built from
+            the chain, so it cannot be faked by copying markup. The edge caches it for 30 seconds.
+            Add <span class="x-mono">&amp;format=json</span> for the numbers instead. Open any agent
+            below for the exact snippet.</p>
           </div>
           <div class="x-help-item">
             <p><span class="x-help-title">Read the registry yourself.</span>
@@ -448,8 +448,6 @@
       <a href="index.html">Home</a>
       <a href="app.html">Dashboard</a>
       <a href="docs.html">Docs</a>
-      <a href="launch.html">Meteora launch</a>
-      <a href="deck.html">Pitch deck</a>
       <a href="https://github.com/thesithunyein/equxi" target="_blank" rel="noopener">GitHub</a>
       <a href="https://x.com/equxi_ai" target="_blank" rel="noopener">X</a>
     </footer>

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Equxi: Documentation</title>
-  <meta name="description" content="Equxi documentation: slashable collateral and on-chain accountability for AI agents on Solana. Bond, enforce, slash, compensate." />
+  <meta name="description" content="Equxi documentation: slashable collateral and on-chain accountability for AI agents on Solana. Bond, record rules, slash, compensate." />
   <meta property="og:title" content="Equxi · Documentation" />
   <meta property="og:description" content="Slashable collateral and on-chain accountability for AI agents on Solana." />
   <meta property="og:image" content="https://www.equxi.tech/assets/og-card.png" />
@@ -162,9 +162,6 @@
       <a href="explorer.html" class="back-btn">
         <i class="fa-solid fa-magnifying-glass"></i> Explorer
       </a>
-      <a href="launch.html" class="back-btn">
-        <i class="fa-solid fa-rocket"></i> Launch
-      </a>
       <a href="https://x.com/equxi_ai" class="back-btn" target="_blank">
         <i class="fa-brands fa-x-twitter"></i>
       </a>
@@ -216,46 +213,40 @@
 
       <!-- Overview -->
       <h2 id="overview">Overview</h2>
-      <p>Equxi is a Solana program that solves a fundamental problem in AI agent commerce: <strong>nobody can trust an autonomous agent with real capital or financial obligations</strong>.</p>
-      <p>Traditional wallets only hold funds. They cannot enforce on-chain behavioral constraints, nor seize an operator's collateral to compensate victims when an agent misbehaves. Equxi fixes this by providing:</p>
+      <p>Equxi is a Solana program for one narrow problem: an autonomous agent can take money or authority from someone who has no recourse. The program lets an operator lock SOL as collateral, records the terms the agent is expected to meet, and lets a designated authority move that collateral to an injured party once a violation has been confirmed.</p>
+      <p>Traditional wallets only hold funds. They cannot seize an operator's collateral when an agent misbehaves. Equxi adds four things:</p>
       <ul>
-        <li><strong>Operator bonding</strong>: Agents must lock SOL as collateral before operating</li>
-        <li><strong>Behavioral constraints</strong>: On-chain rules that limit what an agent can do (spend limits, program allowlists, timelocks)</li>
-        <li><strong>Slashing by the config authority</strong>: A proven violation slashes the bond and victims are compensated. On-chain violation proofs and dispute windows are on the roadmap.</li>
-        <li><strong>Trust scores</strong>: On-chain reputation that counterparties can verify before transacting</li>
+        <li><strong>Operator bonding</strong>: Agents lock SOL as collateral before operating</li>
+        <li><strong>Recorded rules</strong>: Spend limits and other terms are stored on-chain with the agent</li>
+        <li><strong>Slashing by the config authority</strong>: After the authority confirms a violation, bond SOL moves into a program vault and the victim is paid from there. On-chain violation proofs and dispute windows are on the roadmap.</li>
+        <li><strong>A trust score</strong>: A value on the agent account that the authority can update. The Explorer grades bonds and paid slashes directly, not this field.</li>
       </ul>
 
-      <div class="callout info">
-        <i class="fa-solid fa-circle-info"></i>
-        <div>Equxi is a recipient of Superteam's <strong>Agentic Engineering</strong> grant, awarded August 28, 2026. It enables Web3 builders, autonomous traders, and agent frameworks to scale by providing financial accountability that counterparties can trust.</div>
-      </div>
-
-      <p>The reference program is live on devnet, and the product surfaces are public: the Trust Explorer, the read-only trust API at <code>/api/trust</code>, and the launch page.</p>
+      <p>The reference program runs on devnet, and the public surfaces are the Trust Explorer, the read-only trust API at <code>/api/trust</code>, and the AAS-2 receipt standard.</p>
 
       <!-- Quick Start -->
       <h2 id="quickstart">Quick Start</h2>
       <p>Get a working agent with bond and rules in under 5 minutes.</p>
 
       <h3>1. Connect Your Wallet</h3>
-      <p>Visit <a href="app.html" style="color:var(--purple);">equxi.tech/app.html</a> and connect your Phantom wallet. Make sure you're on <strong>Devnet</strong>.</p>
+      <p>Visit <a href="app.html" style="color:var(--purple);">equxi.tech/app.html</a> and connect a Solana wallet. Switch it to <strong>Devnet</strong> and fund it from the <a href="https://faucet.solana.com/" target="_blank" style="color:var(--purple);">Solana faucet</a>.</p>
 
       <h3>2. Register an Agent</h3>
-      <p>Click <strong>+ Register</strong> in the Agents tab. Give your agent a name and select its type (Trader, Assistant, Framework, or Custom). This creates an on-chain account at a PDA derived from the program.</p>
+      <p>Click <strong>+ Register</strong> in the Agents tab. Give your agent a name and select its type (Trader, Oracle, DeFi, Payment, NFT, Governance, Bridge, or Custom). This creates an on-chain account at a PDA derived from the program.</p>
 
       <h3>3. Lock a Bond</h3>
-      <p>Click <strong>+ Lock Funds</strong> in the Bonds tab. Deposit SOL as collateral. This bond is your agent's accountability guarantee: if it misbehaves, victims are compensated from it.</p>
+      <p>Click <strong>+ Lock SOL</strong> in the Bonds tab. Deposit SOL as collateral. The bond is the money that can be paid to a victim once the authority confirms a violation.</p>
 
-      <h3>4. Add Rules</h3>
-      <p>Click <strong>+ Add Rule</strong> in the Rules tab. Set constraints on your agent's behavior:</p>
+      <h3>4. Record a Rule</h3>
+      <p>Click <strong>+ Add Rule</strong> in the Rules tab. The dashboard currently supports one rule type:</p>
       <ul>
         <li><strong>Spend Limit</strong>: Maximum SOL per time period</li>
-        <li><strong>Program Allowlist</strong>: Only interact with approved programs</li>
-        <li><strong>Timelock</strong>: Delay large transactions for review</li>
       </ul>
+      <p>The program account has fields for program allowlists, timelocks and velocity limits, but the dashboard does not write them yet and the program does not reject transactions that break a rule. A rule is a published term; a slash is a separate decision by the authority.</p>
 
       <pre><code>// Your agent is now live on Solana devnet
-// Constraints are enforced on-chain
-// A proven violation is slashable by the config authority</code></pre>
+// Rules are recorded on-chain
+// A violation confirmed by the authority can be slashed</code></pre>
 
       <!-- Installation -->
       <h2 id="installation">SDK Installation</h2>
@@ -301,8 +292,8 @@ console.log("Trust score:", agent.trustScore);</code></pre>
       <p>An <strong>agent</strong> is an AI program that acts on behalf of an operator. Each agent has:</p>
       <ul>
         <li><strong>Operator</strong>: The wallet that registered the agent (controls it)</li>
-        <li><strong>Agent Type</strong>: Trader, Assistant, Framework, or Custom</li>
-        <li><strong>Trust Score</strong>: 0–100 reputation score (starts at 50)</li>
+        <li><strong>Agent Type</strong>: Trader, Oracle, DeFi, Payment, NFT, Governance, Bridge, or Custom</li>
+        <li><strong>Trust Score</strong>: 0 to 100, starts at 50, updated by the authority</li>
         <li><strong>Status</strong>: Active, Suspended, or Slashed</li>
         <li><strong>Registered At</strong>: Unix timestamp of registration</li>
       </ul>
@@ -311,19 +302,35 @@ console.log("Trust score:", agent.trustScore);</code></pre>
       <div class="cards">
         <div class="card">
           <h4>Trader</h4>
-          <p>Autonomous trading bots that execute strategies on-chain. Bond protects counterparties from rogue trades.</p>
+          <p>Autonomous trading bots that execute strategies on-chain. The bond stands behind the trades.</p>
         </div>
         <div class="card">
-          <h4>Assistant</h4>
-          <p>AI assistants that manage wallets, pay bills, or handle DeFi positions on your behalf.</p>
+          <h4>Oracle</h4>
+          <p>Agents that publish prices or data another contract depends on.</p>
         </div>
         <div class="card">
-          <h4>Framework</h4>
-          <p>Agent frameworks (Eliza, CrewAI, etc.) that spawn multiple sub-agents under one operator bond.</p>
+          <h4>DeFi</h4>
+          <p>Agents that manage positions, liquidity, or vault strategies.</p>
+        </div>
+        <div class="card">
+          <h4>Payment</h4>
+          <p>Agents that move funds on behalf of a user or another agent.</p>
+        </div>
+        <div class="card">
+          <h4>NFT</h4>
+          <p>Agents that mint, trade, or manage digital collectibles.</p>
+        </div>
+        <div class="card">
+          <h4>Governance</h4>
+          <p>Agents that propose or vote with delegated authority.</p>
+        </div>
+        <div class="card">
+          <h4>Bridge</h4>
+          <p>Agents that move assets between chains through a relayer.</p>
         </div>
         <div class="card">
           <h4>Custom</h4>
-          <p>Any other AI agent use case. Define your own rules and constraints.</p>
+          <p>Any other agent use case.</p>
         </div>
       </div>
 
@@ -336,7 +343,7 @@ console.log("Trust score:", agent.trustScore);</code></pre>
         <li>Operator deposits SOL when creating a bond</li>
         <li>Bond has a <strong>lock period</strong> (e.g., 30 days): cannot be withdrawn early</li>
         <li>After the lock period, the operator can withdraw via <code>withdraw_bond</code></li>
-        <li>If the agent violates rules, the bond is <strong>slashed</strong> (partially or fully)</li>
+        <li>If a violation is confirmed, the bond can be <strong>slashed</strong> (partially or fully)</li>
         <li>Slashed funds are sent to the <strong>victim</strong> via <code>compensate_victim</code></li>
       </ul>
 
@@ -352,13 +359,14 @@ console.log("Trust score:", agent.trustScore);</code></pre>
 
       <!-- Rules -->
       <h2 id="rules-section">Rules (Constraints)</h2>
-      <p><strong>Rules</strong> define what an agent is allowed to do. They are stored on-chain and are the criteria a slash is judged against. An agent may hold many rules.</p>
+      <p><strong>Rules</strong> define what an agent is allowed to do. They are stored on-chain and are the terms a slash cites. An agent may hold many rules.</p>
       <div class="callout warn">
         <i class="fa-solid fa-triangle-exclamation"></i>
         <div>Detection is currently off-chain: an authority records the violation, then the program moves the money. This version does not yet reject violating transactions in-flight. See SPEC.md for the roadmap.</div>
       </div>
 
       <h3>Constraint Types</h3>
+      <p>Only Spend Limit is written by the dashboard today. The other rows describe fields on the constraint account that are not yet exposed or enforced.</p>
       <div class="table-wrap">
         <table>
           <thead>
@@ -595,11 +603,10 @@ chmod +x setup.sh
       <p>The agent's status changes to <strong>Slashed</strong>. The operator would need to create a new bond to continue operating. The trust score is reduced, signaling to counterparties that this agent has a history of violations.</p>
 
       <h3>Is this on mainnet?</h3>
-      <p>Currently deployed on <strong>Devnet</strong> for testing and grant verification. Mainnet deployment would require a security audit and sufficient TVL in the bonding mechanism.</p>
+      <p>Currently deployed on <strong>Devnet</strong> for testing. The bond program is not deployed on mainnet. A mainnet deployment would require a security audit and real usage of the bonding mechanism.</p>
 
       <div class="doc-footer">
         <a href="index.html">← Back to Home</a>
-        <a href="deck.html">Pitch deck</a>
         <a href="https://github.com/thesithunyein/equxi" target="_blank">GitHub →</a>
       </div>
     </main>

@@ -14,22 +14,6 @@ html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; 
 body { font-family: var(--font); background: var(--bg); color: var(--text); overflow-x: hidden; }
 a { text-decoration: none; color: inherit; }
 
-@media (max-width: 768px) {
-  /* Decoration only. The video reads as a faint wash on a phone and the file
-     is 21 MB, so the phone should not pay for it. */
-  .bg-video { display: none; }
-}
-
-/* Background */
-.bg { position: fixed; inset: 0; z-index: 0; }
-/* The ambient video is near-white (measured median luminance 240 of 255), so
-   it holds under the copy without darkening the page. It sits at 0.40: a
-   visible wash, quiet enough that the text is still what the eye reads first.
-   The veil only softens it towards the page colour at the edges; fading it
-   towards black is what used to make the whole page read as dark. */
-.bg-video { position: absolute; inset: -5%; width: 110%; height: 110%; object-fit: cover; opacity: 0.32; }
-.bg-overlay { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 40%, rgba(247,244,239,0.16) 0%, rgba(247,244,239,0.28) 55%, rgba(247,244,239,0.55) 100%); }
-
 /* Page */
 .page { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; min-height: 100dvh; padding: 20px 32px; }
 
@@ -170,7 +154,7 @@ body.menu-open .menu-toggle { position: relative; z-index: 110; }
      of its own. That ties on specificity and wins on order, so the header's
      desktop-only CTA stayed on a phone, squeezed between the wordmark and the
      menu button. Two classes deep, this rule wins instead — the same fix
-     deck.html uses against the same tie. */
+     pages that share the same tie. */
   .desktop-only.desktop-only { display: none; }
   .header { padding: 8px 0; }
   .logo img { width: 32px; height: 32px; }
@@ -311,7 +295,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, [tabindex]:focus-vis
     transition-duration: 0.001ms !important;
   }
   html { scroll-behavior: auto !important; }
-  .bg-video { display: none; }
 }
 
 /* Footer */

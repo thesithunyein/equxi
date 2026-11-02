@@ -54,10 +54,8 @@
         <i class="fa-solid fa-magnifying-glass"></i><span>Trust Explorer</span>
       </a>
     </nav>
-    <!-- The deck is for someone judging the company, not for someone about to
-         lock SOL, so it stays in the page footers where it already is. Docs
-         stays reachable but below the working set: it is a reference, not a
-         place you operate from. -->
+    <!-- Docs is reachable but below the working set: it is a reference, not
+         a place you operate from. -->
     <div class="sidebar-footer">
       <a href="docs.html" class="sidebar-link">
         <i class="fa-solid fa-book"></i><span>Docs</span>
@@ -79,6 +77,7 @@
       </button>
       <div class="topbar-title"><h1 id="pageTitle">Overview</h1></div>
       <div class="topbar-right">
+        <span class="network-pill">Devnet</span>
         <span class="wallet-balance" id="walletBalance" style="display:none;"></span>
         <button class="wallet-btn" id="connectWallet">
           <i class="fa-solid fa-wallet"></i><span>Connect Wallet</span>
@@ -92,30 +91,42 @@
         <div class="stat-card">
           <div class="stat-icon green"><i class="fa-solid fa-shield-halved"></i></div>
           <div class="stat-body">
-            <div class="stat-value" id="totalBonds">0</div>
+            <div class="stat-value" id="totalBonds">n/a</div>
             <div class="stat-label">Your active bonds</div>
           </div>
         </div>
         <div class="stat-card">
           <div class="stat-icon purple"><i class="fa-solid fa-robot"></i></div>
           <div class="stat-body">
-            <div class="stat-value" id="totalAgents">0</div>
+            <div class="stat-value" id="totalAgents">n/a</div>
             <div class="stat-label">Your agents</div>
           </div>
         </div>
         <div class="stat-card">
           <div class="stat-icon yellow"><i class="fa-solid fa-coins"></i></div>
           <div class="stat-body">
-            <div class="stat-value" id="totalStaked">0</div>
+            <div class="stat-value" id="totalStaked">n/a</div>
             <div class="stat-label">Collateral locked (SOL)</div>
           </div>
         </div>
         <div class="stat-card">
           <div class="stat-icon red"><i class="fa-solid fa-bolt"></i></div>
           <div class="stat-body">
-            <div class="stat-value" id="totalSlashes">0</div>
+            <div class="stat-value" id="totalSlashes">n/a</div>
             <div class="stat-label">Your agents slashed</div>
           </div>
+        </div>
+      </div>
+
+      <div class="card setup-card">
+        <div class="card-header"><h2>Before you start</h2></div>
+        <div class="setup-body">
+          <p>This dashboard signs real transactions on Solana devnet. You need a wallet and a little devnet SOL.</p>
+          <ul>
+            <li>A Solana browser wallet: Phantom, Solflare, or Backpack.</li>
+            <li>The wallet set to <strong>Devnet</strong>. Get free devnet SOL from the <a href="https://faucet.solana.com/" target="_blank" rel="noopener">Solana faucet</a>.</li>
+          </ul>
+          <p class="setup-note">The bond program is devnet-only today. Do not send mainnet SOL to this page.</p>
         </div>
       </div>
 
@@ -145,7 +156,7 @@
             <div class="qstep-num">3</div>
             <div class="qstep-text">
               <strong>Add a rule</strong>
-              <span>Spend cap, allowed programs, or a timelock</span>
+              <span>A spend cap per hour, day, or week</span>
             </div>
           </button>
         </div>
@@ -175,7 +186,7 @@
         <h2>Bonds</h2>
         <button class="btn-primary" id="createBond"><i class="fa-solid fa-plus"></i> Lock SOL</button>
       </div>
-      <p class="section-desc">Locked SOL is the promise that backs your agent. If it breaks a rule, this pays the victim.</p>
+      <p class="section-desc">Locked SOL backs your agent. If a slash is upheld, it can pay the victim.</p>
       <div class="bonds-list" id="bondsList"></div>
     </section>
 
@@ -185,7 +196,7 @@
         <h2>Rules</h2>
         <button class="btn-primary" id="addConstraint"><i class="fa-solid fa-plus"></i> Add Rule</button>
       </div>
-      <p class="section-desc">A rule names what the agent may do. Breaking one moves collateral to the victim.</p>
+      <p class="section-desc">A rule is a term recorded with the agent. A slash cites the term that broke.</p>
       <div class="constraints-grid" id="constraintsGrid"></div>
     </section>
 

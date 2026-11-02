@@ -4,12 +4,12 @@
  * Every page in this repo is read by someone deciding whether to care, and the
  * failure mode is the same each time: a short, clear line gets "improved" into a
  * paragraph that nobody finishes. That is what the landing hero had become — four
- * lines and 45 words where 13 would do — and what the deck slides and the
- * Explorer footnotes had drifted into too.
+ * lines and 45 words where 13 would do — and what the Explorer footnotes had
+ * drifted into too.
  *
  * So the limits are asserted. They are deliberately generous enough to allow
  * real explanation and tight enough to catch a wall of text: a lead line is one
- * sentence, and nothing on a slide or a page footer runs past a few lines.
+ * sentence, and no page footer runs past a few lines.
  *
  * Words are counted after stripping markup, so `</strong>` and inline links do
  * not count as prose.
@@ -57,24 +57,7 @@ function blocks(html: string, tags: string[]): string[] {
 }
 
 describe("page copy stays short", () => {
-  const deck = prose(read("deck.html"));
   const explorer = prose(read("explorer.html"));
-
-  it("gives every deck slide a one-sentence lead", () => {
-    const leads = blocks(deck, ["p"]).filter((b) => /class="lead"/.test(b));
-    expect(leads.length, "no slide leads found").to.be.at.least(6);
-    leads.forEach((lead) => {
-      const count = words(text(lead));
-      expect(count, `slide lead is ${count} words: ${text(lead).slice(0, 90)}`).to.be.at.most(22);
-    });
-  });
-
-  it("keeps every deck block to a few lines", () => {
-    const offenders = blocks(deck, ["p", "li", "span", "h2", "h3"])
-      .map(text)
-      .filter((t) => words(t) > 45);
-    expect(offenders, `deck blocks too long:\n${offenders.join("\n")}`).to.deep.equal([]);
-  });
 
   it("keeps the Explorer notes readable", () => {
     const notes = blocks(explorer, ["p"]).flatMap((block) => block.split(/<br\s*\/?>/i));
@@ -149,7 +132,7 @@ describe("page copy stays short", () => {
   it("links to no page that does not exist", () => {
     // A renamed file leaves a link that 404s for a reader and is invisible in
     // every other form of review.
-    const pages = ["index.html", "explorer.html", "docs.html", "app.html", "deck.html"];
+    const pages = ["index.html", "explorer.html", "docs.html", "app.html", "aas-2.html"];
     const missing: string[] = [];
     pages.forEach((page) => {
       const hrefs = Array.from(read(page).matchAll(/href="([^"#:?]+\.html)"/g)).map(

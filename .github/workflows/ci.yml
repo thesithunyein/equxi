@@ -268,9 +268,6 @@ jobs:
           test -f fixtures/aas-2/l2/receipt.json || exit 1
           test -f fixtures/aas-2/mainnet/receipt.json || exit 1
           test -f explorer.js || exit 1
-          test -f launch.html || exit 1
-          test -f launch.js || exit 1
-          test -f meteora-launch/launch-steps.json || exit 1
           test -f landing.js || exit 1
           test -f theme.css || exit 1
           test -f dev-server.js || exit 1
@@ -294,7 +291,7 @@ jobs:
           grep -q 'api/trust' .github/workflows/verify.yml || exit 1
           # Every page must load the shared theme. A page that quietly loses its
           # stylesheet is invisible in every other check.
-          for page in index.html app.html explorer.html docs.html launch.html deck.html aas-2.html; do
+          for page in index.html app.html explorer.html docs.html aas-2.html; do
             grep -q 'theme.css' "$page" || { echo "$page does not load theme.css"; exit 1; }
           done
           test -f tests/unit/layout.test.ts || exit 1

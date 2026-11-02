@@ -1134,8 +1134,8 @@
   }, 15000);
 
   // Deep links: `explorer.html?agent=<pubkey>`, `?owner=<wallet>` and
-  // `?q=<name>` all work, which is what a pitch, a README or a badge can hand
-  // to a judge.
+  // `?q=<name>` all work, which is what a README or a badge can hand
+  // to a reader.
   var params = new URLSearchParams(location.search);
   var initialAgent = params.get("agent");
   var initialOwner = params.get("owner");

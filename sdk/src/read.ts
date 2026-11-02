@@ -1,7 +1,7 @@
 /**
  * Equxi read layer — the queryable half of the protocol.
  *
- * The program's write path (bond, slash, compensate) is useless to a judge or a
+ * The program's write path (bond, slash, compensate) is useless to a
  * counterparty unless they can *ask* one question: "does this agent have
  * collateral at risk, and has it ever been slashed?" That is what this module
  * answers.

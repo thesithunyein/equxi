@@ -58,7 +58,7 @@ counterparty reads the bond and slash history from one endpoint before dealing.
 ## How It Works
 
 <p align="center">
-  <strong>1. Register</strong> &nbsp;&rarr;&nbsp; <strong>2. Bond</strong> &nbsp;&rarr;&nbsp; <strong>3. Enforce</strong> &nbsp;&rarr;&nbsp; <strong>4. Slash</strong> &nbsp;&rarr;&nbsp; <strong>5. Compensate</strong>
+  <strong>1. Register</strong> &nbsp;&rarr;&nbsp; <strong>2. Bond</strong> &nbsp;&rarr;&nbsp; <strong>3. Record rules</strong> &nbsp;&rarr;&nbsp; <strong>4. Slash</strong> &nbsp;&rarr;&nbsp; <strong>5. Compensate</strong>
 </p>
 
 <p align="center">
@@ -73,8 +73,7 @@ counterparty reads the bond and slash history from one endpoint before dealing.
 | Trust Explorer | [equxi.tech/explorer.html](https://www.equxi.tech/explorer.html) |
 | Dashboard | [equxi.tech/app.html](https://www.equxi.tech/app.html) |
 | Documentation | [equxi.tech/docs.html](https://www.equxi.tech/docs.html) |
-| Launch (Meteora DBC) | [equxi.tech/launch.html](https://www.equxi.tech/launch.html) |
-| Pitch deck | [equxi.tech/deck.html](https://www.equxi.tech/deck.html) |
+| Receipt standard | [equxi.tech/aas-2.html](https://www.equxi.tech/aas-2.html) |
 | Read API | [`/api/trust`](https://www.equxi.tech/api/trust) · [`/api/badge`](https://www.equxi.tech/api/badge?agent=9CvFbUciyP4APMVyzjLiR2znFmMTEPNqfGAP37PDNU4J) · [`/api/health`](https://www.equxi.tech/api/health) |
 | SDK | [`@equxi/sdk` on npm](https://www.npmjs.com/package/@equxi/sdk) |
 | Program | [`D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc`](https://explorer.solana.com/address/D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc?cluster=devnet) |
@@ -83,7 +82,7 @@ counterparty reads the bond and slash history from one endpoint before dealing.
 
 ## Start with the proof
 
-Every claim here has a file behind it, and a counterparty, judge or auditor can check the
+Every claim here has a file behind it, and a counterparty or auditor can check the
 same set. Nothing needs to be taken on faith:
 
 | Claim | Where it is checked |
@@ -92,27 +91,7 @@ same set. Nothing needs to be taken on faith:
 | An operator cannot exit before a late violation lands | [`withdraw_bond.rs`](programs/equxi/src/instructions/withdraw_bond.rs): the unbonding window, rehearsed live by [`prove-unbonding.js`](prove-unbonding.js) |
 | The security posture is real, including its gaps | [`SECURITY-AUDIT.md`](SECURITY-AUDIT.md): five risk areas, the three repairs it produced, and the one deploy-gated patch |
 | An auditor can start from a written scope, not an invitation | [`CERTIK-BRIEF.md`](CERTIK-BRIEF.md): scope, trust boundaries and a month-by-month roadmap |
-| A token launch can fund its own collateral | [`meteora-launch/README.md`](meteora-launch/README.md): ten linked devnet transactions through DBC and DAMM v2, and the config published as a reusable [preset](meteora-launch/presets/safety-escrow.json) |
 | Reads are not tied to one provider | [`api/trust.js`](api/trust.js): `EQUXI_RPC` selects the RPC endpoint; `?rpc=` still wins |
-
-## Meteora DBC — a launch that funds its own collateral
-
-<p align="center">
-  <a href="https://www.equxi.tech/launch.html"><img src="assets/launch-hero.webp" alt="The launch page: launch with safety escrow — a token launch whose graduation proceeds become the collateral behind the agent that runs it" width="880" /></a>
-</p>
-
-A token launch on Meteora's dynamic bonding curve, configured so the share of the
-graduation proceeds a creator is entitled to is not spent but **posted as an Equxi agent's
-slashable bond** — the same transaction trail that creates the token creates the
-consequence for the agent that runs it. Ten transactions, each linked on
-[`launch.html`](https://www.equxi.tech/launch.html), and the config published as a
-reusable [preset](meteora-launch/presets/safety-escrow.json) a builder can validate and
-reuse.
-
-The honest limits, stated where the track judges them: it ran on **devnet**, and the launch
-contributed **0.0698 SOL** of the 0.1 SOL bond — the script tops up the remainder, which a
-larger curve removes. [`meteora-launch/README.md`](meteora-launch/README.md) gives the full
-account.
 
 ## On-Chain Proof
 
@@ -229,7 +208,7 @@ npm install
 # 1. The fast gate: wire formats, PDA seeds, IDL, SDK, read layer, read API,
 #    and page copy. No validator, no Solana toolchain, no network.
 npm run test:unit
-#   → 234 passing in ~10s
+#   → 224 passing in ~10s
 
 # 2. Typecheck everything the tests touch.
 npx tsc --noEmit
@@ -282,8 +261,6 @@ layers, and the only thing they share is the program's account layout.
 
 ```mermaid
 flowchart TB
-    L["Meteora DBC launch — devnet<br/>config → pool → curve → DAMM v2 → migrate"]
-
     subgraph CHAIN["1 · On chain — Solana devnet"]
         direction LR
         OP["Operator wallet"] -->|"register_agent · create_bond · top_up_bond"| P(["Equxi program<br/>11 instructions"])
@@ -302,7 +279,6 @@ flowchart TB
         E["Trust Explorer"] ~~~ S["@equxi/sdk"] ~~~ RM["README badge"]
     end
 
-    L -->|"graduation proceeds fund the bond"| P
     CHAIN -->|"getProgramAccounts"| READ
     READ -->|"JSON · SVG"| USE
 ```
@@ -326,15 +302,14 @@ equxi/
 │   └── instructions/              1,118 · 12 files   11 handlers + mod
 │       └── largest: migrate_agent.rs 231 · withdraw_bond.rs 159 · top_up_bond.rs 130
 ├── tests/equxi.test.ts              664   Anchor suite against a local validator (17 cases)
-├── tests/unit/                    4,808 · 8 files   validator-free, ~9s, no network
+├── tests/unit/                    4,660 · 7 files   validator-free, ~9s, no network
 │   ├── aas2.test.ts               1,175   canonicalization, receipts, anchors
 │   ├── api.test.ts                1,400   trust, badge, health, stubbed RPC
 │   ├── read.test.ts                 662   query filters, decoding, scoring
 │   ├── sdk.test.ts                  584   the IDL as shipped
 │   ├── layout.test.ts               482   discriminators, PDAs, Borsh
-│   ├── copy.test.ts                 205   page copy, cross-page links, one word per idea
-│   ├── landing.test.ts              169   live landing stats
-│   └── meteora-preset.test.ts       131   the DBC preset, pinned to its launch
+│   ├── copy.test.ts                 188   page copy, cross-page links, one word per idea
+│   └── landing.test.ts              169   live landing stats
 ├── api/                           1,862 · 8 files   read API (no dependencies)
 │   ├── trust.js                     722   GET /api/trust — agent, bond, slash history
 │   ├── badge.js                     301   GET /api/badge — embeddable SVG grade
@@ -345,17 +320,12 @@ equxi/
 │   └── rate-limit.js                 80   per-instance throttle
 ├── sdk/src/                       1,924 · 4 files   @equxi/sdk on npm
 ├── eliza-plugin/src/              1,336 · 7 files   elizaOS plugin (IDL-free)
-├── meteora-launch/                2,286 · 10 files   the DBC launch, on devnet
-│   ├── launch-safety-bond.js        611   config → pool → curve → migrate → bond
-│   ├── presets/index.js             241   dependency-free preset loader + validator
-│   └── presets/safety-escrow.json    89   the config, published as data
-├── site                           4,993             6 pages, 3 scripts, no framework
-│   ├── explorer.html / explorer.js  467 / 1,170   Trust Explorer
-│   ├── app.html / app.js            223 / 1,085   operator dashboard
-│   ├── deck.html                    640   the pitch, as a page
-│   ├── docs.html                    632   documentation
-│   ├── index.html / landing.js      333 / 135
-│   └── launch.html / launch.js      308 / 189
+├── site                           4,862             5 pages, 4 scripts, no framework
+│   ├── explorer.html / explorer.js  459 / 1,170   Trust Explorer
+│   ├── app.html / app.js            239 / 1,062   operator dashboard
+│   ├── docs.html                    640   documentation
+│   ├── aas-2.html / aas-2.js        406 / 416   receipt standard and verifier
+│   └── index.html / landing.js      336 / 134
 ├── theme.css / app.css / styles.css 628 / 440 / 311
 ├── dev-server.js                    114   site + api/ locally, no build step
 ├── migrate.js                       340   v0.1 → v0.2 in place, then re-decoded to prove it
@@ -721,9 +691,3 @@ One person, and the history says so: every commit in this repository is
 [Sithu Nyein](https://github.com/thesithunyein)'s — the Anchor program, the TypeScript SDK, the
 elizaOS plugin, the serverless read API, the Trust Explorer and every test suite above.
 The repo is public and MIT licensed ([`LICENSE`](LICENSE)).
-
-Equxi is a recipient of Superteam's
-[Agentic Engineering Grant](https://superteam.fun/earn/grants/agentic-engineering), awarded
-August 28, 2026 — validation from people who read the code, not customers. There are no
-external operators yet, which the section above states plainly rather than implying
-otherwise.

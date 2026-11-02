@@ -2,6 +2,11 @@
   "buildCommand": null,
   "outputDirectory": ".",
   "framework": null,
+  "redirects": [
+    { "source": "/launch.html", "destination": "/", "permanent": true },
+    { "source": "/deck.html", "destination": "/", "permanent": true },
+    { "source": "/test-helpers.html", "destination": "/", "permanent": true }
+  ],
   "headers": [
     {
       "source": "/(.*)",
