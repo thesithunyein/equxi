@@ -14,6 +14,15 @@ html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; 
 body { font-family: var(--font); background: var(--bg); color: var(--text); overflow-x: hidden; }
 a { text-decoration: none; color: inherit; }
 
+@media (max-width: 768px) {
+  .bg-video { display: none; }
+}
+
+/* Background */
+.bg { position: fixed; inset: 0; z-index: 0; }
+.bg-video { position: absolute; inset: -5%; width: 110%; height: 110%; object-fit: cover; opacity: 0.32; }
+.bg-overlay { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 40%, rgba(247,244,239,0.16) 0%, rgba(247,244,239,0.28) 55%, rgba(247,244,239,0.55) 100%); }
+
 /* Page */
 .page { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; min-height: 100dvh; padding: 20px 32px; }
 
