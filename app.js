@@ -600,14 +600,6 @@
   /* ── Render ─────────────────────────────────────────────────────────── */
   function renderAll() { updateStats(); renderActivity(); renderAgents(); renderBonds(); renderConstraints(); }
   function updateStats() {
-    // Before a wallet is connected there is nothing to count. A zero would read
-    // as "you have none", which is a different statement from "not loaded".
-    if (!walletConnected) {
-      ["totalAgents", "totalBonds", "totalStaked", "totalSlashes"].forEach(function (id) {
-        document.getElementById(id).textContent = "n/a";
-      });
-      return;
-    }
     document.getElementById("totalAgents").textContent = cachedAgents.length;
     document.getElementById("totalBonds").textContent = cachedBonds.filter(function (b) { return b.isActive; }).length;
     var totalLocked = cachedBonds.filter(function (b) { return b.isActive; }).reduce(function (sum, b) { return sum + Number(b.amount); }, 0);
