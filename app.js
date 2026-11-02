@@ -598,7 +598,19 @@
   };
 
   /* ── Render ─────────────────────────────────────────────────────────── */
-  function renderAll() { renderActivity(); renderAgents(); renderBonds(); renderConstraints(); }
+  function renderAll() { updateStats(); renderActivity(); renderAgents(); renderBonds(); renderConstraints(); }
+  function updateStats() {
+    var grid = document.getElementById("statsGrid");
+    // Zero is a claim about the wallet, so the cards stay out of sight until
+    // there is a wallet to make it about.
+    grid.hidden = !walletConnected;
+    if (!walletConnected) return;
+    document.getElementById("totalAgents").textContent = cachedAgents.length;
+    document.getElementById("totalBonds").textContent = cachedBonds.filter(function (b) { return b.isActive; }).length;
+    var totalLocked = cachedBonds.filter(function (b) { return b.isActive; }).reduce(function (sum, b) { return sum + Number(b.amount); }, 0);
+    document.getElementById("totalStaked").textContent = totalLocked ? lamportsToSol(totalLocked) : "0";
+    document.getElementById("totalSlashes").textContent = cachedAgents.filter(function (a) { return a.status === "slashed"; }).length;
+  }
   function renderActivity() {
     var target = document.getElementById("activityList");
     var fullTarget = document.getElementById("activityFullList");
