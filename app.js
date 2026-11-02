@@ -598,14 +598,7 @@
   };
 
   /* ── Render ─────────────────────────────────────────────────────────── */
-  function renderAll() { updateStats(); renderActivity(); renderAgents(); renderBonds(); renderConstraints(); }
-  function updateStats() {
-    document.getElementById("totalAgents").textContent = cachedAgents.length;
-    document.getElementById("totalBonds").textContent = cachedBonds.filter(function (b) { return b.isActive; }).length;
-    var totalLocked = cachedBonds.filter(function (b) { return b.isActive; }).reduce(function (sum, b) { return sum + Number(b.amount); }, 0);
-    document.getElementById("totalStaked").textContent = totalLocked ? lamportsToSol(totalLocked) : "0";
-    document.getElementById("totalSlashes").textContent = cachedAgents.filter(function (a) { return a.status === "slashed"; }).length;
-  }
+  function renderAll() { renderActivity(); renderAgents(); renderBonds(); renderConstraints(); }
   function renderActivity() {
     var target = document.getElementById("activityList");
     var fullTarget = document.getElementById("activityFullList");
