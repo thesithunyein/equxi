@@ -75,7 +75,7 @@ counterparty reads the bond and slash history from one endpoint before dealing.
 | Documentation | [equxi.tech/docs.html](https://www.equxi.tech/docs.html) |
 | Launch (Meteora DBC) | [equxi.tech/launch.html](https://www.equxi.tech/launch.html) |
 | Pitch deck | [equxi.tech/deck.html](https://www.equxi.tech/deck.html) |
-| Read API | [`/api/trust`](https://www.equxi.tech/api/trust) · [`/api/badge`](https://www.equxi.tech/api/badge?agent=9CvFbUciyP4APMVyzjLiR2znFmMTEPNqfGAP37PDNU4J) · [`/api/markets`](https://www.equxi.tech/api/markets) |
+| Read API | [`/api/trust`](https://www.equxi.tech/api/trust) · [`/api/badge`](https://www.equxi.tech/api/badge?agent=9CvFbUciyP4APMVyzjLiR2znFmMTEPNqfGAP37PDNU4J) · [`/api/health`](https://www.equxi.tech/api/health) |
 | SDK | [`@equxi/sdk` on npm](https://www.npmjs.com/package/@equxi/sdk) |
 | Program | [`D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc`](https://explorer.solana.com/address/D7akK6aUVdYWfSwRDtuKFExZQkqtWZ1EFrRz1LQdfvhc?cluster=devnet) |
 | Network | Solana Devnet |
@@ -93,7 +93,6 @@ same set. Nothing needs to be taken on faith:
 | The security posture is real, including its gaps | [`SECURITY-AUDIT.md`](SECURITY-AUDIT.md): five risk areas, the three repairs it produced, and the one deploy-gated patch |
 | An auditor can start from a written scope, not an invitation | [`CERTIK-BRIEF.md`](CERTIK-BRIEF.md): scope, trust boundaries and a month-by-month roadmap |
 | A token launch can fund its own collateral | [`meteora-launch/README.md`](meteora-launch/README.md): ten linked devnet transactions through DBC and DAMM v2, and the config published as a reusable [preset](meteora-launch/presets/safety-escrow.json) |
-| Agent risk can be priced | [`panta-agent-market.js`](panta-agent-market.js) + [`api/markets.js`](api/markets.js): the Panta integration, live on the Explorer; test-key fixtures are labelled as fixtures, never presented as live markets |
 | Reads are not tied to one provider | [`api/trust.js`](api/trust.js): `EQUXI_RPC` selects the RPC endpoint; `?rpc=` still wins |
 
 ## Meteora DBC — a launch that funds its own collateral
@@ -142,7 +141,6 @@ The program's eleven instructions are live on devnet. All transactions confirmed
 | Run the site and the read API | Node 18+ and nothing else — `api/` and `lib/` have **zero dependencies** |
 | Run the validator-free tests | Node 18+, then `npm install` |
 | Build or deploy the program | Solana CLI 2.1+, Rust stable, Anchor **0.31.2** |
-| Run the Panta flows | a free `pk_test_` key from [Panta](https://panta.market) — optional |
 
 ### Environment
 
@@ -151,7 +149,6 @@ than failing quietly.
 
 | Variable | When set | When unset |
 |----------|----------|------------|
-| `PANTA_API_KEY` | `/api/markets` reads live data (`pk_live_…`) or sandbox fixtures (`pk_test_…`, labelled as such) | the endpoint answers **200** with `configured: false` and a note — never a fake-empty list, never a 500 that reads as an outage |
 | `EQUXI_RPC` | every read defaults to that endpoint | the public cluster node, `api.devnet.solana.com` |
 | `EQUXI_RPC_FALLBACKS` | comma-separated hosts tried when the primary fails | no fallback host |
 | `EQUXI_LOG` | `1` forces one structured JSON line per request, `0` silences it | on when running on Vercel, off locally |
@@ -170,7 +167,6 @@ node dev-server.js
 #   Explorer     http://localhost:4321/explorer.html
 #   Read API     http://localhost:4321/api/trust
 #   Badge        http://localhost:4321/api/badge?agent=<pda>
-#   Markets      http://localhost:4321/api/markets
 #   Health       http://localhost:4321/api/health
 ```
 
@@ -184,9 +180,8 @@ To check any deployment's read path in one call:
 curl https://www.equxi.tech/api/health
 ```
 
-It answers with the cluster, the program, **which build is serving you** (`commit`), whether
-the upstream node is reachable and at what latency, and whether the Panta feed is live or
-sandbox. It never contains a key.
+It answers with the cluster, the program, **which build is serving you** (`commit`), and whether
+the upstream node is reachable and at what latency.
 
 ### Program
 
@@ -232,9 +227,9 @@ Everything CI runs, in the order it runs it:
 npm install
 
 # 1. The fast gate: wire formats, PDA seeds, IDL, SDK, read layer, read API,
-#    Panta routes and page copy. No validator, no Solana toolchain, no network.
+#    and page copy. No validator, no Solana toolchain, no network.
 npm run test:unit
-#   → 206 passing in ~9s
+#   → 234 passing in ~10s
 
 # 2. Typecheck everything the tests touch.
 npx tsc --noEmit
@@ -268,8 +263,7 @@ layout change that is not mirrored in every client fails immediately.
 | `tests/unit/layout.test.ts` | Discriminators, PDAs, Borsh encoding |
 | `tests/unit/sdk.test.ts` | The IDL shipped in `sdk/src/idl/equxi.json` |
 | `tests/unit/read.test.ts` | Query filters, decoding, the trust-scoring rules, and that the SDK scorer and the API scorer agree |
-| `tests/unit/api.test.ts` | `api/trust.js`, `api/badge.js` and `api/markets.js` end to end, against stubbed RPC and Panta responses |
-| `tests/unit/panta.test.ts` | The Panta routes, bodies and headers for the create, buy and attribute flows, plus the agent-market plan constraints |
+| `tests/unit/api.test.ts` | `api/trust.js`, `api/badge.js` and `api/health.js` end to end, against stubbed RPC responses |
 | `tests/unit/copy.test.ts` | Page copy limits, cross-page links, and one word per idea (a slash is a slash) |
 | `tests/unit/landing.test.ts` | The landing page's live stats: placeholders, error copy, and the textContent-only rule |
 
@@ -300,12 +294,12 @@ flowchart TB
 
     subgraph READ["2 · Read layer — serverless, zero dependencies"]
         direction LR
-        T["GET /api/trust"] ~~~ G["GET /api/badge"] ~~~ M["GET /api/markets"] ~~~ H["GET /api/health"]
+        T["GET /api/trust"] ~~~ G["GET /api/badge"] ~~~ H["GET /api/health"]
     end
 
     subgraph USE["3 · Consumers"]
         direction LR
-        E["Trust Explorer"] ~~~ S["@equxi/sdk"] ~~~ RM["README badge"] ~~~ PM["Panta markets"]
+        E["Trust Explorer"] ~~~ S["@equxi/sdk"] ~~~ RM["README badge"]
     end
 
     L -->|"graduation proceeds fund the bond"| P
@@ -332,44 +326,41 @@ equxi/
 │   └── instructions/              1,118 · 12 files   11 handlers + mod
 │       └── largest: migrate_agent.rs 231 · withdraw_bond.rs 159 · top_up_bond.rs 130
 ├── tests/equxi.test.ts              664   Anchor suite against a local validator (17 cases)
-├── tests/unit/                    4,217 · 8 files   validator-free, ~9s, no network
-│   ├── api.test.ts                1,785   trust, badge, markets, health — stubbed RPC + Panta
-│   ├── read.test.ts                 663   query filters, decoding, scoring
-│   ├── sdk.test.ts                  585   the IDL as shipped
-│   ├── layout.test.ts               483   discriminators, PDAs, Borsh
-│   ├── copy.test.ts                 206   page copy, cross-page links, one word per idea
-│   ├── panta.test.ts                193   Panta routes, bodies, headers
-│   ├── landing.test.ts              170   live landing stats
-│   └── meteora-preset.test.ts       132   the DBC preset, pinned to its launch
-├── api/                           2,071 · 8 files   read API (no dependencies)
-│   ├── trust.js                     723   GET /api/trust — agent, bond, slash history
-│   ├── markets.js                   410   GET /api/markets — list · market · positions
-│   ├── badge.js                     302   GET /api/badge — embeddable SVG grade
-│   └── health.js                    134   GET /api/health — is the read path up, which build
-├── lib/                           1,416 · 8 files   shared, dependency-free
-│   ├── equxi-layout.js              623   account layouts + scoring (the cross-layer contract)
-│   ├── panta.js                     212   Panta create · buy · attribute
-│   ├── log.js                        93   one structured line per request
-│   └── rate-limit.js                 81   per-instance throttle
+├── tests/unit/                    4,808 · 8 files   validator-free, ~9s, no network
+│   ├── aas2.test.ts               1,175   canonicalization, receipts, anchors
+│   ├── api.test.ts                1,400   trust, badge, health, stubbed RPC
+│   ├── read.test.ts                 662   query filters, decoding, scoring
+│   ├── sdk.test.ts                  584   the IDL as shipped
+│   ├── layout.test.ts               482   discriminators, PDAs, Borsh
+│   ├── copy.test.ts                 205   page copy, cross-page links, one word per idea
+│   ├── landing.test.ts              169   live landing stats
+│   └── meteora-preset.test.ts       131   the DBC preset, pinned to its launch
+├── api/                           1,862 · 8 files   read API (no dependencies)
+│   ├── trust.js                     722   GET /api/trust — agent, bond, slash history
+│   ├── badge.js                     301   GET /api/badge — embeddable SVG grade
+│   └── health.js                    115   GET /api/health — is the read path up, which build
+├── lib/                           1,021 · 6 files   shared, dependency-free
+│   ├── equxi-layout.js              622   account layouts + scoring (the cross-layer contract)
+│   ├── log.js                        92   one structured line per request
+│   └── rate-limit.js                 80   per-instance throttle
 ├── sdk/src/                       1,924 · 4 files   @equxi/sdk on npm
 ├── eliza-plugin/src/              1,336 · 7 files   elizaOS plugin (IDL-free)
 ├── meteora-launch/                2,286 · 10 files   the DBC launch, on devnet
 │   ├── launch-safety-bond.js        611   config → pool → curve → migrate → bond
 │   ├── presets/index.js             241   dependency-free preset loader + validator
 │   └── presets/safety-escrow.json    89   the config, published as data
-├── site                           5,180             6 pages, 3 scripts, no framework
-│   ├── explorer.html / explorer.js  489 / 1,335   Trust Explorer
+├── site                           4,993             6 pages, 3 scripts, no framework
+│   ├── explorer.html / explorer.js  467 / 1,170   Trust Explorer
 │   ├── app.html / app.js            223 / 1,085   operator dashboard
 │   ├── deck.html                    640   the pitch, as a page
 │   ├── docs.html                    632   documentation
 │   ├── index.html / landing.js      333 / 135
 │   └── launch.html / launch.js      308 / 189
 ├── theme.css / app.css / styles.css 628 / 440 / 311
-├── dev-server.js                    115   site + api/ locally, no build step
+├── dev-server.js                    114   site + api/ locally, no build step
 ├── migrate.js                       340   v0.1 → v0.2 in place, then re-decoded to prove it
 ├── prove-compensation.js            306   13/13 assertions against live devnet
 ├── prove-unbonding.js               197   7/7 assertions against live devnet
-├── panta-agent-market.js            355   create and trade the agent-risk market
 ├── SPEC.md                          225   Agent Accountability Standard (AAS-1)
 ├── SECURITY-AUDIT.md                258   five risk areas and the repairs they produced
 ├── TEST-RESULTS.md                  641   what ran, on which network, with what output
@@ -541,7 +532,7 @@ invariant.
 **Reads are cached at the edge, deliberately.** A registry read is a
 whole-program scan, so the policy is declared per route in
 [`vercel.json`](vercel.json): `s-maxage=30, stale-while-revalidate=300` for
-`/api/trust` and `/api/markets`, `s-maxage=30` for `/api/badge`, and `no-store`
+`/api/trust`, `s-maxage=30` for `/api/badge`, and `no-store`
 for `/api/health`. Numbers can therefore trail the chain by up to half a minute,
 which is why every payload carries `generatedAt` instead of implying it is live
 to the slot. That reasoning sits here rather than beside the rules because
@@ -561,15 +552,8 @@ as its **host only**, so a paid provider's key never leaves in a response body.
 ```bash
 curl https://www.equxi.tech/api/health
 # {"ok":true,"cluster":"devnet","upstream":{"host":"api.devnet.solana.com",
-#  "reachable":true,"slot":508100000,"latencyMs":141},
-#  "feeds":{"panta":{"configured":true,"sandbox":false}}}
+#  "reachable":true,"slot":508100000,"latencyMs":141}}
 ```
-
-It also states which Panta feed the deployment is wired to. A `pk_test_` key
-answers with sandbox fixtures, which a reader of `/api/markets` should not have
-to infer from a disclaimer, so `feeds.panta.sandbox` names it. This is
-informational and never changes the status code: an unconfigured or sandbox feed
-is a deliberate configuration, not an outage.
 
 ## Embeddable trust badge
 
@@ -607,113 +591,6 @@ code. What keeps the copy honest is
 discriminator, size, and decoded field against the independently written decoder
 in `eliza-plugin/src/coder.ts`.
 
-## Panta markets feed
-
-Equxi tells you whether an agent's collateral is at risk; the markets an agent
-trades are the other half of the picture. `GET /api/markets` reads live from
-[Panta's](https://panta.market) API and normalizes the answer into one flat
-shape. It never custodies or signs anything.
-
-The endpoint answers three documented Panta reads, chosen by query:
-
-| Query | Panta route | Answers |
-|-------|-------------|---------|
-| *(none)* | `GET /markets/` | The catalog list, with cursor paging |
-| `?market=<marketId>` | `GET /markets/{marketId}/` | One market, with the spot `yesPrice` / `noPrice` the list leaves `null` |
-| `?wallet=<pubkey>` | `GET /positions/?wallet=` | That wallet's holdings: `side`, `shares`, `claimable`, `claimed`, `outcome` |
-
-The last two are the pair Panta's own documentation tells you to combine:
-positions carry share quantity and claim eligibility, the market detail carries
-the price used to value them (`shares × side price`). Serving both means a
-reader can price a holding without a wallet, an SDK, or a Panta account.
-
-**Powered by Panta**: the attribution Panta's Terms of Use require wherever
-Panta-powered functionality appears. It is carried in the JSON payload
-(`attribution`) and rendered on the Explorer's markets card.
-
-```bash
-# The feed itself (200 even when the integration is switched off; see below)
-curl https://www.equxi.tech/api/markets
-
-# Filtered, with Panta's cursor pagination forwarded
-curl "https://www.equxi.tech/api/markets?category=sports&status=open&createdBy=me&limit=50"
-
-# One market, with the spot prices the list route omits
-curl "https://www.equxi.tech/api/markets?market=<marketId>"
-
-# A wallet's positions, with claim eligibility
-curl "https://www.equxi.tech/api/markets?wallet=<pubkey>"
-```
-
-With a `pk_test_` key — the sandbox shape the fixture below comes from:
-
-```jsonc
-{
-  "ok": true,
-  "configured": true,
-  "sandbox": true,
-  "source": "panta",
-  "attribution": "Powered by Panta",
-  "generatedAt": 1800000000,
-  "disclaimer": "Test mode: this response uses sandbox fixtures and does not access Solana mainnet.",
-  "counts": { "markets": 1 },
-  "nextCursor": null,
-  "markets": [ { "marketId": "TestMarket1111…", "title": "Sandbox test market", "phase": "primary", "volumeUsdc": "0.00" } ]
-}
-```
-
-The endpoint is honest about being switched off: with **no `PANTA_API_KEY` set**
-it answers `200` with `configured: false` and a `note` saying what to set:
-never a 500 that reads like an outage, and never a made-up empty market list
-that reads like data. Upstream failures keep their meaning: `RATE_LIMITED`
-becomes a `429`, `INVALID_MARKET_PARAMS` a `400`, and a rejected key a `502`
-because that is this deployment's config fault, not the caller's.
-
-**Agent-risk markets.** Discovery is half the integration; the other half is
-creation and trading, in [`panta-agent-market.js`](panta-agent-market.js) over
-[`lib/panta.js`](lib/panta.js):
-
-```bash
-# Validate auth + params + fee without paying anything
-PANTA_API_KEY=pk_test_… node panta-agent-market.js create \
-  --agent <agentPDA> --name "Witness260521" --resolve-by 2026-11-15 --dry-run
-
-# Create: quote → build → sign → broadcast → register
-PANTA_API_KEY=pk_test_… node panta-agent-market.js create \
-  --agent <agentPDA> --name "Witness260521" --resolve-by 2026-11-15 --key <keypair.json>
-
-# Trade YES, then report the trade for attribution
-PANTA_API_KEY=pk_test_… node panta-agent-market.js buy \
-  --market <marketId> --side yes --amount 20.00 --key <keypair.json>
-```
-
-**Test keys are a sandbox. Verified with a real key on 2026-10-05, not inferred.**
-A `pk_test_` key is free to mint, and Panta answers it with fixtures: the create
-quote returns `cr_sandbox_test` / `TestMarket1111…`, the build returns a
-zero-length transaction with `recentBlockhash: SandboxBlockhash…`, and every
-response says *“Test mode: this response uses sandbox fixtures and does not
-access Solana mainnet.”* The CLI detects that and stops with exactly that
-explanation instead of trying to sign a fixture. A real, tradable market needs a
-`pk_live_` key and ~50 USDC (40 platform + 10 liquidity) on a funded mainnet
-wallet.
-
-**The live deployment reads Panta with a `pk_live_` key** (as of 2026-10-06).
-`/api/markets` answers `configured: true` with `sandbox: false` and real markets
-— the Explorer's markets card reads 50 of them — and `feeds.panta` in
-`/api/health` names the mode, so whether the feed is real or fixtures is a fact
-a reader can check rather than a claim in this file. Switching back to a
-`pk_test_` key does not need a code change: the same endpoints answer
-`sandbox: true` with the labelled fixture, which is the shape shown above. Each
-agent's panel also carries a "Market on this agent" section that matches markets
-by agent name or address, so it fills in the day a real market names an agent;
-until then it says so.
-
-The question is mechanical and public: *“Will Equxi agent <name> be slashed
-before <date>?”* It resolves from the same `/api/trust?agent=` evidence
-anyone can curl, so the market prices the exact risk this repo exists to make
-legible. Nothing is ever custodied: Panta cooks the transaction, the local
-wallet signs it, we broadcast on our RPC, then report the signature back.
-
 ## Trust Explorer
 
 [`explorer.html`](explorer.html) is the human-readable view of the same data:
@@ -725,18 +602,14 @@ folder. It answers the question a counterparty has, not the one a developer has:
   A pubkey is tried as an agent account first and then as an owner, so the reader
   does not have to know which they pasted.
 * **Open a row, not a new page.** A click or `Enter` expands that agent's panel
-  inline: collateral and its lock state, slash history, the score ledger, the
-  market section and the badge snippets.
+  inline: collateral and its lock state, slash history, the score ledger, and
+  the badge snippets.
 * **Sort and filter the registry** by collateral, weakest score, slash count or
   age, and narrow by grade or to agents with unpaid slashes. The same layout
   becomes one card per agent on a phone.
 * **Audit the grade.** Each panel renders the score ledger
   (`profile.breakdown`) so the deduction behind every point is visible, next to
   the on-chain `trust_score` it deliberately ignores.
-* **See the market, when one exists.** The page renders the Panta feed with a
-  `Sandbox fixtures` label when the deployment holds a test key, and each panel
-  lists the markets that name that agent; when none do, it says so instead of
-  showing someone else's market.
 * **Count rules the honest way.** Rules are read from the Constraint accounts
   themselves, and a pre-migration agent gets a note that the on-chain counter
   does not exist on its layout, so the count is never a confident `0` that

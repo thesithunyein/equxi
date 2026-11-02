@@ -605,6 +605,9 @@ against `node dev-server.js` and the live read API above:
 
 ## Panta markets feed live on production (executed 2026-10-05)
 
+> **Retired 2026-11-02.** The integration and its endpoint were removed from the codebase.
+> This section records what was tested when it shipped.
+
 The key, the labeling and the card shipped together, and each was checked
 against the running system rather than inferred from the other two:
 

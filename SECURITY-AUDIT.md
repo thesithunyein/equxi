@@ -181,6 +181,10 @@ out of scope before Oct 12 — and should be stated as such, not glossed.
 
 ## 4. Panta sanitization and attribution — handling verified; two hardenings applied
 
+> **Retired 2026-11-02.** The Panta integration described in this section was removed from the
+> codebase. The findings stay here as a record of the audit that was performed, not as a
+> description of what ships today.
+
 ### 4a. Error handling: no empty payload can mask an anomaly
 
 `api/markets.js` (a plain Vercel Node function — no Next.js, no proxy):

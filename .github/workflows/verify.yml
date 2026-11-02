@@ -140,22 +140,8 @@ jobs:
           check "/aas-2 (verifier)" "$BASE/aas-2.html" 'data-a2-run="published"' || fail=1
           check "/aas-2.js" "$BASE/aas-2.js" "aas2-verify" || fail=1
 
-          # The Panta feed is optional to the site's core function, but a
-          # silently unset key leaves a markets card that never appears. Warn
-          # rather than fail: a third-party outage must not redden the build.
-          markets=$(curl -s --max-time 20 -H 'cache-control: no-cache' "$BASE/api/markets" || true)
-          case "$markets" in
-            *'"configured":true'*)
-              case "$markets" in
-                *'"sandbox":true'*) echo "::warning title=Panta feed::/api/markets is answering with SANDBOX fixtures (pk_test_). Set PANTA_API_KEY to a pk_live_ key to serve real markets." ;;
-                *) echo "Panta feed: configured (live)" ;;
-              esac
-              ;;
-            *) echo "::warning title=Panta feed::/api/markets is not configured on production." ;;
-          esac
-
-          # Health names which Panta feed the deployment is wired to, so the
-          # sandbox state is visible without reading a payload the Explorer renders.
+          # Health names the RPC host and whether it answered, so a deploy that
+          # points at a dead upstream is visible from one request.
           health=$(curl -s --max-time 20 -H 'cache-control: no-cache' "$BASE/api/health" || true)
           case "$health" in
             *'"reachable":true'*) echo "Health: upstream reachable" ;;

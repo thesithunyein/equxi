@@ -25,12 +25,6 @@
  * asks the first can pass for hours against the previous deploy — which is
  * exactly what a rejected `vercel.json` did. `verify.yml` now waits for this
  * field to name the commit it just pushed.
- *
- * It also states which Panta feed this deployment is wired to. A `pk_test_` key
- * answers with sandbox fixtures, which is a fact a reader of `/api/markets`
- * should not have to discover from a disclaimer field — so the health payload
- * names it. This is informational and never changes the status code: an
- * unconfigured or sandbox feed is a deliberate configuration, not an outage.
  */
 "use strict";
 
@@ -57,17 +51,6 @@ function hostOf(url) {
 function buildCommit() {
   var sha = process.env.VERCEL_GIT_COMMIT_SHA || process.env.GITHUB_SHA || "";
   return sha ? sha.slice(0, 7) : null;
-}
-
-/**
- * Which Panta feed this deployment talks to. `sandbox` is a `pk_test_` key,
- * whose answers are fixtures; `live` is a `pk_live_` key. Never a secret — only
- * the mode is reported, never the key.
- */
-function pantaFeed() {
-  var key = process.env.PANTA_API_KEY || "";
-  if (!key) return { configured: false, sandbox: null };
-  return { configured: true, sandbox: key.indexOf("pk_test_") === 0 };
 }
 
 /**
@@ -110,7 +93,6 @@ module.exports = async function handler(req, res) {
     program: trust.PROGRAM_ID,
     commit: buildCommit(),
     upstream: { host: hostOf(rpcUrl) },
-    feeds: { panta: pantaFeed() },
     generatedAt: Math.floor(Date.now() / 1000),
   };
 

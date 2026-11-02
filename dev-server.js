@@ -5,7 +5,7 @@
  * Vercel serves `api/*.js` as functions; nothing does that in a plain checkout,
  * which is why `explorer.html` cannot be tested by opening the file directly.
  * This shim closes that gap: it serves the repo as static files and dispatches
- * `/api/trust`, `/api/badge` and `/api/markets` to the real handlers.
+ * `/api/trust`, `/api/badge` and `/api/health` to the real handlers.
  *
  * It works because the handler uses only `req.method`, `req.query`, and the
  * standard `ServerResponse` surface — no vendor-specific glue — so a Node
@@ -28,7 +28,6 @@ var { URL } = require("url");
 var API_ROUTES = {
   "/api/trust": require("./api/trust.js"),
   "/api/badge": require("./api/badge.js"),
-  "/api/markets": require("./api/markets.js"),
   "/api/health": require("./api/health.js"),
   "/api/verify": require("./api/verify.js"),
   "/api/aas2-verify": require("./api/aas2-verify.js"),
@@ -111,6 +110,5 @@ server.listen(PORT, function () {
   console.log("  Explorer:  http://localhost:" + PORT + "/explorer.html");
   console.log("  Read API:  http://localhost:" + PORT + "/api/trust");
   console.log("  Badge:     http://localhost:" + PORT + "/api/badge?agent=<pda>");
-  console.log("  Markets:   http://localhost:" + PORT + "/api/markets");
   console.log("  Health:    http://localhost:" + PORT + "/api/health");
 });
