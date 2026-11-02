@@ -79,18 +79,6 @@ button { border: none; background: none; cursor: pointer; font: inherit; color: 
 .wallet-btn:hover { background: var(--purple-hover); transform: translateY(-1px); }
 .wallet-btn.connected { background: var(--green-dim); color: var(--green); }
 .wallet-btn i { font-size: 13px; }
-.network-pill {
-  padding: 4px 9px; border-radius: 999px; border: 1px solid var(--border);
-  font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
-  color: var(--text-secondary);
-}
-
-/* Setup */
-.setup-body { padding: 16px 20px 18px; font-size: 14px; color: var(--text-secondary); line-height: 1.65; }
-.setup-body ul { margin: 10px 0 0 18px; }
-.setup-body li { margin-bottom: 6px; }
-.setup-body a { color: var(--purple); text-decoration: underline; }
-.setup-note { margin-top: 12px; font-size: 13px; color: var(--text-muted); }
 
 /* Sections */
 .content-section { display: none; padding: 24px; flex: 1; }
