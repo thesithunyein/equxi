@@ -121,6 +121,90 @@ jobs:
       - name: Run unit tests
         run: npm run test:unit
 
+  # The verifier claims to need no dependencies and to be reproducible by
+  # someone else. This job is the closest automated version of that claim: a
+  # fresh runner, no `npm install`, and the same commands a third party is told
+  # to run in EXTERNAL-VERIFICATION.md. If a require of a package creeps in,
+  # this fails before a user discovers it at home.
+  external-verify:
+    name: Independent Verify (no install)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Assert no dependencies are installed
+        run: test ! -d node_modules
+
+      - name: L1 pinned core
+        run: |
+          out=$(node aas2.js verify \
+            --agreement fixtures/aas-2/agreement.product-feed.json \
+            --output fixtures/aas-2/output.product-feed.csv \
+            --submitted-at 2026-11-15T10:00:00Z \
+            --now 2026-11-15T10:00:00Z \
+            --ephemeral 2>/dev/null)
+          echo "$out"
+          echo "$out" | grep -q 'sha256:50c0535b9c47eae597cb7f5d89720394600a01005a40d550a996c55c8fbe2eaf'
+
+      - name: L2 receipt, offline
+        run: |
+          out=$(node aas2.js verify-receipt \
+            --receipt fixtures/aas-2/l2/receipt.json \
+            --agreement fixtures/aas-2/l2/agreement.signed.json \
+            --output fixtures/aas-2/output.product-feed.csv \
+            --verifier-key .well-known/equxi-verifier.json \
+            --provider-key fixtures/aas-2/l2/provider.pub.json \
+            --report fixtures/aas-2/l2/report.json)
+          echo "$out"
+          echo "$out" | grep -q '^VALID$'
+
+      - name: Devnet L3 receipt
+        run: |
+          for attempt in 1 2 3 4 5; do
+            if out=$(node aas2.js verify-receipt \
+              --receipt fixtures/aas-2/devnet/receipt.json \
+              --agreement fixtures/aas-2/devnet/agreement.signed.json \
+              --output fixtures/aas-2/output.product-feed.csv \
+              --verifier-key .well-known/equxi-verifier.json \
+              --provider-key fixtures/aas-2/devnet/provider.pub.json \
+              --report fixtures/aas-2/devnet/report.json \
+              --rpc https://api.devnet.solana.com); then
+              echo "$out"
+              echo "$out" | grep -q '^VALID$' &&
+                echo "$out" | grep -q '517474123' &&
+                exit 0
+            fi
+            echo "devnet attempt $attempt failed, retrying"
+            sleep 10
+          done
+          exit 1
+
+      - name: Mainnet L3 receipt
+        run: |
+          for attempt in 1 2 3 4 5; do
+            if out=$(node aas2.js verify-receipt \
+              --receipt fixtures/aas-2/mainnet/receipt.json \
+              --agreement fixtures/aas-2/mainnet/agreement.signed.json \
+              --output fixtures/aas-2/output.product-feed.csv \
+              --verifier-key .well-known/equxi-verifier.json \
+              --provider-key fixtures/aas-2/mainnet/provider.pub.json \
+              --report fixtures/aas-2/mainnet/report.json \
+              --rpc https://api.mainnet-beta.solana.com); then
+              echo "$out"
+              echo "$out" | grep -q '^VALID$' &&
+                echo "$out" | grep -q '464339794' &&
+                exit 0
+            fi
+            echo "mainnet attempt $attempt failed, retrying"
+            sleep 10
+          done
+          exit 1
+
   lint:
     name: Lint & Typecheck
     runs-on: ubuntu-latest
@@ -177,6 +261,14 @@ jobs:
           test -f panta-agent-market.js || exit 1
           test -f lib/equxi-layout.js || exit 1
           test -f explorer.html || exit 1
+          test -f aas-2.html || exit 1
+          test -f AAS-2.md || exit 1
+          test -f GOVERNANCE.md || exit 1
+          test -f EXTERNAL-VERIFICATION.md || exit 1
+          test -f VERIFIERS.md || exit 1
+          test -f PROVIDER-ONBOARDING.md || exit 1
+          test -f fixtures/aas-2/l2/receipt.json || exit 1
+          test -f fixtures/aas-2/mainnet/receipt.json || exit 1
           test -f explorer.js || exit 1
           test -f launch.html || exit 1
           test -f launch.js || exit 1
@@ -204,7 +296,7 @@ jobs:
           grep -q 'api/trust' .github/workflows/verify.yml || exit 1
           # Every page must load the shared theme. A page that quietly loses its
           # stylesheet is invisible in every other check.
-          for page in index.html app.html explorer.html docs.html launch.html deck.html; do
+          for page in index.html app.html explorer.html docs.html launch.html deck.html aas-2.html; do
             grep -q 'theme.css' "$page" || { echo "$page does not load theme.css"; exit 1; }
           done
           test -f tests/unit/layout.test.ts || exit 1

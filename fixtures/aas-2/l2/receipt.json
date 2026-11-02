@@ -1,0 +1,118 @@
+{
+  "v": "aas-2/0.1",
+  "agreement": "sha256:13e38c6fb83249c2003a6b63ac8dbca79ecf7628ddeb2bdfd523d6f1ed78d231",
+  "raw_output": "sha256:55eb72228b4983d16a66e96c12aa51b06839acd3c6c0ce252d7a485bc17e25af",
+  "canonical_records": "sha256:06a7b1ac636283bcefd2f6e5df5897a9a98a92f99a39a9d495f4b608cc3153ee",
+  "merkle_root": "sha256:8744dd3649ae147c0b8f2ffeb645ea1f1ea80eea224cd37938a245440b513828",
+  "ruleset": {
+    "id": "equxi/checks",
+    "version": "0.1.0",
+    "hash": "sha256:6f93f757882eab93487240e84e731619905560fc4d07f78b3949765ab60250d6",
+    "url": "https://www.equxi.tech/aas-2/rulesets/equxi-checks-0.1.0.json"
+  },
+  "evidence_level": "L2",
+  "submitted_at": "2026-11-15T10:00:00Z",
+  "summary": {
+    "expected": 20,
+    "received": 20,
+    "passed_records": 16,
+    "failed_records": [
+      3,
+      8,
+      10,
+      16
+    ],
+    "failed_record_count": 4
+  },
+  "checks": [
+    {
+      "id": "record_count",
+      "passed": true,
+      "failed_count": 0,
+      "details": {
+        "expected": 20,
+        "actual": 20,
+        "delta": 0
+      }
+    },
+    {
+      "id": "required_fields",
+      "passed": false,
+      "failed_count": 2,
+      "details": {
+        "category": [
+          3,
+          10
+        ]
+      }
+    },
+    {
+      "id": "field_types",
+      "passed": false,
+      "failed_count": 1,
+      "details": {
+        "price": [
+          {
+            "index": 8,
+            "expected": "decimal"
+          }
+        ]
+      }
+    },
+    {
+      "id": "unique",
+      "passed": false,
+      "failed_count": 1,
+      "details": {
+        "sku": [
+          {
+            "indices": [
+              1,
+              16
+            ],
+            "extra": [
+              16
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "deadline",
+      "passed": true,
+      "failed_count": 0,
+      "details": {
+        "at": "2026-12-01T00:00:00Z",
+        "submitted_at": "2026-11-15T10:00:00Z",
+        "tolerance_seconds": 0,
+        "late_seconds": 0
+      }
+    }
+  ],
+  "verdict": "failed_checks",
+  "report_hash": "sha256:c19b3d3e0d86fadc28043674a5e7fb2a3d31a2ba822ef86cfe68f96235688811",
+  "limits": [
+    "Checks are limited to the published ruleset; they do not prove factual accuracy.",
+    "The receipt binds the submitted output hash; it does not prove which model or process produced it.",
+    "A failed check is a verification result, not a legal breach.",
+    "The submission timestamp is provider-asserted, not chain-verified.",
+    "No agreement/output/receipt ordering is claimed at L2.",
+    "Record indices are zero-based."
+  ],
+  "created_at": "2026-11-15T10:00:00Z",
+  "anchors": null,
+  "signatures": {
+    "verifier": {
+      "key": "keb2jWbISneQIJ1luc9U9NML1Tzat7+3GR9Z7ZssWK0=",
+      "sig": "zLoo5Utbr4+aLooGOXGl6V1+aRIas6M/kLVuuwBH5nrKFG9EhRasX14GjlN8L/3MAECKK/RsBniEgsEYEJSECA=="
+    },
+    "report": {
+      "key": "keb2jWbISneQIJ1luc9U9NML1Tzat7+3GR9Z7ZssWK0=",
+      "sig": "kLyKpzZh0A/hJAEWgcgjYnkIj0WxjUaSwKiwdIEgSvhvN5dBZBsutQb164j0mKXoWtAqdrVwnDVbKZO2+Tg/Cw=="
+    },
+    "provider": {
+      "key": "3gLJMV58OVRtD4kw7reLOu9ckYGt1PIQG5Bo7Tg4OW0=",
+      "sig": "3rX0hsf/8n/kZY7R/mW1dgoAAFe58IuRtRog5gx2mkQmoMMNFNdiYMm7NGN+e2tmhnNALMcTo/Wk5e2TL305DQ=="
+    }
+  }
+}

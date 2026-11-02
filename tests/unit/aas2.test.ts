@@ -231,6 +231,82 @@ describe("AAS-2 fixture: product feed", () => {
   });
 });
 
+/* ── L2 fixture ──────────────────────────────────────────────────────── */
+
+describe("AAS-2 fixture: L2 with provider signature", () => {
+  const dir = path.join(FIXTURES, "l2");
+
+  function l2(file: string): AnyJson {
+    return JSON.parse(fs.readFileSync(path.join(dir, file), "utf8"));
+  }
+
+  it("reproduces the pinned L2 receipt core", () => {
+    const agreement = l2("agreement.signed.json");
+    const submission = l2("submission.json");
+    const expected = l2("expected.json");
+    const output = fs.readFileSync(path.join(FIXTURES, "output.product-feed.csv"));
+
+    const result = verifyLib.verifyOutput({
+      agreement,
+      output,
+      submittedAt: expected.submitted_at,
+      createdAt: expected.created_at,
+      evidenceLevel: "L2",
+      verifierPrivateKey: keys.generateKeyPair().privateKey,
+      providerPublicKey: submission.key,
+      providerSignature: submission.sig,
+      injectedClock: true,
+    });
+
+    expect(result.coreHash).to.equal(expected.hashes.receipt_core);
+    expect(result.receipt.evidence_level).to.equal("L2");
+    expect(result.receipt.anchors).to.equal(null);
+    expect(result.receipt.signatures.provider.key).to.equal(expected.signatures.provider);
+    expect(result.receipt.agreement).to.equal(expected.hashes.agreement);
+  });
+
+  it("verifies the committed receipt offline with no RPC", async () => {
+    const expected = l2("expected.json");
+    const check = await verifyLib.verifyReceipt({
+      receipt: l2("receipt.json"),
+      agreement: l2("agreement.signed.json"),
+      output: fs.readFileSync(path.join(FIXTURES, "output.product-feed.csv")),
+      report: l2("report.json"),
+      providerPublicKey: expected.signatures.provider,
+    });
+
+    expect(check.steps.filter((step: AnyJson) => !step.ok)).to.deep.equal([]);
+    expect(check.valid).to.equal(true);
+
+    const anchorStep = check.steps.find((step: AnyJson) => step.id === "anchors");
+    expect(anchorStep.ok).to.equal(true);
+    expect(String(anchorStep.detail)).to.match(/not applicable below L3/);
+  });
+
+  it("rejects the receipt when the provider signature is altered", async () => {
+    const expected = l2("expected.json");
+    const receipt = l2("receipt.json");
+    receipt.signatures.provider.sig = "A".repeat(88);
+
+    const check = await verifyLib.verifyReceipt({
+      receipt,
+      agreement: l2("agreement.signed.json"),
+      output: fs.readFileSync(path.join(FIXTURES, "output.product-feed.csv")),
+      providerPublicKey: expected.signatures.provider,
+    });
+
+    expect(check.valid).to.equal(false);
+    expect(check.steps.find((step: AnyJson) => step.id === "provider_signature").ok).to.equal(false);
+  });
+
+  it("keeps the committed receipt file bound to the pinned core", () => {
+    const expected = l2("expected.json");
+
+    expect(receiptLib.coreHash(l2("receipt.json"))).to.equal(expected.hashes.receipt_core);
+    expect(expected.hashes.receipt_core).to.not.equal(fixture().expected.hashes.receipt_core);
+  });
+});
+
 /* ── published identity ──────────────────────────────────────────────── */
 
 describe("published verifier identity", () => {

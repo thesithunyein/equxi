@@ -1,0 +1,9 @@
+{
+  "v": "aas-2/submission/0.1",
+  "agreement": "sha256:13e38c6fb83249c2003a6b63ac8dbca79ecf7628ddeb2bdfd523d6f1ed78d231",
+  "raw_output": "sha256:55eb72228b4983d16a66e96c12aa51b06839acd3c6c0ce252d7a485bc17e25af",
+  "canonical_records": "sha256:06a7b1ac636283bcefd2f6e5df5897a9a98a92f99a39a9d495f4b608cc3153ee",
+  "submitted_at": "2026-11-15T10:00:00Z",
+  "key": "3gLJMV58OVRtD4kw7reLOu9ckYGt1PIQG5Bo7Tg4OW0=",
+  "sig": "3rX0hsf/8n/kZY7R/mW1dgoAAFe58IuRtRog5gx2mkQmoMMNFNdiYMm7NGN+e2tmhnNALMcTo/Wk5e2TL305DQ=="
+}

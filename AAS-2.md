@@ -478,7 +478,7 @@ Equxi implements AAS-2 with the following deliberate boundaries:
 - **Open ruleset.** The check implementations and the ruleset document are published. The receipt commits to the ruleset hash.
 - **CLI first.** `node aas2.js verify --agreement ... --output ...` is the reference path. The API wraps the same code. `verify-receipt` re-checks a receipt independently, and `prove --index i` produces the selective-disclosure proof for record `i`.
 - **Anchors are writable.** `node aas2.js anchor --kind ... --keypair ... --rpc ...` submits the SPL Memo transaction and reads it back before reporting success. `sign-agreement` and `sign-submission` produce the signatures L2 and L3 require.
-- **Fixtures first.** `fixtures/aas-2/` pins both the check semantics and the content hashes. `tests/unit/aas2.test.ts` runs the fixture and every pinned hash against the implementation. `fixtures/aas-2/devnet/` pins a live three-anchor L3 run with its transactions, slots, and receipt so the on-chain path is reproducible.
+- **Fixtures first.** `fixtures/aas-2/` pins the check semantics and content hashes at L1. `fixtures/aas-2/l2/` pins an L2 receipt with customer and provider signatures. `fixtures/aas-2/devnet/` and `fixtures/aas-2/mainnet/` pin live three-anchor L3 runs with their transactions, slots, and receipts so the on-chain path is reproducible on both clusters. `tests/unit/aas2.test.ts` runs the fixtures and every pinned hash against the implementation.
 
 The reference implementation does not claim that AAS-2 is trustless, that a receipt proves factual accuracy, or that a failed check is a breach.
 
@@ -495,7 +495,15 @@ The reference implementation does not claim that AAS-2 is trustless, that a rece
 - [ ] Public receipt contains no values or PII
 - [ ] A failed check is not wired to a slash or payment
 - [ ] A third party can verify the receipt using only public data
-- [ ] The implementation passes `fixtures/aas-2/`
+- [ ] The implementation passes `fixtures/aas-2/`, `fixtures/aas-2/l2/`, and at least one L3 fixture
+
+## 18. License, governance, and conformance claims
+
+- **License.** The specification text and the reference implementation are released under the MIT license in `LICENSE`. Anyone may implement, fork, or sell an implementation without a royalty. The license grants no rights to the Equxi name or logo.
+- **Conformance claims.** An implementation may describe itself as "AAS-2 0.1 conformant" only if it passes the fixtures for the ruleset version it declares and completes the checklist in §17. There is no certification body and no fee. A claim is a statement by the implementer, not by Equxi.
+- **Governance.** Normative changes follow `GOVERNANCE.md`. In short: a change that alters a pinned hash is a spec change, not an implementation detail, and it needs a versioned fixture and a compatibility note before merge.
+- **Independent verifiers.** Equxi is one implementation, not the definition. A verifier written by someone else, reading the same public data and producing the same hashes, is the strongest evidence that this document is sufficient. Reports are recorded through the independent verification issue template in `.github/ISSUE_TEMPLATE/`.
+- **No trust claim.** Conformance means the format and checks are implemented correctly. It does not mean the verifier is honest, the data is accurate, or a receipt is legally binding.
 
 ---
 

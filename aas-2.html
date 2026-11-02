@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AAS-2 · Proof of Delivery Standard · Equxi</title>
+  <meta name="description" content="AAS-2 is an open format for verifying AI-agent deliverables: deterministic checks, signed receipts, Merkle proofs, and optional SPL Memo anchors on Solana. Verify a real mainnet receipt with one command." />
+  <link rel="icon" type="image/png" href="assets/logo-ink.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Source+Code+Pro:wght@400;500;600&family=Reenie+Beanie&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="theme.css" />
+  <meta property="og:title" content="AAS-2 · Proof of Delivery Standard" />
+  <meta property="og:description" content="A signed, anchorable receipt for AI-agent deliverables. Verify it without trusting the verifier." />
+  <meta property="og:image" content="https://www.equxi.tech/assets/og-card.png" />
+  <meta property="og:url" content="https://www.equxi.tech/aas-2.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@equxi_ai" />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#1c1916" />
+  <link rel="canonical" href="https://www.equxi.tech/aas-2.html" />
+
+  <style>
+    .aas-main { max-width: 980px; margin: 0 auto; padding: 56px 24px 88px; }
+    .aas-kicker {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--font-mono); font-size: 12px; color: var(--muted);
+      border: 1px solid rgba(28,25,22,0.14); border-radius: 999px;
+      padding: 7px 14px; margin-bottom: 22px;
+    }
+    .aas-kicker i { color: var(--green); }
+    .aas-main h1 {
+      font-size: clamp(34px, 5vw, 54px); line-height: 1.06;
+      letter-spacing: -0.035em; margin: 0 0 18px; max-width: 760px;
+    }
+    .aas-lead { font-size: 18px; line-height: 1.6; color: var(--muted); max-width: 720px; margin: 0 0 28px; }
+    .aas-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 56px; }
+    .aas-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 11px 18px; border-radius: 999px; font-size: 14px; font-weight: 600;
+      border: 1px solid rgba(28,25,22,0.16); color: var(--text);
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .aas-btn:hover { border-color: rgba(28,25,22,0.5); background: rgba(28,25,22,0.05); }
+    .aas-btn.solid { background: var(--text); color: #fff; border-color: var(--text); }
+    .aas-btn.solid:hover { background: #000; }
+    .aas-section { margin-top: 56px; }
+    .aas-section h2 { font-size: 24px; letter-spacing: -0.02em; margin: 0 0 8px; }
+    .aas-section p.sub { color: var(--muted); margin: 0 0 20px; line-height: 1.6; max-width: 720px; }
+    .aas-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .aas-card {
+      border: 1px solid rgba(28,25,22,0.10); border-radius: 16px;
+      background: var(--surface); padding: 20px;
+    }
+    .aas-card .tag {
+      font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--muted);
+    }
+    .aas-card h3 { font-size: 18px; margin: 10px 0 8px; letter-spacing: -0.01em; }
+    .aas-card p { font-size: 14px; line-height: 1.6; color: var(--muted); margin: 0; }
+    .aas-card.hot { border-color: rgba(47,158,107,0.35); }
+    .aas-code {
+      font-family: var(--font-mono); font-size: 13px; line-height: 1.7;
+      background: #1c1916; color: #f5efe6; border-radius: 14px;
+      padding: 18px 20px; overflow-x: auto; margin: 0 0 14px;
+      white-space: pre;
+    }
+    .aas-code .c { color: #a89f92; }
+    .aas-code .g { color: #9fd8b6; }
+    .aas-hash {
+      font-family: var(--font-mono); font-size: 12px; word-break: break-all;
+      color: var(--text);
+    }
+    .aas-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .aas-table th, .aas-table td {
+      text-align: left; padding: 12px 10px;
+      border-bottom: 1px solid rgba(28,25,22,0.08); vertical-align: top;
+    }
+    .aas-table th { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .aas-table td:first-child { white-space: nowrap; font-weight: 600; }
+    .aas-note {
+      border-left: 3px solid rgba(28,25,22,0.18); padding: 4px 0 4px 16px;
+      color: var(--muted); font-size: 14px; line-height: 1.7; margin-top: 18px;
+    }
+    .aas-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+    .aas-links a {
+      font-size: 13px; padding: 8px 14px; border-radius: 999px;
+      border: 1px solid rgba(28,25,22,0.14); color: var(--muted);
+    }
+    .aas-links a:hover { color: var(--text); border-color: rgba(28,25,22,0.5); }
+    @media (max-width: 820px) {
+      .aas-grid { grid-template-columns: 1fr; }
+      .aas-main { padding: 40px 20px 64px; }
+      .aas-table th:nth-child(3), .aas-table td:nth-child(3) { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <a href="index.html" class="logo">
+        <img src="assets/logo.webp" alt="Equxi" width="40" height="40" />
+        <span class="logo-text">Equxi</span>
+      </a>
+      <nav class="nav" id="desktopNav">
+        <a href="app.html" class="nav-link">Dashboard</a>
+        <a href="explorer.html" class="nav-link">Explorer</a>
+        <a href="docs.html" class="nav-link">Docs</a>
+        <a href="aas-2.html" class="nav-link active">AAS-2</a>
+        <a href="launch.html" class="nav-link">Meteora launch</a>
+        <a href="https://github.com/thesithunyein/equxi" class="nav-link" target="_blank" title="Source on GitHub" aria-label="GitHub"><i class="fa-brands fa-github" aria-hidden="true"></i></a>
+        <a href="https://x.com/equxi_ai" class="nav-link" target="_blank" title="Equxi on X" aria-label="X"><i class="fa-brands fa-x-twitter" aria-hidden="true"></i></a>
+      </nav>
+      <button class="menu-toggle" id="menuToggle" aria-label="Menu" aria-controls="mobileNav" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </header>
+    <div class="mobile-nav" id="mobileNav">
+      <a href="app.html" class="mobile-nav-link">Dashboard</a>
+      <a href="explorer.html" class="mobile-nav-link">Explorer</a>
+      <a href="docs.html" class="mobile-nav-link">Docs</a>
+      <a href="aas-2.html" class="mobile-nav-link">AAS-2</a>
+      <a href="launch.html" class="mobile-nav-link">Meteora launch</a>
+      <a href="https://github.com/thesithunyein/equxi" class="mobile-nav-link" target="_blank"><i class="fa-brands fa-github"></i> GitHub</a>
+      <a href="https://x.com/equxi_ai" class="mobile-nav-link mobile-nav-icon" target="_blank" title="Equxi on X" aria-label="Equxi on X"><i class="fa-brands fa-x-twitter" aria-hidden="true"></i></a>
+    </div>
+
+    <main class="aas-main">
+      <div class="aas-kicker"><i class="fa-solid fa-check"></i> AAS-2 · Proof of Delivery Standard · draft 0.1</div>
+      <h1>A receipt a stranger can check.</h1>
+      <p class="aas-lead">
+        AAS-2 is an open format for proving what an AI service delivered. An agreement defines deterministic checks,
+        the provider signs the output, and the verifier signs a receipt. The receipt commits to every record through a
+        Merkle root, so a buyer can prove one failure without revealing the rest. At L3, three SPL Memo transactions
+        on Solana put the timeline beyond the provider's control.
+      </p>
+      <div class="aas-actions">
+        <a class="aas-btn solid" href="#verify"><i class="fa-solid fa-terminal"></i> Verify a mainnet receipt</a>
+        <a class="aas-btn" href="https://github.com/thesithunyein/equxi/blob/main/AAS-2.md" target="_blank" rel="noopener">Read the spec</a>
+        <a class="aas-btn" href="https://github.com/thesithunyein/equxi/tree/main/fixtures/aas-2" target="_blank" rel="noopener">Pinned fixtures</a>
+      </div>
+
+      <section class="aas-section">
+        <h2>Three levels of evidence</h2>
+        <p class="sub">The same receipt format, with progressively harder-to-fake evidence. A buyer chooses the level the agreement requires.</p>
+        <div class="aas-grid">
+          <div class="aas-card">
+            <div class="tag">L1</div>
+            <h3>Verifier signature</h3>
+            <p>The verifier reruns the checks and signs the result. Fast and private, but the timeline rests on one clock.</p>
+          </div>
+          <div class="aas-card">
+            <div class="tag">L2</div>
+            <h3>Both parties sign</h3>
+            <p>Customer and provider sign the agreement. The provider signs the output hashes and timestamp. No chain fees.</p>
+          </div>
+          <div class="aas-card hot">
+            <div class="tag">L3</div>
+            <h3>Anchored on Solana</h3>
+            <p>Three ordered memos commit to the agreement, output, and receipt. The deadline clock becomes the output anchor block time.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="aas-section" id="verify">
+        <h2>Verify the mainnet proof</h2>
+        <p class="sub">
+          Node 18 or later, no install, no wallet. This reads the three mainnet memos, reruns every check, and compares
+          the result with the signed receipt.
+        </p>
+        <pre class="aas-code">git clone https://github.com/thesithunyein/equxi
+cd equxi
+node aas2.js verify-receipt \
+  --receipt fixtures/aas-2/mainnet/receipt.json \
+  --agreement fixtures/aas-2/mainnet/agreement.signed.json \
+  --output fixtures/aas-2/output.product-feed.csv \
+  --verifier-key .well-known/equxi-verifier.json \
+  --provider-key fixtures/aas-2/mainnet/provider.pub.json \
+  --report fixtures/aas-2/mainnet/report.json \
+  --rpc https://api.mainnet-beta.solana.com
+
+<span class="g">PASS  anchors_on_chain  {"slots":[464339794,464339830,464339908]}
+VALID</span></pre>
+        <p class="sub">Twelve checks run. The last three are signature validity, the output anchor clock, and the on-chain memos.</p>
+        <div class="aas-links">
+          <a href="https://explorer.solana.com/tx/2Hqq46NoJ9FrSnb19oWX7CHdoe7rvGEjqfMasXzYsEbxKPzBJo3YSFZRbiZ2H7Q9Eh5QFoSKiVgFQQqqkgu4ZE6f" target="_blank" rel="noopener">Receipt anchor on Solana</a>
+          <a href="https://github.com/thesithunyein/equxi/tree/main/fixtures/aas-2/mainnet" target="_blank" rel="noopener">Mainnet artifacts</a>
+          <a href="https://github.com/thesithunyein/equxi/blob/main/fixtures/aas-2/l2/receipt.json" target="_blank" rel="noopener">L2 example</a>
+        </div>
+      </section>
+
+      <section class="aas-section">
+        <h2>Pinned hashes</h2>
+        <p class="sub">Each level is pinned in the repository. The hashes are the contract: if one changes, the spec changed, not the test.</p>
+        <table class="aas-table">
+          <thead>
+            <tr><th>Level</th><th>Receipt core</th><th>Cluster</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>L1</td><td class="aas-hash">sha256:50c0535b9c47eae597cb7f5d89720394600a01005a40d550a996c55c8fbe2eaf</td><td>offline</td></tr>
+            <tr><td>L2</td><td class="aas-hash">sha256:2a9fe1110ba7f6aa545d47c31cbe3b21b2e3447f210fce80b692db9bcf06b74f</td><td>offline</td></tr>
+            <tr><td>L3</td><td class="aas-hash">sha256:f0df540651a6e6a41fd032f9dfb53d5e1512ae4e25914c8008833ec1c2dd7f38</td><td>devnet</td></tr>
+            <tr><td>L3</td><td class="aas-hash">sha256:b1f97888e86de051ceb6d2f282eaed81243049c804e19dbfef949c6533645e52</td><td>mainnet</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="aas-section">
+        <h2>For implementers</h2>
+        <p class="sub">The reference verifier is one implementation, not the definition. Anything that produces the same hashes from the same public data conforms.</p>
+        <div class="aas-grid">
+          <div class="aas-card">
+            <div class="tag">HTTP</div>
+            <h3>Stateless endpoint</h3>
+            <p><span class="aas-hash">POST https://www.equxi.tech/api/verify</span> takes an agreement and an output, and returns a signed receipt plus a private report.</p>
+          </div>
+          <div class="aas-card">
+            <div class="tag">Identity</div>
+            <h3>Published key</h3>
+            <p>The active receipt key and rotation policy live at <span class="aas-hash">/.well-known/equxi-verifier.json</span>. Every receipt carries the key inline.</p>
+          </div>
+          <div class="aas-card">
+            <div class="tag">Ruleset</div>
+            <h3>Five checks</h3>
+            <p>record_count, required_fields, field_types, unique, deadline. Checks are versioned separately from the receipt format.</p>
+          </div>
+        </div>
+        <div class="aas-links">
+          <a href="https://github.com/thesithunyein/equxi/blob/main/GOVERNANCE.md" target="_blank" rel="noopener">Governance</a>
+          <a href="https://github.com/thesithunyein/equxi/blob/main/EXTERNAL-VERIFICATION.md" target="_blank" rel="noopener">Verify independently</a>
+          <a href="https://github.com/thesithunyein/equxi/blob/main/PROVIDER-ONBOARDING.md" target="_blank" rel="noopener">Run a real delivery</a>
+          <a href="https://github.com/thesithunyein/equxi/blob/main/LICENSE" target="_blank" rel="noopener">MIT license</a>
+          <a href="https://www.equxi.tech/.well-known/equxi-verifier.json" target="_blank" rel="noopener">Verifier identity</a>
+        </div>
+      </section>
+
+      <section class="aas-section">
+        <h2>What a receipt does not prove</h2>
+        <p class="sub">
+          Checks are structural. A passing receipt means the delivery matches the agreed format, not that the content is
+          true. A failed check is a verification result, not a legal breach. The verifier is trusted in v0.1; the
+          timeline is only as strong as the level chosen.
+        </p>
+        <div class="aas-note">
+          AAS-2 is a draft. The version stays 0.x until an implementation written by someone else produces the same
+          hashes, a verifier key rotation has been exercised, and the governance review is done.
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <img src="assets/logo.webp" alt="Equxi" width="28" height="28" style="border-radius: 6px;" />
+          <span style="font-weight: 600;">Equxi</span>
+        </div>
+        <nav class="footer-links">
+          <a href="docs.html">Docs</a>
+          <a href="aas-2.html">AAS-2</a>
+          <a href="app.html">Dashboard</a>
+          <a href="explorer.html">Explorer</a>
+          <a href="deck.html">Pitch deck</a>
+          <a href="https://github.com/thesithunyein/equxi" target="_blank" rel="noopener">GitHub</a>
+          <a href="https://x.com/equxi_ai" target="_blank" rel="noopener">X</a>
+        </nav>
+        <div class="footer-copy">Built on Solana. Open source under MIT.</div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>

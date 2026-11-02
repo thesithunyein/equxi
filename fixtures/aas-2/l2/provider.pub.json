@@ -1,0 +1,5 @@
+{
+  "alg": "ed25519",
+  "public_key": "3gLJMV58OVRtD4kw7reLOu9ckYGt1PIQG5Bo7Tg4OW0=",
+  "note": "Publish this key. The matching private key must never be committed."
+}

@@ -1,0 +1,97 @@
+name: Independent verification report
+description: Report that you reproduced the AAS-2 pinned hashes on your own machine, or that you could not.
+title: "[verify] "
+labels: ["aas-2", "verification"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for checking. Follow `EXTERNAL-VERIFICATION.md` and paste the real output.
+        A failure with details is more useful than a success without them.
+
+  - type: input
+    id: commit
+    attributes:
+      label: Commit
+      description: Output of `git rev-parse --short HEAD`.
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Operating system, architecture, and `node --version`.
+      placeholder: Windows 11 x64, Node v24.18.0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: l1
+    attributes:
+      label: L1 pinned core
+      description: Did the receipt core equal sha256:50c0535b...be2eaf?
+      options:
+        - Pass
+        - Fail
+        - Did not run
+    validations:
+      required: true
+
+  - type: dropdown
+    id: l2
+    attributes:
+      label: L2 receipt
+      description: Did the offline verification end in VALID?
+      options:
+        - Pass
+        - Fail
+        - Did not run
+    validations:
+      required: true
+
+  - type: dropdown
+    id: devnet
+    attributes:
+      label: Devnet L3 receipt
+      description: Did all twelve steps pass and the anchor slots match?
+      options:
+        - Pass
+        - Fail
+        - Did not run
+    validations:
+      required: true
+
+  - type: dropdown
+    id: mainnet
+    attributes:
+      label: Mainnet L3 receipt
+      description: Did all twelve steps pass and the anchor slots match?
+      options:
+        - Pass
+        - Fail
+        - Did not run
+    validations:
+      required: true
+
+  - type: textarea
+    id: output
+    attributes:
+      label: Output
+      description: Paste the four command outputs, or the first failure in full.
+      render: shell
+    validations:
+      required: true
+
+  - type: input
+    id: implementation
+    attributes:
+      label: Your own implementation (optional)
+      description: If you wrote a verifier in another language or stack, link it here.
+      placeholder: https://github.com/you/aas2-verifier
+
+  - type: textarea
+    id: ambiguity
+    attributes:
+      label: Ambiguity found (optional)
+      description: Anything in AAS-2.md that forced you to guess. This is the most valuable part of the report.

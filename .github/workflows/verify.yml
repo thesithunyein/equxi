@@ -96,7 +96,7 @@ jobs:
           # launch.html is on the list because it is the link filed with the
           # Meteora track: the page a judge is most likely to open was the one
           # page this check never opened.
-          for path in "" explorer.html app.html docs.html deck.html launch.html api/trust; do
+          for path in "" explorer.html app.html docs.html deck.html launch.html aas-2.html api/trust; do
             check "/${path:-}" "$BASE/$path" "" || fail=1
           done
 

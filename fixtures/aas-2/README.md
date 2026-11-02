@@ -87,12 +87,15 @@ node aas2.js prove --agreement fixtures/aas-2/agreement.product-feed.json \
 node aas2.js check-proof --proof .aas2/proof-16.json
 ```
 
-## Live L3 proof
+## Live L3 proofs
 
-`devnet/` holds a real three-anchor run on Solana devnet from 2026-11-01. It
-contains the signed agreement, the provider submission, the three transactions
-with their slots, the private report, and the final L3 receipt. The receipt
-verifies with:
+`devnet/` holds a real three-anchor run on Solana devnet from 2026-11-01.
+`mainnet/` holds the same flow on Solana mainnet from 2026-11-02, with fresh test
+keys and a different receipt core because the output anchor block time differs.
+Both contain the signed agreement, the provider submission, the three
+transactions with their slots, the private report, and the final L3 receipt.
+
+The devnet receipt verifies with:
 
 ```sh
 node aas2.js verify-receipt \
@@ -107,7 +110,8 @@ node aas2.js verify-receipt \
 
 All twelve steps pass, including `submitted_at_clock` and `anchors_on_chain`.
 See `devnet/README.md` for the transactions and the limits of what the run
-proves.
+proves. `mainnet/README.md` documents the mainnet run and its slots; the verify
+command differs only in the fixture directory and the RPC URL.
 
 ## Why this fixture
 
