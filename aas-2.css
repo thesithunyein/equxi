@@ -1,0 +1,1525 @@
+/* AAS-2 product page.
+ *
+ * Scoped to `.a2-` so it can change without touching the rest of the site.
+ * The page follows the shared paper theme: hairline rules, one ink accent,
+ * mono for anything that is data, colour only where it means something.
+ */
+
+.a2-main {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 4px;
+}
+
+.a2-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--muted-ink);
+}
+
+.a2-eyebrow::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 0 3px rgba(47, 158, 107, 0.12);
+}
+
+.a2-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 50px;
+  padding: 0 24px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--foreground);
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  cursor: pointer;
+  transition: background 0.22s var(--ease-out), border-color 0.22s var(--ease-out),
+    transform 0.22s var(--ease-out), color 0.22s var(--ease-out);
+}
+
+.a2-btn:hover {
+  border-color: rgba(28, 25, 22, 0.55);
+  transform: translateY(-1px);
+}
+
+.a2-btn--solid {
+  background: var(--foreground);
+  border-color: var(--foreground);
+  color: var(--surface-paper);
+}
+
+.a2-btn--solid:hover {
+  background: #000;
+  border-color: #000;
+}
+
+.a2-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.a2-btn[disabled] {
+  opacity: 0.55;
+  cursor: progress;
+  transform: none;
+}
+
+.a2-i {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ----------------------------------------------------------------- hero */
+
+.a2-hero {
+  display: grid;
+  grid-template-columns: 1.02fr 0.98fr;
+  align-items: center;
+  gap: 64px;
+  padding: 96px 0 104px;
+}
+
+.a2-hero h1 {
+  margin: 22px 0 24px;
+  font-size: clamp(46px, 5.7vw, 78px);
+  font-weight: 500;
+  line-height: 0.98;
+  letter-spacing: -0.048em;
+  max-width: 640px;
+}
+
+.a2-lead {
+  max-width: 500px;
+  margin: 0 0 34px;
+  font-size: 18px;
+  line-height: 1.62;
+  color: var(--muted-ink);
+}
+
+.a2-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.a2-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  margin-top: 42px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--dim-ink);
+}
+
+.a2-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.a2-meta span::before {
+  content: "";
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--dim-ink);
+}
+
+/* ---------------------------------------------------------- proof object */
+
+.a2-stage {
+  position: relative;
+  min-height: 480px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-right: 66px;
+  perspective: 1400px;
+}
+
+.a2-stage::before {
+  content: "";
+  position: absolute;
+  inset: -18% -8%;
+  background-image: radial-gradient(rgba(28, 25, 22, 0.16) 0.7px, transparent 0.7px);
+  background-size: 18px 18px;
+  mask-image: radial-gradient(ellipse at 50% 50%, #000 25%, transparent 72%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 50%, #000 25%, transparent 72%);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.a2-stage::after {
+  content: "";
+  position: absolute;
+  width: 62%;
+  height: 34px;
+  bottom: 34px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(28, 25, 22, 0.16), transparent 70%);
+  filter: blur(14px);
+  pointer-events: none;
+}
+
+.a2-receipt {
+  position: relative;
+  z-index: 2;
+  width: 368px;
+  padding: 24px 24px 22px;
+  border: 1px solid rgba(28, 25, 22, 0.14);
+  border-radius: 18px;
+  background: linear-gradient(160deg, #fffefb 0%, #fbf7f0 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 2px 4px rgba(28, 25, 22, 0.04),
+    0 28px 60px rgba(28, 25, 22, 0.13),
+    0 6px 18px rgba(28, 25, 22, 0.06);
+  transform: rotateY(-13deg) rotateX(5deg) rotateZ(-2deg);
+  transform-style: preserve-3d;
+  transition: transform 0.9s var(--ease-soft);
+  /* Only opacity: a keyframed transform would overwrite the 3D pose. */
+  animation: a2-fade 0.9s var(--ease-out) 0.1s both;
+}
+
+.a2-stage:hover .a2-receipt {
+  transform: rotateY(-6deg) rotateX(2deg) rotateZ(-0.6deg);
+}
+
+.a2-receipt::before {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border: 1px solid rgba(28, 25, 22, 0.055);
+  border-radius: 12px;
+  pointer-events: none;
+}
+
+.a2-receipt-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(28, 25, 22, 0.1);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--muted-ink);
+}
+
+.a2-receipt-head img {
+  width: 20px;
+  height: 20px;
+  opacity: 0.85;
+}
+
+.a2-receipt-head .a2-receipt-no {
+  margin-left: auto;
+  color: var(--dim-ink);
+}
+
+.a2-receipt-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 20px 0 18px;
+}
+
+.a2-receipt-title b {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.a2-receipt-title span {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dim-ink);
+}
+
+.a2-receipt-rows {
+  display: grid;
+  gap: 10px;
+  padding-bottom: 18px;
+}
+
+.a2-receipt-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 12.5px;
+}
+
+.a2-receipt-row span {
+  color: var(--muted-ink);
+}
+
+.a2-receipt-row b {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.a2-receipt-row b.good {
+  color: var(--success);
+}
+
+.a2-receipt-hash {
+  display: grid;
+  gap: 5px;
+  padding: 12px 12px 11px;
+  border: 1px solid rgba(28, 25, 22, 0.09);
+  border-radius: 9px;
+  background: rgba(28, 25, 22, 0.025);
+}
+
+.a2-receipt-hash span {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dim-ink);
+}
+
+.a2-receipt-hash code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.a2-receipt-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 18px;
+}
+
+.a2-seal {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.a2-seal-ring {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(47, 158, 107, 0.45);
+  border-radius: 50%;
+  color: var(--success);
+  background: rgba(47, 158, 107, 0.06);
+  box-shadow: 0 0 0 4px rgba(47, 158, 107, 0.05);
+}
+
+.a2-seal-ring svg {
+  width: 18px;
+  height: 18px;
+}
+
+.a2-seal-text {
+  display: grid;
+  gap: 2px;
+}
+
+.a2-seal-text b {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--success);
+}
+
+.a2-seal-text span {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  color: var(--dim-ink);
+}
+
+.a2-barcode {
+  width: 62px;
+  height: 26px;
+  opacity: 0.32;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--foreground) 0 1px,
+    transparent 1px 3px,
+    var(--foreground) 3px 5px,
+    transparent 5px 6px
+  );
+}
+
+/* Anchor rail */
+
+.a2-rail {
+  position: absolute;
+  z-index: 3;
+  right: 0;
+  top: 58px;
+  display: grid;
+  gap: 0;
+  padding-left: 22px;
+  animation: a2-rise 0.9s var(--ease-out) 0.25s both;
+}
+
+.a2-rail::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 8px;
+  bottom: 8px;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(28, 25, 22, 0.22) 12%,
+    rgba(28, 25, 22, 0.22) 88%,
+    transparent
+  );
+}
+
+.a2-rail-item {
+  position: relative;
+  padding: 0 0 30px 0;
+}
+
+.a2-rail-item:last-child {
+  padding-bottom: 0;
+}
+
+.a2-rail-item::before {
+  content: "";
+  position: absolute;
+  left: -22px;
+  top: 5px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--surface-paper);
+  border: 1px solid rgba(28, 25, 22, 0.45);
+}
+
+.a2-rail-item.is-live::before {
+  background: var(--foreground);
+  border-color: var(--foreground);
+  box-shadow: 0 0 0 4px rgba(28, 25, 22, 0.07);
+}
+
+.a2-rail-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--dim-ink);
+}
+
+.a2-rail-value {
+  display: block;
+  margin-top: 3px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes a2-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes a2-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* --------------------------------------------------------------- section */
+
+.a2-section {
+  padding: 96px 0;
+  border-top: 1px solid var(--rule);
+}
+
+.a2-section-head {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 48px;
+  align-items: end;
+  margin-bottom: 52px;
+}
+
+.a2-section-head h2 {
+  margin: 16px 0 0;
+  font-size: clamp(30px, 3.6vw, 46px);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.038em;
+}
+
+.a2-section-sub {
+  max-width: 520px;
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--muted-ink);
+}
+
+.a2-link {
+  color: var(--foreground);
+  border-bottom: 1px solid rgba(28, 25, 22, 0.3);
+  transition: border-color 0.2s;
+}
+
+.a2-link:hover {
+  border-color: var(--foreground);
+}
+
+/* ---------------------------------------------------------------- levels */
+
+.a2-levels {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid var(--rule);
+}
+
+.a2-level {
+  position: relative;
+  padding: 30px 30px 34px;
+  border-bottom: 1px solid var(--rule);
+  transition: background 0.3s var(--ease-out);
+}
+
+.a2-level + .a2-level {
+  border-left: 1px solid var(--rule);
+}
+
+.a2-level:hover {
+  background: rgba(255, 253, 249, 0.7);
+}
+
+.a2-level-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 34px;
+}
+
+.a2-level-mark {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--rule);
+  border-radius: 11px;
+  color: var(--foreground);
+  background: var(--surface-paper);
+}
+
+.a2-level-id {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--dim-ink);
+}
+
+.a2-level h3 {
+  margin: 0 0 10px;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.a2-level p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--muted-ink);
+  min-height: 68px;
+}
+
+.a2-level-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 22px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dim-ink);
+}
+
+.a2-level-tag::before {
+  content: "";
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.a2-level-tag.onchain {
+  color: var(--success);
+}
+
+/* -------------------------------------------------------------- verifier */
+
+.a2-verify .a2-section-head {
+  margin-bottom: 40px;
+}
+
+.a2-verifier {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  border: 1px solid var(--rule);
+  border-radius: 18px;
+  background: var(--surface-paper);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.a2-form {
+  min-width: 0;
+  padding: 26px 26px 28px;
+  border-right: 1px solid var(--rule);
+  background: linear-gradient(180deg, rgba(247, 244, 239, 0.5), rgba(255, 253, 249, 0) 45%);
+}
+
+.a2-tabs {
+  display: flex;
+  min-width: 0;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: rgba(28, 25, 22, 0.035);
+}
+
+.a2-tab {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  height: 36px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted-ink);
+  font-family: var(--font);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+
+.a2-tab:hover {
+  color: var(--foreground);
+}
+
+.a2-tab[aria-selected="true"] {
+  background: var(--surface-paper);
+  color: var(--foreground);
+  box-shadow: 0 1px 2px rgba(28, 25, 22, 0.08);
+}
+
+.a2-pane {
+  min-width: 0;
+  padding-top: 22px;
+}
+
+.a2-pane[hidden] {
+  display: none;
+}
+
+.a2-pane-lead {
+  margin: 0 0 18px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted-ink);
+}
+
+.a2-artifacts {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.a2-artifact {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: rgba(255, 253, 249, 0.8);
+}
+
+.a2-artifact svg {
+  width: 17px;
+  height: 17px;
+  color: var(--muted-ink);
+  flex: none;
+}
+
+.a2-artifact div {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.a2-artifact b {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+
+.a2-artifact span {
+  font-size: 11px;
+  color: var(--dim-ink);
+}
+
+.a2-artifact .a2-ready {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--success);
+  white-space: nowrap;
+}
+
+.a2-file {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.a2-file label {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-ink);
+}
+
+.a2-file label em {
+  font-style: normal;
+  color: var(--dim-ink);
+  letter-spacing: 0.04em;
+}
+
+.a2-file input[type="file"] {
+  width: 100%;
+  min-width: 0;
+  color: var(--dim-ink);
+  font-size: 12px;
+}
+
+.a2-file input[type="file"]::file-selector-button {
+  margin-right: 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 7px;
+  background: var(--surface-paper);
+  color: var(--foreground);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.a2-field {
+  display: grid;
+  gap: 7px;
+  margin: 18px 0 22px;
+}
+
+.a2-field label {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-ink);
+}
+
+.a2-fixed {
+  display: flex;
+  align-items: center;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--rule);
+  border-radius: 9px;
+  background: rgba(28, 25, 22, 0.03);
+  font-size: 13px;
+  color: var(--muted-ink);
+}
+
+.a2-field select {
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 9px;
+  background: var(--surface-paper);
+  color: var(--foreground);
+  font-family: var(--font);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.a2-form .a2-btn {
+  width: 100%;
+}
+
+.a2-hint {
+  margin: 14px 0 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--dim-ink);
+}
+
+/* Result panel */
+
+.a2-result {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  min-height: 430px;
+  padding: 26px;
+  background:
+    radial-gradient(ellipse at 100% 0%, rgba(28, 25, 22, 0.035), transparent 55%),
+    var(--surface-paper);
+}
+
+.a2-result-empty {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--dim-ink);
+  padding: 30px 16px;
+}
+
+.a2-result-empty .a2-result-mark {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 18px;
+  border: 1px solid var(--rule);
+  border-radius: 50%;
+  color: var(--dim-ink);
+  background: var(--surface-paper);
+}
+
+.a2-result-empty .a2-result-mark svg {
+  width: 22px;
+  height: 22px;
+}
+
+.a2-result-empty b {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted-ink);
+}
+
+.a2-result-empty p {
+  max-width: 250px;
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.a2-result-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.a2-verdict {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.a2-verdict::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.a2-verdict.is-valid {
+  color: var(--success);
+}
+
+.a2-verdict.is-invalid {
+  color: var(--danger);
+}
+
+.a2-result-meta {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1.7;
+  color: var(--dim-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.a2-identity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--muted-ink);
+}
+
+.a2-identity .a2-i {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  color: var(--success);
+}
+
+.a2-core {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 0 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 9px;
+  background: rgba(28, 25, 22, 0.025);
+  min-width: 0;
+}
+
+.a2-core span {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dim-ink);
+}
+
+.a2-core code {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--foreground);
+}
+
+.a2-copy {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--surface-paper);
+  color: var(--muted-ink);
+  cursor: pointer;
+}
+
+.a2-copy:hover {
+  color: var(--foreground);
+  border-color: var(--rule-strong);
+}
+
+.a2-copy svg {
+  width: 13px;
+  height: 13px;
+}
+
+.a2-steps {
+  display: grid;
+  margin-top: 10px;
+}
+
+.a2-step {
+  display: grid;
+  grid-template-columns: 15px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(28, 25, 22, 0.055);
+  font-size: 12px;
+}
+
+.a2-step:last-child {
+  border-bottom: 0;
+}
+
+.a2-step-glyph {
+  display: grid;
+  place-items: center;
+  width: 15px;
+  height: 15px;
+  margin-top: 1px;
+  border-radius: 50%;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.a2-step.is-pass .a2-step-glyph {
+  color: var(--success);
+  background: rgba(47, 158, 107, 0.11);
+}
+
+.a2-step.is-fail .a2-step-glyph {
+  color: var(--danger);
+  background: rgba(179, 86, 63, 0.11);
+}
+
+.a2-step-body {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.a2-step-name {
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.a2-step-detail {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--dim-ink);
+  word-break: break-word;
+}
+
+.a2-step-state {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dim-ink);
+  padding-top: 2px;
+}
+
+.a2-step.is-pass .a2-step-state {
+  color: var(--success);
+}
+
+.a2-step.is-fail .a2-step-state {
+  color: var(--danger);
+}
+
+.a2-anchors {
+  display: grid;
+  gap: 6px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--rule);
+}
+
+.a2-anchors-title {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dim-ink);
+}
+
+.a2-anchor-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--muted-ink);
+}
+
+.a2-anchor-link:hover {
+  color: var(--foreground);
+  text-decoration: underline;
+}
+
+.a2-anchor-link span {
+  color: var(--dim-ink);
+}
+
+.a2-anchor-go {
+  width: 10px;
+  height: 10px;
+  opacity: 0.45;
+}
+
+.a2-result-note {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-left: 2px solid var(--rule-strong);
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--muted-ink);
+}
+
+.a2-result-error {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  padding: 24px;
+}
+
+.a2-result-error b {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--danger);
+}
+
+.a2-result-error p {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--muted-ink);
+}
+
+.a2-result-error span {
+  margin-top: 14px;
+  font-size: 11px;
+  color: var(--dim-ink);
+}
+
+/* ----------------------------------------------------------- implementers */
+
+.a2-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.a2-card {
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  background: var(--surface-paper);
+  transition: border-color 0.25s var(--ease-out), transform 0.25s var(--ease-out);
+}
+
+.a2-card:hover {
+  border-color: var(--rule-strong);
+  transform: translateY(-2px);
+}
+
+.a2-card .a2-i {
+  width: 19px;
+  height: 19px;
+  color: var(--muted-ink);
+  margin-bottom: 26px;
+}
+
+.a2-card h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.a2-card p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted-ink);
+}
+
+.a2-card code {
+  display: block;
+  margin-top: 16px;
+  padding: 10px 11px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: rgba(28, 25, 22, 0.03);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: var(--foreground);
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.a2-card a {
+  margin-top: auto;
+  padding-top: 18px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--foreground);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.a2-card a svg {
+  width: 13px;
+  height: 13px;
+}
+
+.a2-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.a2-links a {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  color: var(--muted-ink);
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.a2-links a:hover {
+  color: var(--foreground);
+  border-color: var(--rule-strong);
+}
+
+/* ----------------------------------------------------------------- scope */
+
+.a2-scope {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 48px;
+}
+
+.a2-scope h3 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 16px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--muted-ink);
+}
+
+.a2-scope h3::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--success);
+}
+
+.a2-scope .a2-scope-no h3::before {
+  background: var(--dim-ink);
+}
+
+.a2-scope ul {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.a2-scope li {
+  position: relative;
+  padding-left: 20px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--muted-ink);
+}
+
+.a2-scope li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  width: 7px;
+  height: 1px;
+  background: var(--dim-ink);
+}
+
+.a2-scope-note {
+  margin-top: 56px;
+  padding: 20px 24px;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--muted-ink);
+  background: rgba(255, 253, 249, 0.6);
+}
+
+.a2-scope-note b {
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------------ close */
+
+.a2-close {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  padding: 72px 0 96px;
+  border-top: 1px solid var(--rule);
+}
+
+.a2-close h2 {
+  margin: 14px 0 0;
+  font-size: clamp(28px, 3.2vw, 40px);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+}
+
+.a2-close .a2-actions {
+  flex: none;
+}
+
+/* -------------------------------------------------------------- responsive */
+
+@media (max-width: 1000px) {
+  .a2-hero {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding: 72px 0 80px;
+  }
+
+  .a2-hero h1 {
+    max-width: 720px;
+  }
+
+  .a2-lead {
+    max-width: 560px;
+  }
+
+  .a2-stage {
+    min-height: 440px;
+    margin-top: 8px;
+    padding-right: 40px;
+  }
+
+  .a2-rail {
+    right: 18px;
+  }
+
+  .a2-section {
+    padding: 72px 0;
+  }
+
+  .a2-section-head {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    align-items: start;
+    margin-bottom: 40px;
+  }
+
+  .a2-levels {
+    grid-template-columns: 1fr;
+  }
+
+  .a2-level + .a2-level {
+    border-left: 0;
+  }
+
+  .a2-level p {
+    min-height: 0;
+  }
+
+  .a2-level-top {
+    margin-bottom: 22px;
+  }
+
+  .a2-verifier {
+    grid-template-columns: 1fr;
+  }
+
+  .a2-form {
+    border-right: 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .a2-result {
+    min-height: 340px;
+  }
+
+  .a2-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .a2-card {
+    padding: 22px;
+  }
+
+  .a2-card .a2-i {
+    margin-bottom: 18px;
+  }
+
+  .a2-scope {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+
+  .a2-close {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 26px;
+    padding: 56px 0 72px;
+  }
+}
+
+@media (max-width: 620px) {
+  .a2-main {
+    padding: 0;
+  }
+
+  .a2-hero {
+    padding: 52px 0 64px;
+  }
+
+  .a2-hero h1 {
+    font-size: clamp(38px, 11vw, 54px);
+  }
+
+  .a2-lead {
+    font-size: 16px;
+  }
+
+  .a2-actions .a2-btn {
+    flex: 1;
+    min-width: 0;
+    padding: 0 16px;
+  }
+
+  .a2-meta {
+    gap: 8px 16px;
+    margin-top: 32px;
+  }
+
+  .a2-stage {
+    min-height: 420px;
+    justify-content: flex-start;
+    padding-left: 2px;
+  }
+
+  .a2-receipt {
+    width: min(100%, 320px);
+    transform: none;
+  }
+
+  .a2-stage:hover .a2-receipt {
+    transform: none;
+  }
+
+  .a2-rail {
+    position: static;
+    display: none;
+  }
+
+  .a2-section {
+    padding: 56px 0;
+  }
+
+  .a2-section-head h2 {
+    font-size: clamp(28px, 8.5vw, 38px);
+  }
+
+  .a2-level {
+    padding: 24px 18px 28px;
+  }
+
+  .a2-form,
+  .a2-result {
+    padding: 20px 18px;
+  }
+
+  .a2-result-top {
+    flex-direction: column;
+  }
+
+  .a2-result-meta {
+    text-align: left;
+  }
+
+  .a2-step {
+    grid-template-columns: 15px minmax(0, 1fr);
+  }
+
+  .a2-step-state {
+    display: none;
+  }
+
+  .a2-close {
+    padding: 48px 0 64px;
+  }
+
+  .a2-actions {
+    width: 100%;
+  }
+}

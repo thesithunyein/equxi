@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AAS-2 · Proof of Delivery Standard · Equxi</title>
-  <meta name="description" content="AAS-2 is an open format for verifying AI-agent deliverables: deterministic checks, signed receipts, Merkle proofs, and optional SPL Memo anchors on Solana. Verify a real mainnet receipt with one command." />
+  <title>AAS-2 · Proof of delivery for AI agents · Equxi</title>
+  <meta name="description" content="AAS-2 turns an agent delivery into a signed, reproducible receipt. Rerun the checks, verify the signature, and confirm the timeline on Solana. Verify the published mainnet proof here." />
   <link rel="icon" type="image/png" href="assets/logo-ink.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -12,97 +12,38 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="theme.css" />
-  <meta property="og:title" content="AAS-2 · Proof of Delivery Standard" />
-  <meta property="og:description" content="A signed, anchorable receipt for AI-agent deliverables. Verify it without trusting the verifier." />
+  <link rel="stylesheet" href="aas-2.css" />
+  <meta property="og:title" content="AAS-2 · Proof of delivery" />
+  <meta property="og:description" content="A signed, reproducible receipt for agent work. Check the hashes, the signature, and the Solana anchors without trusting the provider." />
   <meta property="og:image" content="https://www.equxi.tech/assets/og-card.png" />
   <meta property="og:url" content="https://www.equxi.tech/aas-2.html" />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:site" content="@equxi_ai" />
   <meta name="robots" content="index, follow" />
-  <meta name="theme-color" content="#1c1916" />
+  <meta name="theme-color" content="#f7f4ef" />
   <link rel="canonical" href="https://www.equxi.tech/aas-2.html" />
-
-  <style>
-    .aas-main { max-width: 980px; margin: 0 auto; padding: 56px 24px 88px; }
-    .aas-kicker {
-      display: inline-flex; align-items: center; gap: 8px;
-      font-family: var(--font-mono); font-size: 12px; color: var(--muted);
-      border: 1px solid rgba(28,25,22,0.14); border-radius: 999px;
-      padding: 7px 14px; margin-bottom: 22px;
-    }
-    .aas-kicker i { color: var(--green); }
-    .aas-main h1 {
-      font-size: clamp(34px, 5vw, 54px); line-height: 1.06;
-      letter-spacing: -0.035em; margin: 0 0 18px; max-width: 760px;
-    }
-    .aas-lead { font-size: 18px; line-height: 1.6; color: var(--muted); max-width: 720px; margin: 0 0 28px; }
-    .aas-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 56px; }
-    .aas-btn {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 11px 18px; border-radius: 999px; font-size: 14px; font-weight: 600;
-      border: 1px solid rgba(28,25,22,0.16); color: var(--text);
-      transition: border-color 0.2s, background 0.2s;
-    }
-    .aas-btn:hover { border-color: rgba(28,25,22,0.5); background: rgba(28,25,22,0.05); }
-    .aas-btn.solid { background: var(--text); color: #fff; border-color: var(--text); }
-    .aas-btn.solid:hover { background: #000; }
-    .aas-section { margin-top: 56px; }
-    .aas-section h2 { font-size: 24px; letter-spacing: -0.02em; margin: 0 0 8px; }
-    .aas-section p.sub { color: var(--muted); margin: 0 0 20px; line-height: 1.6; max-width: 720px; }
-    .aas-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-    .aas-card {
-      border: 1px solid rgba(28,25,22,0.10); border-radius: 16px;
-      background: var(--surface); padding: 20px;
-    }
-    .aas-card .tag {
-      font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em;
-      text-transform: uppercase; color: var(--muted);
-    }
-    .aas-card h3 { font-size: 18px; margin: 10px 0 8px; letter-spacing: -0.01em; }
-    .aas-card p { font-size: 14px; line-height: 1.6; color: var(--muted); margin: 0; }
-    .aas-card.hot { border-color: rgba(47,158,107,0.35); }
-    .aas-code {
-      font-family: var(--font-mono); font-size: 13px; line-height: 1.7;
-      background: #1c1916; color: #f5efe6; border-radius: 14px;
-      padding: 18px 20px; overflow-x: auto; margin: 0 0 14px;
-      white-space: pre;
-    }
-    .aas-code .c { color: #a89f92; }
-    .aas-code .g { color: #9fd8b6; }
-    .aas-hash {
-      font-family: var(--font-mono); font-size: 12px; word-break: break-all;
-      color: var(--text);
-    }
-    .aas-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-    .aas-table th, .aas-table td {
-      text-align: left; padding: 12px 10px;
-      border-bottom: 1px solid rgba(28,25,22,0.08); vertical-align: top;
-    }
-    .aas-table th { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-    .aas-table td:first-child { white-space: nowrap; font-weight: 600; }
-    .aas-note {
-      border-left: 3px solid rgba(28,25,22,0.18); padding: 4px 0 4px 16px;
-      color: var(--muted); font-size: 14px; line-height: 1.7; margin-top: 18px;
-    }
-    .aas-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
-    .aas-links a {
-      font-size: 13px; padding: 8px 14px; border-radius: 999px;
-      border: 1px solid rgba(28,25,22,0.14); color: var(--muted);
-    }
-    .aas-links a:hover { color: var(--text); border-color: rgba(28,25,22,0.5); }
-    @media (max-width: 820px) {
-      .aas-grid { grid-template-columns: 1fr; }
-      .aas-main { padding: 40px 20px 64px; }
-      .aas-table th:nth-child(3), .aas-table td:nth-child(3) { display: none; }
-    }
-  </style>
 </head>
 <body>
+  <svg width="0" height="0" style="position:absolute;overflow:hidden" aria-hidden="true" focusable="false">
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h13M13 6l6 6-6 6" /></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="m8 12.4 2.6 2.6L16.4 9" /></symbol>
+    <symbol id="i-pen" viewBox="0 0 24 24"><path d="M4 20l4.2-1L18.6 8.6a2.5 2.5 0 0 0-3.5-3.5L4.7 15.5 4 20z" /><path d="m13.8 6.4 3.8 3.8" /></symbol>
+    <symbol id="i-sol" viewBox="0 0 24 24"><path style="fill:currentColor;stroke:none" d="M7 5h13l-2 2H5zM7 11h13l-2 2H5zM7 17h13l-2 2H5z" /></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 3.5h7l5 5v12H6z" /><path d="M13 3.5v5h5" /><path d="M9 13h6M9 16.5h4" /></symbol>
+    <symbol id="i-hash" viewBox="0 0 24 24"><path d="M9.5 4 7.5 20M16 4l-2 16M4.5 9h15M3.5 15h15" /></symbol>
+    <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="8" r="4" /><path d="m11 11 8 8M16 16l2-2M18 18l2-2" /></symbol>
+    <symbol id="i-terminal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m7 10 2.5 2L7 14M12.5 14H16" /></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M15 9V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h4" /></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 1 0-5.7-5.7L11.5 7" /><path d="M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 1 0 11 18.7l1.4-1.4" /></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.4 3 8.2 7 9.5 4-1.3 7-5.1 7-9.5V6l-7-3z" /><path d="m9 12 2 2 4-4" /></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-8 8" /><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" /></symbol>
+  </svg>
+
   <div class="page">
     <header class="header">
       <a href="index.html" class="logo">
-        <img src="assets/logo.webp" alt="Equxi" width="40" height="40" />
+        <img src="assets/logo-ink.png" alt="Equxi" width="34" height="34" />
         <span class="logo-text">Equxi</span>
       </a>
       <nav class="nav" id="desktopNav">
@@ -110,7 +51,7 @@
         <a href="explorer.html" class="nav-link">Explorer</a>
         <a href="docs.html" class="nav-link">Docs</a>
         <a href="aas-2.html" class="nav-link active">AAS-2</a>
-        <a href="launch.html" class="nav-link">Meteora launch</a>
+        <a href="launch.html" class="nav-link">Launch</a>
         <a href="https://github.com/thesithunyein/equxi" class="nav-link" target="_blank" title="Source on GitHub" aria-label="GitHub"><i class="fa-brands fa-github" aria-hidden="true"></i></a>
         <a href="https://x.com/equxi_ai" class="nav-link" target="_blank" title="Equxi on X" aria-label="X"><i class="fa-brands fa-x-twitter" aria-hidden="true"></i></a>
       </nav>
@@ -123,130 +64,317 @@
       <a href="explorer.html" class="mobile-nav-link">Explorer</a>
       <a href="docs.html" class="mobile-nav-link">Docs</a>
       <a href="aas-2.html" class="mobile-nav-link">AAS-2</a>
-      <a href="launch.html" class="mobile-nav-link">Meteora launch</a>
+      <a href="launch.html" class="mobile-nav-link">Launch</a>
       <a href="https://github.com/thesithunyein/equxi" class="mobile-nav-link" target="_blank"><i class="fa-brands fa-github"></i> GitHub</a>
       <a href="https://x.com/equxi_ai" class="mobile-nav-link mobile-nav-icon" target="_blank" title="Equxi on X" aria-label="Equxi on X"><i class="fa-brands fa-x-twitter" aria-hidden="true"></i></a>
     </div>
 
-    <main class="aas-main">
-      <div class="aas-kicker"><i class="fa-solid fa-check"></i> AAS-2 · Proof of Delivery Standard · draft 0.1</div>
-      <h1>A receipt a stranger can check.</h1>
-      <p class="aas-lead">
-        AAS-2 is an open format for proving what an AI service delivered. An agreement defines deterministic checks,
-        the provider signs the output, and the verifier signs a receipt. The receipt commits to every record through a
-        Merkle root, so a buyer can prove one failure without revealing the rest. At L3, three SPL Memo transactions
-        on Solana put the timeline beyond the provider's control.
-      </p>
-      <div class="aas-actions">
-        <a class="aas-btn solid" href="#verify"><i class="fa-solid fa-terminal"></i> Verify a mainnet receipt</a>
-        <a class="aas-btn" href="https://github.com/thesithunyein/equxi/blob/main/AAS-2.md" target="_blank" rel="noopener">Read the spec</a>
-        <a class="aas-btn" href="https://github.com/thesithunyein/equxi/tree/main/fixtures/aas-2" target="_blank" rel="noopener">Pinned fixtures</a>
-      </div>
+    <main class="a2-main">
+      <section class="a2-hero">
+        <div>
+          <div class="a2-eyebrow">AAS-2 · Proof of delivery · 0.1</div>
+          <h1>A receipt that stands on its own.</h1>
+          <p class="a2-lead">
+            Turn an agent delivery into a signed, reproducible record. Anyone can rerun the
+            checks, verify the signature, and confirm the timeline without asking the provider.
+          </p>
+          <div class="a2-actions">
+            <a class="a2-btn a2-btn--solid" href="#verify">
+              Verify a receipt
+              <svg class="a2-i" aria-hidden="true"><use href="#i-arrow" /></svg>
+            </a>
+            <a class="a2-btn" href="https://github.com/thesithunyein/equxi/blob/main/AAS-2.md" target="_blank" rel="noopener">Read the spec</a>
+          </div>
+          <div class="a2-meta">
+            <span>Ed25519</span>
+            <span>SHA-256 Merkle root</span>
+            <span>SPL Memo anchors</span>
+            <span>MIT</span>
+          </div>
+        </div>
 
-      <section class="aas-section">
-        <h2>Three levels of evidence</h2>
-        <p class="sub">The same receipt format, with progressively harder-to-fake evidence. A buyer chooses the level the agreement requires.</p>
-        <div class="aas-grid">
-          <div class="aas-card">
-            <div class="tag">L1</div>
-            <h3>Verifier signature</h3>
-            <p>The verifier reruns the checks and signs the result. Fast and private, but the timeline rests on one clock.</p>
-          </div>
-          <div class="aas-card">
-            <div class="tag">L2</div>
-            <h3>Both parties sign</h3>
-            <p>Customer and provider sign the agreement. The provider signs the output hashes and timestamp. No chain fees.</p>
-          </div>
-          <div class="aas-card hot">
-            <div class="tag">L3</div>
-            <h3>Anchored on Solana</h3>
-            <p>Three ordered memos commit to the agreement, output, and receipt. The deadline clock becomes the output anchor block time.</p>
+        <div class="a2-stage" aria-hidden="true">
+          <article class="a2-receipt">
+            <div class="a2-receipt-head">
+              <img src="assets/logo-ink.png" alt="" width="20" height="20" />
+              <span>Delivery receipt</span>
+              <span class="a2-receipt-no">AAS-2</span>
+            </div>
+            <div class="a2-receipt-title">
+              <b>Product feed</b>
+              <span>20 records</span>
+            </div>
+            <div class="a2-receipt-rows">
+              <div class="a2-receipt-row"><span>Checks</span><b class="good">12 passed</b></div>
+              <div class="a2-receipt-row"><span>Evidence</span><b>L3 · anchored</b></div>
+              <div class="a2-receipt-row"><span>Signed by</span><b>Equxi</b></div>
+            </div>
+            <div class="a2-receipt-hash">
+              <span>Core hash</span>
+              <code>sha256:b1f97888e86de0…3645e52</code>
+            </div>
+            <div class="a2-receipt-foot">
+              <div class="a2-seal">
+                <span class="a2-seal-ring"><svg class="a2-i"><use href="#i-check" /></svg></span>
+                <span class="a2-seal-text"><b>VALID</b><span>Verified 12 / 12</span></span>
+              </div>
+              <div class="a2-barcode"></div>
+            </div>
+          </article>
+
+          <div class="a2-rail">
+            <div class="a2-rail-item is-live">
+              <span class="a2-rail-label">Agreement</span>
+              <span class="a2-rail-value">464 339 794</span>
+            </div>
+            <div class="a2-rail-item is-live">
+              <span class="a2-rail-label">Output</span>
+              <span class="a2-rail-value">464 339 830</span>
+            </div>
+            <div class="a2-rail-item is-live">
+              <span class="a2-rail-label">Receipt</span>
+              <span class="a2-rail-value">464 339 908</span>
+            </div>
           </div>
         </div>
       </section>
 
-      <section class="aas-section" id="verify">
-        <h2>Verify the mainnet proof</h2>
-        <p class="sub">
-          Node 18 or later, no install, no wallet. This reads the three mainnet memos, reruns every check, and compares
-          the result with the signed receipt.
-        </p>
-        <pre class="aas-code">git clone https://github.com/thesithunyein/equxi
-cd equxi
-node aas2.js verify-receipt \
-  --receipt fixtures/aas-2/mainnet/receipt.json \
-  --agreement fixtures/aas-2/mainnet/agreement.signed.json \
-  --output fixtures/aas-2/output.product-feed.csv \
-  --verifier-key .well-known/equxi-verifier.json \
-  --provider-key fixtures/aas-2/mainnet/provider.pub.json \
-  --report fixtures/aas-2/mainnet/report.json \
-  --rpc https://api.mainnet-beta.solana.com
+      <section class="a2-section" id="standard">
+        <div class="a2-section-head">
+          <div>
+            <div class="a2-eyebrow">The standard</div>
+            <h2>One receipt. Three strengths of evidence.</h2>
+          </div>
+          <p class="a2-section-sub">
+            An agreement chooses the level it needs. The format never changes — only what the
+            receipt can prove without asking anyone to trust the provider.
+          </p>
+        </div>
 
-<span class="g">PASS  anchors_on_chain  {"slots":[464339794,464339830,464339908]}
-VALID</span></pre>
-        <p class="sub">Twelve checks run. The last three are signature validity, the output anchor clock, and the on-chain memos.</p>
-        <div class="aas-links">
-          <a href="https://explorer.solana.com/tx/2Hqq46NoJ9FrSnb19oWX7CHdoe7rvGEjqfMasXzYsEbxKPzBJo3YSFZRbiZ2H7Q9Eh5QFoSKiVgFQQqqkgu4ZE6f" target="_blank" rel="noopener">Receipt anchor on Solana</a>
-          <a href="https://github.com/thesithunyein/equxi/tree/main/fixtures/aas-2/mainnet" target="_blank" rel="noopener">Mainnet artifacts</a>
-          <a href="https://github.com/thesithunyein/equxi/blob/main/fixtures/aas-2/l2/receipt.json" target="_blank" rel="noopener">L2 example</a>
+        <div class="a2-levels">
+          <div class="a2-level">
+            <div class="a2-level-top">
+              <span class="a2-level-mark"><svg class="a2-i"><use href="#i-check" /></svg></span>
+              <span class="a2-level-id">L1</span>
+            </div>
+            <h3>Signature</h3>
+            <p>The verifier reruns the checks and signs the result. Fast, private, and free.</p>
+            <span class="a2-level-tag">Offline</span>
+          </div>
+          <div class="a2-level">
+            <div class="a2-level-top">
+              <span class="a2-level-mark"><svg class="a2-i"><use href="#i-pen" /></svg></span>
+              <span class="a2-level-id">L2</span>
+            </div>
+            <h3>Two-party</h3>
+            <p>Customer and provider sign the agreement. The provider attests the output and its time.</p>
+            <span class="a2-level-tag">Offline</span>
+          </div>
+          <div class="a2-level">
+            <div class="a2-level-top">
+              <span class="a2-level-mark"><svg class="a2-i"><use href="#i-sol" /></svg></span>
+              <span class="a2-level-id">L3</span>
+            </div>
+            <h3>Anchored</h3>
+            <p>Three ordered memos on Solana fix the sequence and make the delivery clock public.</p>
+            <span class="a2-level-tag onchain">On-chain</span>
+          </div>
         </div>
       </section>
 
-      <section class="aas-section">
-        <h2>Pinned hashes</h2>
-        <p class="sub">Each level is pinned in the repository. The hashes are the contract: if one changes, the spec changed, not the test.</p>
-        <table class="aas-table">
-          <thead>
-            <tr><th>Level</th><th>Receipt core</th><th>Cluster</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>L1</td><td class="aas-hash">sha256:50c0535b9c47eae597cb7f5d89720394600a01005a40d550a996c55c8fbe2eaf</td><td>offline</td></tr>
-            <tr><td>L2</td><td class="aas-hash">sha256:2a9fe1110ba7f6aa545d47c31cbe3b21b2e3447f210fce80b692db9bcf06b74f</td><td>offline</td></tr>
-            <tr><td>L3</td><td class="aas-hash">sha256:f0df540651a6e6a41fd032f9dfb53d5e1512ae4e25914c8008833ec1c2dd7f38</td><td>devnet</td></tr>
-            <tr><td>L3</td><td class="aas-hash">sha256:b1f97888e86de051ceb6d2f282eaed81243049c804e19dbfef949c6533645e52</td><td>mainnet</td></tr>
-          </tbody>
-        </table>
-      </section>
+      <section class="a2-section a2-verify" id="verify">
+        <div class="a2-section-head">
+          <div>
+            <div class="a2-eyebrow">Verification</div>
+            <h2>Check a receipt in the open.</h2>
+          </div>
+          <p class="a2-section-sub">
+            Run the published mainnet proof, or verify a receipt you were given. Every hash is
+            recomputed and, at L3, the memos are read from Solana. Nothing is stored.
+          </p>
+        </div>
 
-      <section class="aas-section">
-        <h2>For implementers</h2>
-        <p class="sub">The reference verifier is one implementation, not the definition. Anything that produces the same hashes from the same public data conforms.</p>
-        <div class="aas-grid">
-          <div class="aas-card">
-            <div class="tag">HTTP</div>
-            <h3>Stateless endpoint</h3>
-            <p><span class="aas-hash">POST https://www.equxi.tech/api/verify</span> takes an agreement and an output, and returns a signed receipt plus a private report.</p>
+        <div class="a2-verifier">
+          <div class="a2-form">
+            <div class="a2-tabs" role="tablist" aria-label="Verification source">
+              <button class="a2-tab" role="tab" id="a2-tab-published" aria-controls="a2-pane-published" aria-selected="true" data-a2-tab="published">Published proof</button>
+              <button class="a2-tab" role="tab" id="a2-tab-files" aria-controls="a2-pane-files" aria-selected="false" tabindex="-1" data-a2-tab="files">Your files</button>
+            </div>
+
+            <div class="a2-pane" role="tabpanel" id="a2-pane-published" aria-labelledby="a2-tab-published" data-a2-pane="published">
+              <p class="a2-pane-lead">
+                A real delivery anchored on Solana mainnet on 2 November 2026. Twelve checks,
+                three memos, one core hash.
+              </p>
+              <div class="a2-artifacts">
+                <div class="a2-artifact">
+                  <svg class="a2-i"><use href="#i-doc" /></svg>
+                  <div><b>receipt.json</b><span>Signed L3 receipt</span></div>
+                  <span class="a2-ready">ready</span>
+                </div>
+                <div class="a2-artifact">
+                  <svg class="a2-i"><use href="#i-pen" /></svg>
+                  <div><b>agreement.signed.json</b><span>Customer and provider signatures</span></div>
+                  <span class="a2-ready">ready</span>
+                </div>
+                <div class="a2-artifact">
+                  <svg class="a2-i"><use href="#i-hash" /></svg>
+                  <div><b>output.product-feed.csv</b><span>20 records, 4 failed records</span></div>
+                  <span class="a2-ready">ready</span>
+                </div>
+                <div class="a2-artifact">
+                  <svg class="a2-i"><use href="#i-shield" /></svg>
+                  <div><b>report.json</b><span>Private detail, committed by hash</span></div>
+                  <span class="a2-ready">ready</span>
+                </div>
+              </div>
+              <div class="a2-field">
+                <label>Network</label>
+                <div class="a2-fixed">Solana mainnet · three memos</div>
+              </div>
+              <button class="a2-btn a2-btn--solid" type="button" data-a2-run="published">Verify receipt</button>
+              <p class="a2-hint">Fetches the pinned artifacts from this site and reads the anchor transactions from mainnet.</p>
+            </div>
+
+            <div class="a2-pane" role="tabpanel" id="a2-pane-files" aria-labelledby="a2-tab-files" data-a2-pane="files" hidden>
+              <p class="a2-pane-lead">
+                Upload the receipt and agreement as JSON, and the delivered file exactly as it
+                arrived.
+              </p>
+              <div class="a2-file">
+                <label for="a2-file-receipt">Receipt <em>required</em></label>
+                <input id="a2-file-receipt" type="file" accept="application/json,.json" />
+              </div>
+              <div class="a2-file">
+                <label for="a2-file-agreement">Agreement <em>required</em></label>
+                <input id="a2-file-agreement" type="file" accept="application/json,.json" />
+              </div>
+              <div class="a2-file">
+                <label for="a2-file-output">Delivered file <em>required</em></label>
+                <input id="a2-file-output" type="file" accept=".csv,text/csv,text/plain" />
+              </div>
+              <div class="a2-file">
+                <label for="a2-file-report">Report <em>optional</em></label>
+                <input id="a2-file-report" type="file" accept="application/json,.json" />
+              </div>
+              <div class="a2-field">
+                <label for="a2-file-cluster">Chain check</label>
+                <select id="a2-file-cluster">
+                  <option value="offline">Offline — signatures and hashes only</option>
+                  <option value="mainnet">Solana mainnet — read the anchors</option>
+                  <option value="devnet">Solana devnet — read the anchors</option>
+                </select>
+              </div>
+              <button class="a2-btn a2-btn--solid" type="button" data-a2-run="files">Verify receipt</button>
+              <p class="a2-hint">Files are sent only for this request. No account, wallet, or payment.</p>
+            </div>
           </div>
-          <div class="aas-card">
-            <div class="tag">Identity</div>
-            <h3>Published key</h3>
-            <p>The active receipt key and rotation policy live at <span class="aas-hash">/.well-known/equxi-verifier.json</span>. Every receipt carries the key inline.</p>
-          </div>
-          <div class="aas-card">
-            <div class="tag">Ruleset</div>
-            <h3>Five checks</h3>
-            <p>record_count, required_fields, field_types, unique, deadline. Checks are versioned separately from the receipt format.</p>
+
+          <div class="a2-result" id="a2-result" aria-live="polite">
+            <div class="a2-result-empty">
+              <div class="a2-result-mark"><svg class="a2-i"><use href="#i-check" /></svg></div>
+              <b>No verification yet</b>
+              <p>Choose an input and run the checks. The result lists every step, the core hash, and any anchor slots.</p>
+            </div>
           </div>
         </div>
-        <div class="aas-links">
+      </section>
+
+      <section class="a2-section" id="implement">
+        <div class="a2-section-head">
+          <div>
+            <div class="a2-eyebrow">For implementers</div>
+            <h2>Small surface. Verifiable guarantees.</h2>
+          </div>
+          <p class="a2-section-sub">
+            The reference implementation is one way to do it, not the definition. Anything that
+            produces the same hashes from the same public data conforms.
+          </p>
+        </div>
+
+        <div class="a2-cards">
+          <div class="a2-card">
+            <svg class="a2-i"><use href="#i-terminal" /></svg>
+            <h3>Issue</h3>
+            <p>Sign a delivery locally with a key you control. The report stays with you.</p>
+            <code>node aas2.js verify \
+  --agreement … --output … \
+  --key verifier.pem</code>
+            <a href="https://github.com/thesithunyein/equxi/blob/main/AAS-2.md" target="_blank" rel="noopener">Read the spec <svg class="a2-i"><use href="#i-external" /></svg></a>
+          </div>
+          <div class="a2-card">
+            <svg class="a2-i"><use href="#i-link" /></svg>
+            <h3>Verify</h3>
+            <p>One stateless endpoint. Send a receipt, an agreement, and the delivered bytes.</p>
+            <code>POST /api/aas2-verify
+{ receipt, agreement,
+  output, cluster }</code>
+            <a href="https://github.com/thesithunyein/equxi/blob/main/EXTERNAL-VERIFICATION.md" target="_blank" rel="noopener">Verify independently <svg class="a2-i"><use href="#i-external" /></svg></a>
+          </div>
+          <div class="a2-card">
+            <svg class="a2-i"><use href="#i-key" /></svg>
+            <h3>Identify</h3>
+            <p>Every receipt carries the signing key. The published registry names it and states its status.</p>
+            <code>GET /.well-known/
+  equxi-verifier.json</code>
+            <a href="https://github.com/thesithunyein/equxi/blob/main/PROVIDER-ONBOARDING.md" target="_blank" rel="noopener">Run a real delivery <svg class="a2-i"><use href="#i-external" /></svg></a>
+          </div>
+        </div>
+
+        <div class="a2-links">
+          <a href="https://github.com/thesithunyein/equxi/tree/main/fixtures/aas-2" target="_blank" rel="noopener">Pinned fixtures</a>
           <a href="https://github.com/thesithunyein/equxi/blob/main/GOVERNANCE.md" target="_blank" rel="noopener">Governance</a>
-          <a href="https://github.com/thesithunyein/equxi/blob/main/EXTERNAL-VERIFICATION.md" target="_blank" rel="noopener">Verify independently</a>
-          <a href="https://github.com/thesithunyein/equxi/blob/main/PROVIDER-ONBOARDING.md" target="_blank" rel="noopener">Run a real delivery</a>
-          <a href="https://github.com/thesithunyein/equxi/blob/main/LICENSE" target="_blank" rel="noopener">MIT license</a>
           <a href="https://www.equxi.tech/.well-known/equxi-verifier.json" target="_blank" rel="noopener">Verifier identity</a>
+          <a href="https://github.com/thesithunyein/equxi/blob/main/LICENSE" target="_blank" rel="noopener">MIT license</a>
         </div>
       </section>
 
-      <section class="aas-section">
-        <h2>What a receipt does not prove</h2>
-        <p class="sub">
-          Checks are structural. A passing receipt means the delivery matches the agreed format, not that the content is
-          true. A failed check is a verification result, not a legal breach. The verifier is trusted in v0.1; the
-          timeline is only as strong as the level chosen.
+      <section class="a2-section" id="scope">
+        <div class="a2-section-head">
+          <div>
+            <div class="a2-eyebrow">Scope</div>
+            <h2>What a receipt proves.</h2>
+          </div>
+          <p class="a2-section-sub">
+            AAS-2 is deliberately narrow. It proves that a delivery matches an agreement, not
+            that the content is true.
+          </p>
+        </div>
+
+        <div class="a2-scope">
+          <div>
+            <h3>Proven</h3>
+            <ul>
+              <li>The delivered bytes match the format and rules the agreement named.</li>
+              <li>The receipt was signed by the key it carries, under the receipt domain.</li>
+              <li>At L3, the three memos exist in order on Solana and the clock is public.</li>
+            </ul>
+          </div>
+          <div class="a2-scope-no">
+            <h3>Not proven</h3>
+            <ul>
+              <li>That the content is accurate or useful.</li>
+              <li>That a failed check is a legal breach.</li>
+              <li>That the verifier itself is honest — v0.1 trusts the signing key, and the registry makes it identifiable.</li>
+            </ul>
+          </div>
+        </div>
+
+        <p class="a2-scope-note">
+          <b>Draft 0.1.</b> The version stays 0.x until an implementation written by someone else
+          reproduces the pinned hashes, a verifier key rotation has been exercised, and the
+          governance review is complete. The pinned fixtures are the contract.
         </p>
-        <div class="aas-note">
-          AAS-2 is a draft. The version stays 0.x until an implementation written by someone else produces the same
-          hashes, a verifier key rotation has been exercised, and the governance review is done.
+      </section>
+
+      <section class="a2-close">
+        <div>
+          <div class="a2-eyebrow">AAS-2 · 0.1</div>
+          <h2>Start with a proof you can check.</h2>
+        </div>
+        <div class="a2-actions">
+          <a class="a2-btn a2-btn--solid" href="#verify">Verify the mainnet receipt</a>
+          <a class="a2-btn" href="https://github.com/thesithunyein/equxi/blob/main/AAS-2.md" target="_blank" rel="noopener">Specification</a>
         </div>
       </section>
     </main>
@@ -254,7 +382,7 @@ VALID</span></pre>
     <footer class="site-footer">
       <div class="footer-inner">
         <div class="footer-brand">
-          <img src="assets/logo.webp" alt="Equxi" width="28" height="28" style="border-radius: 6px;" />
+          <img src="assets/logo-ink.png" alt="Equxi" width="26" height="26" />
           <span style="font-weight: 600;">Equxi</span>
         </div>
         <nav class="footer-links">
@@ -262,6 +390,7 @@ VALID</span></pre>
           <a href="aas-2.html">AAS-2</a>
           <a href="app.html">Dashboard</a>
           <a href="explorer.html">Explorer</a>
+          <a href="launch.html">Launch</a>
           <a href="deck.html">Pitch deck</a>
           <a href="https://github.com/thesithunyein/equxi" target="_blank" rel="noopener">GitHub</a>
           <a href="https://x.com/equxi_ai" target="_blank" rel="noopener">X</a>
@@ -272,5 +401,6 @@ VALID</span></pre>
   </div>
 
   <script src="main.js"></script>
+  <script src="aas-2.js"></script>
 </body>
 </html>

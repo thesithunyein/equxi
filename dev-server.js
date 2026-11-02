@@ -31,6 +31,7 @@ var API_ROUTES = {
   "/api/markets": require("./api/markets.js"),
   "/api/health": require("./api/health.js"),
   "/api/verify": require("./api/verify.js"),
+  "/api/aas2-verify": require("./api/aas2-verify.js"),
 };
 
 var ROOT = __dirname;

@@ -43,6 +43,10 @@ var canonical = require("../lib/aas2/canonical.js");
 var throttle = require("../lib/rate-limit.js");
 var log = require("../lib/log.js");
 
+// Statically required so the serverless bundle carries the ruleset. The
+// library's default is a filesystem path, which tracing cannot see.
+var RULESET = require("../aas-2/rulesets/equxi-checks-0.1.0.json");
+
 var MAX_BODY_BYTES = 2 * 1024 * 1024;
 
 function send(res, status, payload) {
@@ -165,6 +169,7 @@ module.exports = async function handler(req, res) {
     var result = verifyLib.verifyOutput({
       agreement: body.agreement,
       output: outputBytes(body),
+      ruleset: RULESET,
       submittedAt: body.submitted_at,
       createdAt: body.created_at,
       evidenceLevel: level,

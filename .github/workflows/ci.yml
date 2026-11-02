@@ -262,6 +262,9 @@ jobs:
           test -f lib/equxi-layout.js || exit 1
           test -f explorer.html || exit 1
           test -f aas-2.html || exit 1
+          test -f aas-2.css || exit 1
+          test -f aas-2.js || exit 1
+          test -f api/aas2-verify.js || exit 1
           test -f AAS-2.md || exit 1
           test -f GOVERNANCE.md || exit 1
           test -f EXTERNAL-VERIFICATION.md || exit 1

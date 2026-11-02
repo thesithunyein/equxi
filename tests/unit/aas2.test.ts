@@ -25,6 +25,7 @@ const anchorsLib = require("../../lib/aas2/anchors.js");
 const anchorTxLib = require("../../lib/aas2/anchor-tx.js");
 const verifyLib = require("../../lib/aas2/verify.js");
 const verifyHandler = require("../../api/verify.js");
+const receiptVerifyHandler = require("../../api/aas2-verify.js");
 
 const FIXTURES = path.join(__dirname, "..", "..", "fixtures", "aas-2");
 const FIXTURE_CLOCK = "2026-11-15T10:00:00Z";
@@ -1005,6 +1006,119 @@ describe("POST /api/verify", () => {
 
     expect(res.statusCode).to.equal(400);
     expect(JSON.parse(bodyText()).error).to.equal("invalid_body");
+  });
+});
+
+describe("POST /api/aas2-verify", () => {
+  function makeRes() {
+    const headers: Record<string, string> = {};
+    let body = "";
+    return {
+      res: {
+        statusCode: 0,
+        setHeader(name: string, value: string) {
+          headers[name] = value;
+        },
+        end(chunk?: string) {
+          body = chunk || "";
+        },
+      },
+      bodyText: () => body,
+    };
+  }
+
+  function mainnet() {
+    return {
+      receipt: readJson("mainnet/receipt.json"),
+      agreement: readJson("mainnet/agreement.signed.json"),
+      output: fs.readFileSync(path.join(FIXTURES, "output.product-feed.csv"), "utf8"),
+      report: readJson("mainnet/report.json"),
+    };
+  }
+
+  it("verifies the pinned mainnet receipt offline and names its signer", async () => {
+    const { res, bodyText } = makeRes();
+    const input = mainnet();
+
+    await receiptVerifyHandler(
+      { method: "POST", headers: {}, body: { ...input, cluster: "offline" } },
+      res
+    );
+
+    const payload = JSON.parse(bodyText());
+    expect(res.statusCode).to.equal(200);
+    expect(payload.valid).to.equal(true);
+    expect(payload.passed).to.equal(payload.total);
+    expect(payload.core_hash).to.equal(
+      "sha256:b1f97888e86de051ceb6d2f282eaed81243049c804e19dbfef949c6533645e52"
+    );
+    expect(payload.evidence_level).to.equal("L3");
+    expect(payload.identity.key_id).to.equal("equxi-aas2-2026-11");
+    expect(payload.identity.status).to.equal("active");
+    // Offline means no chain read, so the on-chain step is absent, not passed.
+    expect(payload.steps.map((step: AnyJson) => step.id)).to.not.include("anchors_on_chain");
+  });
+
+  it("marks a changed output invalid at the hash step", async () => {
+    const { res, bodyText } = makeRes();
+    const input = mainnet();
+
+    await receiptVerifyHandler(
+      {
+        method: "POST",
+        headers: {},
+        body: {
+          ...input,
+          output: input.output.replace("Aurora Desk Lamp", "Aurora Desk Lamp X"),
+          cluster: "offline",
+        },
+      },
+      res
+    );
+
+    const payload = JSON.parse(bodyText());
+    expect(res.statusCode).to.equal(200);
+    expect(payload.valid).to.equal(false);
+    expect(payload.steps.find((step: AnyJson) => step.id === "output_hashes").ok).to.equal(false);
+  });
+
+  it("accepts JSON text fields and an omitted report", async () => {
+    const { res, bodyText } = makeRes();
+    const input = mainnet();
+
+    await receiptVerifyHandler(
+      {
+        method: "POST",
+        headers: {},
+        body: {
+          receipt: JSON.stringify(input.receipt),
+          agreement: JSON.stringify(input.agreement),
+          output: input.output,
+        },
+      },
+      res
+    );
+
+    const payload = JSON.parse(bodyText());
+    expect(res.statusCode).to.equal(200);
+    expect(payload.cluster).to.equal("offline");
+    expect(payload.valid).to.equal(true);
+    expect(payload.steps.find((step: AnyJson) => step.id === "report_hash").detail).to.match(
+      /no report supplied/
+    );
+  });
+
+  it("refuses an arbitrary cluster name", async () => {
+    const { res, bodyText } = makeRes();
+    const input = mainnet();
+
+    await receiptVerifyHandler(
+      { method: "POST", headers: {}, body: { ...input, cluster: "http://169.254.169.254" } },
+      res
+    );
+
+    expect(res.statusCode).to.equal(400);
+    expect(JSON.parse(bodyText()).error).to.equal("bad_cluster");
   });
 });
 
