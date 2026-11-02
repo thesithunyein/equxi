@@ -90,6 +90,13 @@
   stroke-linejoin: round;
 }
 
+.a2-nav-ico {
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+  vertical-align: -2px;
+}
+
 /* ----------------------------------------------------------------- hero */
 
 .a2-hero {
@@ -105,7 +112,8 @@
   font-size: clamp(46px, 5.7vw, 78px);
   font-weight: 500;
   line-height: 0.98;
-  letter-spacing: -0.048em;
+  letter-spacing: -0.032em;
+  word-spacing: 0.04em;
   max-width: 640px;
 }
 
@@ -492,7 +500,8 @@
   font-size: clamp(30px, 3.6vw, 46px);
   font-weight: 500;
   line-height: 1.05;
-  letter-spacing: -0.038em;
+  letter-spacing: -0.028em;
+  word-spacing: 0.03em;
 }
 
 .a2-section-sub {
@@ -1334,7 +1343,8 @@
   margin: 14px 0 0;
   font-size: clamp(28px, 3.2vw, 40px);
   font-weight: 500;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.025em;
+  word-spacing: 0.03em;
   line-height: 1.08;
 }
 
