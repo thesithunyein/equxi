@@ -3,7 +3,7 @@
   "outputDirectory": ".",
   "framework": null,
   "redirects": [
-    { "source": "/launch.html", "destination": "/", "permanent": true },
+    { "source": "/launch", "destination": "/launch.html", "permanent": false },
     { "source": "/deck.html", "destination": "/", "permanent": true },
     { "source": "/test-helpers.html", "destination": "/", "permanent": true }
   ],

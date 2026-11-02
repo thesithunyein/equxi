@@ -1,0 +1,18 @@
+{
+  "config": "DkLTrHbx1oxktJmiSu8HNEduhEYnHaZAaHiVNeKDfG8u",
+  "updatedAt": "2026-10-04T11:07:47.349Z",
+  "baseMint": "7qxExXZ91PCJjaHW4NFHtkFcHNjupjehCuKBJkSKUU6h",
+  "pool": "GQDjSW193Bim5sYHjcBMqtsgGzJa8Bh5FdJc4JL9Fq6f",
+  "dammConfig": "A8gMrEPJkacWkcb3DGwtJwTe16HktSEfvwtuDh2MCtck",
+  "migrationTx": "z7k3EcSpJJAVNJ8rkkQUP55acbWrSNV2VLgsV23HpjToWrRDfKWU2dL9rVVdv2GcMVP7KuZ5b7sQJyeBEjGwCxm",
+  "claimedLamports": "69798785",
+  "walletLamportsAfterClaim": "2220238532",
+  "claimedFrom": [
+    "creatorWithdrawMigrationFee",
+    "partnerWithdrawMigrationFee"
+  ],
+  "agent": "9CvFbUciyP4APMVyzjLiR2znFmMTEPNqfGAP37PDNU4J",
+  "bond": "CU5R3w8Di4JKdkXzK68TWWrynUqUiAwDgXErUbsUMyJF",
+  "bondLamports": "100000000",
+  "bondTx": "4EFJktKiuYgzZhLWZ63R9eAERbdtqvbccei6MgY72g7Kd8QrtKTRd5f3T2AFv8ZTbvAdtQPj8C3P7EL4WpRQx8pe"
+}
