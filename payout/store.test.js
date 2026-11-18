@@ -40,8 +40,12 @@ test("signed approval, one durable claim, and idempotent route reporting", (t) =
   assert.equal(first.checkQuote(id, quote).approved, true);
   assert.throws(() => first.checkQuote(id, { ...quote, recipient: address() }), /signed terms/);
   assert.throws(() => first.checkQuote(id, { ...quote, debitRaw: "1201" }), /cap/);
+  assert.equal(second.read(id).state, "claimed");
+  assert.throws(() => second.claim(id), /already claimed/);
   const transaction = bs58.encode(randomBytes(64));
   assert.equal(first.report(id, "route-1", transaction).state, "route_reported");
   assert.equal(second.report(id, "route-1", transaction).transactionSignature, transaction);
+  assert.equal(second.markCreditVerified(id, transaction).state, "credit_verified");
+  assert.throws(() => first.claim(id), /already claimed/);
   assert.throws(() => second.report(id, "route-2", bs58.encode(randomBytes(64))), /outstanding/);
 });

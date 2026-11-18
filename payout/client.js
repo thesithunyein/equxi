@@ -3,6 +3,7 @@
 const createForm = document.querySelector("#create");
 const lookup = document.querySelector("#lookup");
 const signButton = document.querySelector("#approve");
+const verifyButton = document.querySelector("#verify-credit");
 const notice = document.querySelector("#notice");
 let payout;
 
@@ -26,7 +27,8 @@ function show(record) {
     awaiting_approval: "Awaiting reviewer signature",
     approved: "Approved. Ready for Steve to claim.",
     claimed: "Claimed. Check Steve and MultiHopper before taking any further action.",
-    route_reported: "Route reported. Verify completion in MultiHopper and Solana Explorer.",
+    route_reported: "Route reported. The recipient credit has yet to be verified.",
+    credit_verified: "Recipient credit verified on Solana mainnet. Check the MultiHopper route separately.",
   }[record.state];
   const rows = {
     "Reviewer": record.terms.reviewer,
@@ -50,6 +52,7 @@ function show(record) {
     terms.append(name, detail);
   }
   signButton.hidden = record.state !== "awaiting_approval";
+  verifyButton.hidden = record.state !== "route_reported";
   const explorer = document.querySelector("#explorer");
   explorer.hidden = !record.transactionSignature;
   if (record.transactionSignature) {
@@ -85,4 +88,9 @@ signButton.addEventListener("click", () => {
     const { signature } = await wallet.signMessage(new TextEncoder().encode(record.message), "utf8");
     return request("/payouts/" + record.terms.id + "/approve", { signature: btoa(String.fromCharCode(...signature)) });
   });
+});
+
+verifyButton.addEventListener("click", () => {
+  const { id } = payout.terms;
+  void run(verifyButton, () => request("/payouts/" + id + "/verify-credit", {}));
 });

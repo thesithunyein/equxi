@@ -7,6 +7,7 @@ const { McpServer } = require("@modelcontextprotocol/sdk/server/mcp.js");
 const { StreamableHTTPServerTransport } = require("@modelcontextprotocol/sdk/server/streamableHttp.js");
 const { z } = require("zod");
 const { openStore, check } = require("./store");
+const { verifyMainnetCredit } = require("./settlement");
 
 const origin = new URL(process.env.PAYOUT_ORIGIN || "http://localhost:4322").origin;
 const { PAYOUT_OPERATOR_TOKEN: operator, PAYOUT_AGENT_TOKEN: agent } = process.env;
@@ -107,11 +108,17 @@ const server = createServer(async (req, res) => {
     }
     check(authorized(req, operator), "Operator token required.", 401);
     if (path === "/payouts" && req.method === "POST") return reply(res, 201, store.create(await body(req)));
-    const match = /^\/payouts\/([0-9a-f-]{36})(\/approve)?$/.exec(path);
+    const match = /^\/payouts\/([0-9a-f-]{36})(\/approve|\/verify-credit)?$/.exec(path);
     if (match && req.method === "GET" && !match[2]) return reply(res, 200, store.read(match[1]));
-    if (match?.[2] && req.method === "POST") {
+    if (match?.[2] === "/approve" && req.method === "POST") {
       const { signature } = await body(req);
       return reply(res, 200, store.approve(match[1], signature));
+    }
+    if (match?.[2] === "/verify-credit" && req.method === "POST") {
+      const payout = store.read(match[1]);
+      check(payout.transactionSignature, "Report a final payment signature first.", 409);
+      await verifyMainnetCredit(payout, process.env.PAYOUT_RPC_URL);
+      return reply(res, 200, store.markCreditVerified(match[1], payout.transactionSignature));
     }
     return reply(res, 404, { error: "Not found." });
   } catch (error) {

@@ -130,6 +130,14 @@ function openStore(filename, { agentWallet, origin, maxAmountRaw, mint }) {
         && debit <= BigInt(maxAmountRaw), "Quote debit exceeds the approved cap or is below the payout.");
       return { approved: true, id };
     },
+    markCreditVerified(id, transactionSignature) {
+      const result = db.prepare(`
+        UPDATE payouts SET state = 'credit_verified'
+        WHERE id = ? AND transaction_signature = ? AND state IN ('route_reported', 'credit_verified')
+      `).run(id, transactionSignature);
+      check(result.changes === 1, "Reported evidence changed during verification.", 409);
+      return read(id);
+    },
     report(id, routeId, transactionSignature) {
       const payout = read(id);
       check(typeof routeId === "string" && /^[a-zA-Z0-9_-]{1,128}$/.test(routeId), "Invalid route ID.");
