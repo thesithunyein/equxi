@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Equxi Payout Agent</title>
+  <link rel="stylesheet" href="/payout.css">
+  <script src="/client.js" defer></script>
+</head>
+<body>
+  <main>
+    <header><a href="https://www.equxi.tech/">Equxi</a><h1>Payout Agent</h1>
+    <p>Approve one contractor payout and track its MultiHopper route.</p></header>
+    <label>Operator token <input id="token" type="password" autocomplete="off" required></label>
+    <section>
+      <h2>Create a payout</h2>
+      <form id="create">
+        <label>Reviewer wallet <input name="reviewer" required></label>
+        <label>Contractor wallet <input name="recipient" required></label>
+        <div class="amounts">
+          <label>Payout (base units) <input name="amountRaw" inputmode="numeric" required></label>
+          <label>Maximum debit (base units) <input name="maxDebitRaw" inputmode="numeric" required></label>
+        </div>
+        <button>Create payout</button>
+      </form>
+    </section>
+    <section>
+      <h2>Approval and route</h2>
+      <form id="lookup">
+        <label>Payout ID <input name="id" required></label>
+        <button>Load or refresh</button>
+      </form>
+      <div id="details" hidden>
+        <p id="state"></p>
+        <dl id="terms"></dl>
+        <button id="approve" type="button">Sign with Phantom</button>
+        <a id="explorer" hidden rel="noopener noreferrer" target="_blank">Open reported transaction</a>
+      </div>
+    </section>
+    <p id="notice" role="status" aria-live="polite"></p>
+  </main>
+</body>
+</html>

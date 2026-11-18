@@ -50,3 +50,6 @@ DEMO-RUNBOOK.md
 PITCH-SCRIPT.md
 WINNING-PLAN.md
 TRACK-READINESS.md
+
+# Local payout state
+/payout.sqlite*

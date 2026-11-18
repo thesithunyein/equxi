@@ -1,0 +1,18 @@
+:root { color-scheme: dark; font: 16px/1.5 system-ui, sans-serif; color: #f5eee4; background: #1c1916; }
+* { box-sizing: border-box; }
+main { max-width: 46rem; margin: 3rem auto; padding: 0 1rem 2rem; }
+h1 { font-size: clamp(2.25rem, 7vw, 4rem); letter-spacing: -.055em; line-height: 1; margin: .45em 0 .3em; }
+h2 { margin: 0 0 1rem; font-size: 1.2rem; }
+p, dt { color: #cec0ae; }
+section { margin-top: 1rem; border: 1px solid #4d4033; border-radius: .75rem; padding: 1.2rem; background: #24201b; }
+label { display: grid; gap: .35rem; margin-bottom: .75rem; }
+input, button { font: inherit; min-height: 2.65rem; border-radius: .4rem; padding: .45rem .65rem; }
+input { min-width: 0; color: inherit; border: 1px solid #71614e; background: #191612; }
+button { border: 0; background: #edbc81; color: #231912; font-weight: 650; cursor: pointer; }
+button:disabled { opacity: .6; cursor: wait; }
+a { color: #edbc81; }
+.amounts, dl { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+dt, dd { margin: 0; overflow-wrap: anywhere; }
+#notice { position: sticky; bottom: 1rem; background: #30261e; padding: .65rem; border-radius: .4rem; }
+#notice:empty { display: none; }
+@media (max-width: 32rem) { .amounts { grid-template-columns: 1fr; } }

@@ -10,3 +10,7 @@ PROVIDER-ONBOARDING.md
 .aas2*
 .env*
 .vercel
+
+# The payout service is hosted separately from the static site.
+payout/
+payout.sqlite*
